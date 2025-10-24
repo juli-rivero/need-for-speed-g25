@@ -16,10 +16,10 @@ project(taller_tp
     LANGUAGES CXX
     )
 
-option(TALLER_TESTS "Enable / disable tests." ON)
-option(TALLER_CLIENT "Enable / disable client program." ON)
+option(TALLER_TESTS "Enable / disable tests." OFF)
+option(TALLER_CLIENT "Enable / disable client program." OFF)
 option(TALLER_SERVER "Enable / disable server program." ON)
-option(TALLER_EDITOR "Enable / disable editor program." ON)
+option(TALLER_EDITOR "Enable / disable editor program." OFF)
 option(TALLER_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
 
 message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
@@ -96,7 +96,7 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
 
-    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
+    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp )
 endif()
 
 # Program section
@@ -122,6 +122,7 @@ if(TALLER_CLIENT)
 endif()
 
 if(TALLER_SERVER)
+    include(FetchContent)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_server)
 
@@ -133,9 +134,34 @@ if(TALLER_SERVER)
     add_subdirectory(server)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+    FetchContent_Declare(
+            box2d
+            GIT_REPOSITORY https://github.com/erincatto/box2d.git
+            GIT_TAG v3.1.1
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+            OVERRIDE_FIND_PACKAGE
+    )
+    FetchContent_Declare(
+            yaml
+            GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
+            GIT_TAG v0.8.0
+            GIT_SHALLOW TRUE
+            GIT_PROGRESS TRUE
+            OVERRIDE_FIND_PACKAGE
+    )
 
+    FetchContent_MakeAvailable(box2d yaml)
+    target_include_directories(taller_server
+            PRIVATE
+            ${box2d_SOURCE_DIR}/include
+            ${CMAKE_BINARY_DIR}/_deps/box2d-src/include
+    )
     # Link the taller_common lib target
-    target_link_libraries(taller_server taller_common)
+    target_link_libraries(taller_server PRIVATE
+            box2d
+            taller_common
+    )
 endif()
 
 if(TALLER_EDITOR)

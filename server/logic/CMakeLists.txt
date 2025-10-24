@@ -1,0 +1,17 @@
+target_sources(taller_server
+        PRIVATE
+        GameSessionFacade.cpp
+        GameWorld.cpp
+        MatchSession.cpp
+        RaceSession.cpp
+        UpgradeSystem.cpp
+        PUBLIC
+        GameSessionFacade.h
+        GameWorld.h
+        IGameConfig.h
+        IRaceEvents.h
+        MatchSession.h
+        RaceSession.h
+        types.h
+        UpgradeSystem.h
+)

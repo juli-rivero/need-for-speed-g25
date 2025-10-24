@@ -1,0 +1,13 @@
+target_sources(taller_server
+        PRIVATE
+        EntityFactory.cpp
+        PhysicsFactory.cpp
+        PhysicsWorld.cpp
+        PUBLIC
+        Box2DBodyAdapter.h
+        EntityFactory.h
+        IPhysicalBody.h
+        PhysicsBody.h
+        PhysicsFactory.h
+        PhysicsWorld.h
+)

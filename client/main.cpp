@@ -15,8 +15,8 @@ int main() try {
 	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
 	Window window("SDL2pp demo",
 			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			640, 480,
-			SDL_WINDOW_RESIZABLE);
+			0, 0,
+			SDL_WINDOW_FULLSCREEN_DESKTOP);
 
 	// Create accelerated video renderer with default driver
 	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);

@@ -1,5 +1,13 @@
-#include "common/foo.h"
+#include <iostream>
+#include <memory>
+#include <vector>
+#include <thread>
+#include <chrono>
+#include <cmath>
+
+
 
 int main() {
-    return foo(6);
+    //TODO: testear harcodeando las entidades y probar logica
+    return 0;
 }
