@@ -15,4 +15,6 @@ class ArgsParser {
 
     bool has_help() const;
     void print_help() const;
+
+    void activate_logging() const;
 };

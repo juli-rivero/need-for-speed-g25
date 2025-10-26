@@ -1,7 +1,7 @@
+#include <spdlog/spdlog.h>
+
 #include <cxxopts.hpp>
 #include <exception>
-#include <fstream>
-#include <iostream>
 
 #include "client/app.h"
 #include "client/args_parser.h"
@@ -17,30 +17,32 @@ int main(const int argc, const char* argv[]) {
     try {
         const ArgsParser args_parser(argc, argv);
 
+        args_parser.activate_logging();
+
         if (args_parser.has_help()) {
             args_parser.print_help();
             return SUCCESS;
         }
 
-        std::cout << "Connecting to " << args_parser.get_host() << ":"
-                  << args_parser.get_port() << std::endl;
+        spdlog::info("Connecting to " + args_parser.get_host() + ":" +
+                     args_parser.get_port());
 
         App app{};
         app.run();
 
         return SUCCESS;
     } catch (const cxxopts::exceptions::parsing& e) {
-        std::cerr << "Error: " << e.what() << std::endl;
-        std::cerr << "Use option --help for more info" << std::endl;
+        spdlog::critical(e.what());
+        spdlog::info("Use flag --help for more info");
 
         return ERROR;
     } catch (const std::exception& err) {
-        std::cerr << "Something went wrong and an exception was caught: "
-                  << err.what() << "\n";
+        spdlog::critical("Something went wrong and an exception was caught: " +
+                         std::string(err.what()));
         return ERROR;
     } catch (...) {
-        std::cerr
-            << "Something went wrong and an unknown exception was caught.\n";
+        spdlog::critical(
+            "Something went wrong and an unknown exception was caught.");
         return ERROR;
     }
 }
