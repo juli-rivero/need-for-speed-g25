@@ -26,6 +26,8 @@ repos:
           "--inline-suppr",
           "-Dslots=",
           "--enable=all",
+          "--include=src/common/macros.h",
+          "--include=src/common/dto/macros.inl",
           "--suppress=missingIncludeSystem",
           "--suppress=normalCheckLevelMaxBranches",
           "--suppress=missingInclude",
