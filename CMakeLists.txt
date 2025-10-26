@@ -52,6 +52,17 @@ target_include_directories(taller_common PUBLIC ${CMAKE_SOURCE_DIR}/src/)
 # sudo apt-get install libopus-dev libopusfile-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack1 libwavpack-dev libfreetype-dev wavpack
 #
 
+# Install command arguments parser
+if(TALLER_CLIENT OR TALLER_SERVER)
+    include(FetchContent)
+    FetchContent_Declare(
+            cxxopts
+            GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+            GIT_TAG v3.3.1  # puedes fijar una versión estable
+    )
+    FetchContent_MakeAvailable(cxxopts)
+endif()
+
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
 if(TALLER_CLIENT OR TALLER_EDITOR)
@@ -120,7 +131,7 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp cxxopts)
 endif()
 
 if(TALLER_SERVER)
