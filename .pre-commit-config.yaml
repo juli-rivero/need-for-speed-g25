@@ -1,0 +1,42 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+
+  - repo: https://github.com/pocc/pre-commit-hooks
+    rev: v1.3.5
+    hooks:
+      - id: clang-format
+        args: [ --style=file, -i ]
+        files: ^src/.*\.(cpp|hpp|h)$
+
+      - id: clang-tidy # sudo apt install clang-tidy
+        args: [
+          "--config-file=.clang-tidy",
+          "-p=build",
+          "-quiet"
+        ]
+        files: ^src/.*\.(cpp|hpp|h)$
+
+      - id: cppcheck
+        args: [
+          "--inline-suppr",
+          "-Dslots=",
+          "--enable=all",
+          "--suppress=missingIncludeSystem",
+          "--suppress=normalCheckLevelMaxBranches",
+          "--suppress=missingInclude",
+          "--suppress=unusedFunction",
+          "--suppress=unmatchedSuppression",
+          "--suppress=unusedStructMember",
+          "--suppress=useStlAlgorithm",
+          "--language=c++",
+          "--std=c++20",
+          "--error-exitcode=1" ]
+        files: ^src/.*\.(cpp|hpp|h)$
+
+      - id: cpplint
+        files: ^src/.*\.(cpp|hpp|h)$

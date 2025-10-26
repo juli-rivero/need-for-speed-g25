@@ -9,6 +9,8 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 set(CMAKE_CXX_EXTENSIONS ON)
+# Genera el compile_commands.json para los clang
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(taller_tp
     VERSION 1.0
@@ -30,7 +32,7 @@ add_library(taller_common STATIC)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
-add_subdirectory(common/)
+add_subdirectory(src/common)
 
 
 # set compiler warnings to the targets
@@ -40,7 +42,7 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # Say where the headers will be found required by library target
 # Make this PUBLIC so any dependant linking lib will inherit this
 # location (so our dependants will not have to explicitly request this)
-target_include_directories(taller_common PUBLIC .)
+target_include_directories(taller_common PUBLIC ${CMAKE_SOURCE_DIR}/src/)
 
 # HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
 # compiling the client/editor code.
@@ -110,7 +112,7 @@ if(TALLER_CLIENT)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(client)
+    add_subdirectory(src/client)
 
     set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
@@ -130,7 +132,7 @@ if(TALLER_SERVER)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(server)
+    add_subdirectory(src/server)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
@@ -147,7 +149,7 @@ if(TALLER_EDITOR)
 
     # Add source files and enable warnings
     # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(editor)
+    add_subdirectory(src/editor)
 
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
@@ -190,7 +192,7 @@ if(TALLER_TESTS)
 
     # Add the source files to the taller_tests target
     # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(tests/)
+    add_subdirectory(src/tests/)
 
     # Set the compiler warnings to the tests target (but be a little lesser strict)
     set_project_warnings(taller_tests ${TALLER_MAKE_WARNINGS_AS_ERRORS} TRUE)
