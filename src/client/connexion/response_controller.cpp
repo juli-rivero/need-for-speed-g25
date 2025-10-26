@@ -6,43 +6,70 @@ ResponseController::ResponseController()
       game_controller(nullptr) {}
 
 void ResponseController::control(Browser& browser) {
-    if (browser_controller) delete browser_controller;
+    std::lock_guard lock(mtx);
+    delete browser_controller;
     browser_controller = new BrowserController(browser);
 }
 
 void ResponseController::decontrol(Browser&) {
-    if (browser_controller) delete browser_controller;
+    std::lock_guard lock(mtx);
+    delete browser_controller;
     browser_controller = nullptr;
 }
 
 void ResponseController::control(Lobby& lobby) {
-    if (lobby_controller) delete lobby_controller;
+    std::lock_guard lock(mtx);
+    delete lobby_controller;
     lobby_controller = new LobbyController(lobby);
 }
 
 void ResponseController::decontrol(Lobby&) {
-    if (lobby_controller) delete lobby_controller;
+    std::lock_guard lock(mtx);
+    delete lobby_controller;
     lobby_controller = nullptr;
 }
 
 void ResponseController::control(Game& game) {
-    if (game_controller) delete game_controller;
+    std::lock_guard lock(mtx);
+    delete game_controller;
     game_controller = new GameController(game);
 }
 
 void ResponseController::decontrol(Game&) {
-    if (game_controller) delete game_controller;
+    std::lock_guard lock(mtx);
+    delete game_controller;
     game_controller = nullptr;
 }
 
-ResponseController::~ResponseController() {
+void ResponseController::decontrol_all() {
+    std::lock_guard lock(mtx);
     delete browser_controller;
+    browser_controller = nullptr;
     delete lobby_controller;
+    lobby_controller = nullptr;
     delete game_controller;
+    game_controller = nullptr;
 }
 
-void ResponseController::on(const dto_session::LeaveResponse&) {}
-void ResponseController::on(const dto_session::JoinResponse&) {}
-void ResponseController::on(const dto_session::SearchResponse&) {}
-void ResponseController::on(const dto_lobby::StartResponse&) {}
-void ResponseController::on(const dto::ErrorResponse&) {}
+ResponseController::~ResponseController() { decontrol_all(); }
+
+void ResponseController::on(const dto_session::LeaveResponse& r) {
+    std::lock_guard lock(mtx);
+    if (browser_controller) browser_controller->on(r);
+}
+void ResponseController::on(const dto_session::JoinResponse& r) {
+    std::lock_guard lock(mtx);
+    if (browser_controller) browser_controller->on(r);
+}
+void ResponseController::on(const dto_session::SearchResponse& r) {
+    std::lock_guard lock(mtx);
+    if (browser_controller) browser_controller->on(r);
+}
+void ResponseController::on(const dto_lobby::StartResponse& r) {
+    std::lock_guard lock(mtx);
+    if (lobby_controller) lobby_controller->on(r);
+}
+void ResponseController::on(const dto::ErrorResponse& r) {
+    std::lock_guard lock(mtx);
+    if (browser_controller) browser_controller->on(r);
+}

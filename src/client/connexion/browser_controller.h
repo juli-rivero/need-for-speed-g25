@@ -1,6 +1,7 @@
 #pragma once
 
 #include "client/qt/browser.h"
+#include "common/dto/dto.h"
 #include "common/dto/dto_session.h"
 
 class BrowserController final {
@@ -14,4 +15,5 @@ class BrowserController final {
     void on(const dto_session::LeaveResponse&);
     void on(const dto_session::JoinResponse&);
     void on(const dto_session::SearchResponse&);
+    void on(const dto::ErrorResponse&);
 };

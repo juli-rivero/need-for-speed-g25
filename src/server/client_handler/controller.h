@@ -18,6 +18,8 @@ class Controller final : public RequestListener,
     LobbyController* lobby_controller;
     GameController* game_controller;
 
+    std::mutex mtx;
+
    public:
     explicit Controller(SessionsMonitor& monitor, int id, Sender& sender);
 
@@ -34,6 +36,8 @@ class Controller final : public RequestListener,
     ~Controller() override;
 
    private:
+    void decontrol_all();
+
     // BROWSER EVENTS //
     void on_join_session(Session&) override;
 

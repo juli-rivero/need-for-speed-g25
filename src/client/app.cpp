@@ -1,7 +1,5 @@
 #include "client/app.h"
 
-#include <assert.h>
-
 #include "client/game/sdl_app.h"
 #include "client/qt/qt_app.h"
 

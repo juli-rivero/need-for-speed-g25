@@ -13,3 +13,6 @@ void BrowserController::on(const dto_session::JoinResponse&) {
 void BrowserController::on(const dto_session::SearchResponse&) {
     throw std::runtime_error("not implemented");
 }
+void BrowserController::on(const dto::ErrorResponse&) {
+    throw std::runtime_error("not implemented");
+}

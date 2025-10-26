@@ -1,5 +1,7 @@
 #pragma once
 
+#include <mutex>
+
 #include "client/connexion/browser_controller.h"
 #include "client/connexion/game_controller.h"
 #include "client/connexion/lobby_controller.h"
@@ -9,6 +11,8 @@ class ResponseController : public ResponseListener {
     BrowserController* browser_controller;
     LobbyController* lobby_controller;
     GameController* game_controller;
+
+    std::mutex mtx;
 
    public:
     ResponseController();
@@ -23,6 +27,8 @@ class ResponseController : public ResponseListener {
 
     void control(Game& game);
     void decontrol(Game& game);
+
+    void decontrol_all();
 
     ~ResponseController() override;
 
