@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "server/client_handler/controller.h"
 #include "server/client_handler/receiver.h"
 #include "server/client_handler/sender.h"
@@ -11,7 +13,7 @@ class ClientHandler final {
         InLobby,
         InGame,
     };
-
+    std::shared_ptr<spdlog::logger> log;
     Protocol protocol;
     Sender sender;
     Controller controller;
@@ -22,11 +24,9 @@ class ClientHandler final {
 
     MAKE_FIXED(ClientHandler)
 
-    void start();
-
     [[nodiscard]] bool is_alive() const;
 
     void kill();
 
-    void join();
+    ~ClientHandler();
 };

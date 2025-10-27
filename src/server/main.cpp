@@ -2,8 +2,9 @@
 #include <fstream>
 #include <iostream>
 
-#include "server/clients_manager.h"
+#include "client/args_parser.h"
 #include "server/server.h"
+#include "spdlog/spdlog.h"
 
 #define PORT argv[1]
 
@@ -18,19 +19,28 @@ int main(const int argc, const char* argv[]) {
                 "\t./server <puerto>\n");
         }
 
-        const Server server(PORT);
+        const ArgsParser args_parser(argc, argv);
+
+        args_parser.activate_logging();
+
+        if (args_parser.has_help()) {
+            args_parser.print_help();
+            return SUCCESS;
+        }
+
+        const Server server(args_parser.get_port());
 
         while (std::cin.get() != 'q') {
         }
 
         return SUCCESS;
     } catch (const std::exception& err) {
-        std::cerr << "Something went wrong and an exception was caught: "
-                  << err.what() << "\n";
+        spdlog::critical("Something went wrong and an exception was caught: {}",
+                         err.what());
         return ERROR;
     } catch (...) {
-        std::cerr
-            << "Something went wrong and an unknown exception was caught.\n";
+        spdlog::critical(
+            "Something went wrong and an unknown exception was caught.");
         return ERROR;
     }
 }

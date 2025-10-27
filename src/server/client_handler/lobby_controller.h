@@ -10,13 +10,14 @@ struct ILobbyEvents {
 };
 
 class LobbyController final : SessionListener {
+    spdlog::logger* log;
     const int client_id;
     Sender& sender;
     ILobbyEvents& dispatcher;
 
    public:
-    LobbyController(Session& session, int client_id, Sender& sender,
-                    ILobbyEvents& handler);
+    LobbyController(Session&, int client_id, Sender&, ILobbyEvents& handler,
+                    spdlog::logger*);
 
     MAKE_FIXED(LobbyController)
 

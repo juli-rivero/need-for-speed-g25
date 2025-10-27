@@ -2,26 +2,24 @@
 
 #include <utility>
 
+#include "spdlog/spdlog.h"
+
 ConnexionController::ConnexionController(Protocol&& protocol)
     : protocol(std::move(protocol)),
       receiver(this->protocol, *this),
-      sender(this->protocol) {}
-
-void ConnexionController::start() {
+      sender(this->protocol) {
     receiver.start();
     sender.start();
 }
 
-bool ConnexionController::is_alive() const {
-    return receiver.is_alive() or sender.is_alive();
-}
-
-void ConnexionController::kill() {
-    if (sender.is_alive()) sender.kill();
-    if (receiver.is_alive()) receiver.kill();
-}
-
-void ConnexionController::join() {
+ConnexionController::~ConnexionController() {
+    if (sender.is_alive()) sender.stop();
+    if (receiver.is_alive()) receiver.stop();
     sender.join();
     receiver.join();
+    spdlog::trace("Connexion controller destroyed");
+}
+
+bool ConnexionController::is_alive() const {
+    return receiver.is_alive() or sender.is_alive();
 }

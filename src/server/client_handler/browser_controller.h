@@ -10,14 +10,15 @@ struct IBrowserEvents {
 };
 
 class BrowserController final {
+    spdlog::logger* log;
     SessionsMonitor& sessions_monitor;
     const int client_id;
     Sender& sender;
     IBrowserEvents& dispatcher;
 
    public:
-    BrowserController(SessionsMonitor& sessions_monitor, int client_id,
-                      Sender& sender, IBrowserEvents& handler);
+    BrowserController(SessionsMonitor&, int client_id, Sender&,
+                      IBrowserEvents& handler, spdlog::logger*);
 
     MAKE_FIXED(BrowserController)
 

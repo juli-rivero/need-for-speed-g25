@@ -14,7 +14,7 @@ class Sender final : public Thread {
 
     friend class ConnexionController;
     void run() override;
-    void kill();
+    void stop() override;
 
    public:
     explicit Sender(ProtocolSender&);

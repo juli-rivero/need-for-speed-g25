@@ -27,7 +27,7 @@ int main(const int argc, const char* argv[]) {
         spdlog::info("Connecting to " + args_parser.get_host() + ":" +
                      args_parser.get_port());
 
-        App app{};
+        App app(args_parser.get_host(), args_parser.get_port());
         app.run();
 
         return SUCCESS;
@@ -37,8 +37,8 @@ int main(const int argc, const char* argv[]) {
 
         return ERROR;
     } catch (const std::exception& err) {
-        spdlog::critical("Something went wrong and an exception was caught: " +
-                         std::string(err.what()));
+        spdlog::critical("Something went wrong and an exception was caught: {}",
+                         err.what());
         return ERROR;
     } catch (...) {
         spdlog::critical(

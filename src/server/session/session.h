@@ -1,11 +1,14 @@
 #pragma once
 
 #include <condition_variable>
+#include <memory>
 #include <mutex>
+#include <string>
 #include <unordered_map>
 
 #include "common/emitter.h"
 #include "server/session/game.h"
+#include "spdlog/spdlog.h"
 
 class Session;
 
@@ -20,6 +23,8 @@ struct SessionListener : Listener<SessionListener> {
 class Session final {
     static constexpr int MAX_USERS = 4;
 
+    std::shared_ptr<spdlog::logger> log;
+
     std::unordered_map<int, UserSetup> users_setup;
     std::mutex mtx;
 
@@ -29,7 +34,7 @@ class Session final {
     Emitter<SessionListener> emitter;
 
    public:
-    explicit Session(int creator);
+    explicit Session(const std::string& session_id, int creator);
 
     MAKE_FIXED(Session)
 

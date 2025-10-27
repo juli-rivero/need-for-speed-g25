@@ -2,32 +2,36 @@
 
 #include <utility>
 
+#include "spdlog/sinks/stdout_color_sinks-inl.h"
+#include "spdlog/spdlog.h"
+
+using spdlog::stdout_color_mt;
+using std::to_string;
+
 ClientHandler::ClientHandler(const int id, Socket&& socket,
                              SessionsMonitor& sessions_monitor)
-    : protocol(std::move(socket)),
-      sender(this->protocol),
-      controller(sessions_monitor, id, this->sender),
-      receiver(this->protocol, this->controller) {}
-
-void ClientHandler::start() {
+    : log(stdout_color_mt("Client " + to_string(id))),
+      protocol(std::move(socket)),
+      sender(this->protocol, log.get()),
+      controller(sessions_monitor, id, this->sender, log.get()),
+      receiver(this->protocol, this->controller, log.get()) {
+    log->debug("Created");
     receiver.start();
     sender.start();
 }
 
 bool ClientHandler::is_alive() const {
-    return receiver.is_alive() or sender.is_alive();
+    return receiver.is_alive() and sender.is_alive();
 }
 
-void ClientHandler::kill() {
+ClientHandler::~ClientHandler() {
     if (sender.is_alive()) {
-        sender.kill();
+        sender.stop();
     }
     if (receiver.is_alive()) {
-        receiver.kill();
+        receiver.stop();
     }
-}
-
-void ClientHandler::join() {
     sender.join();
     receiver.join();
+    log->debug("Destroyed");
 }

@@ -4,6 +4,7 @@
 #include "common/macros.h"
 #include "common/protocol.h"
 #include "common/thread.h"
+#include "spdlog/spdlog.h"
 
 struct RequestListener {
     virtual void on(const dto_session::LeaveRequest&) = 0;
@@ -17,15 +18,16 @@ struct RequestListener {
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
     RequestListener& listener;
+    spdlog::logger* log;
 
    public:
-    Receiver(ProtocolReceiver& receiver, RequestListener& listener);
+    Receiver(ProtocolReceiver&, RequestListener&, spdlog::logger*);
 
     MAKE_FIXED(Receiver)
 
     void run() override;
 
-    void kill();
+    void stop() override;
 
    private:
     void switch_and_dispatch_request(const dto::RequestType& request) const;

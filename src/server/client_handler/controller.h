@@ -11,6 +11,7 @@ class Controller final : public RequestListener,
                          IBrowserEvents,
                          ILobbyEvents,
                          IGameEvents {
+    spdlog::logger* log;
     int id;
     Sender& sender;
 
@@ -21,7 +22,8 @@ class Controller final : public RequestListener,
     std::mutex mtx;
 
    public:
-    explicit Controller(SessionsMonitor& monitor, int id, Sender& sender);
+    explicit Controller(SessionsMonitor& monitor, int id, Sender& sender,
+                        spdlog::logger*);
 
     MAKE_FIXED(Controller)
 

@@ -20,8 +20,8 @@ void Receiver::run() {
         }
     }
 }
-void Receiver::kill() {
-    stop();
+void Receiver::stop() {
+    Thread::stop();
     if (not receiver.is_stream_recv_closed()) receiver.close_stream_recv();
 }
 

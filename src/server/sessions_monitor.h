@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <mutex>
 #include <string>
 #include <unordered_map>
@@ -7,15 +8,17 @@
 
 #include "common/macros.h"
 #include "server/session/session.h"
+#include "spdlog/spdlog.h"
 
 class SessionsMonitor {
+    std::shared_ptr<spdlog::logger> log;
     std::unordered_map<std::string, Session> sessions;
     std::unordered_map<int, Session*> searcher;
 
     std::mutex mtx;
 
    public:
-    SessionsMonitor() = default;
+    SessionsMonitor();
 
     MAKE_FIXED(SessionsMonitor)
 

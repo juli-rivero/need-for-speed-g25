@@ -9,7 +9,9 @@ target_sources(taller_server
         clients_manager.cpp
         server.cpp
         sessions_monitor.cpp
+        args_parser.cpp
         PUBLIC
+        args_parser.h
         acceptor.h
         clients_manager.h
         server.h

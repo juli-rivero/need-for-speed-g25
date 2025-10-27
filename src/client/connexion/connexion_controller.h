@@ -18,12 +18,15 @@ class ConnexionController final : public ResponseController {
 
     template <typename... Args>
     void send(Args&&... args) {
+        if (!is_alive()) {
+            throw ClosedProtocol(
+                "trying to send a message to a closed protocol");
+        }
         sender.send(std::forward<Args>(args)...);
     }
 
+    ~ConnexionController() override;
+
    private:
-    void start();
     [[nodiscard]] bool is_alive() const;
-    void kill();
-    void join();
 };

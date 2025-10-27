@@ -1,10 +1,8 @@
 target_sources(taller_server
         PRIVATE
         game.cpp
-        game_loop.cpp
         session.cpp
         PUBLIC
         game.h
-        game_loop.h
         session.h
 )

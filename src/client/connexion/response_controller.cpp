@@ -1,5 +1,7 @@
 #include "client/connexion/response_controller.h"
 
+#include "spdlog/spdlog.h"
+
 ResponseController::ResponseController()
     : browser_controller(nullptr),
       lobby_controller(nullptr),

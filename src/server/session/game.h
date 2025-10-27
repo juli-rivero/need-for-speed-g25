@@ -4,7 +4,7 @@
 
 #include "common/emitter.h"
 #include "common/macros.h"
-#include "server/session/game_loop.h"
+#include "spdlog/spdlog.h"
 
 struct UserSetup {
     bool ready;
@@ -25,14 +25,16 @@ struct GameListener : Listener<GameListener> {
 };
 
 class Game final {
+    spdlog::logger* log;
+
     const std::unordered_map<int, UserSetup>& users_setup;
-    GameLoop game_loop;
 
     friend struct GameListener;
     Emitter<GameListener> emitter;
 
    public:
-    explicit Game(const std::unordered_map<int, UserSetup>& users_setup);
+    Game(const std::unordered_map<int, UserSetup>& users_setup,
+         spdlog::logger*);
 
     MAKE_FIXED(Game)
 };

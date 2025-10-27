@@ -1,5 +1,7 @@
 #pragma once
 
+#include <spdlog/spdlog.h>
+
 #include "common/dto/dto.h"
 #include "common/dto/dto_lobby.h"
 #include "common/dto/dto_session.h"
@@ -11,13 +13,14 @@
 class Sender final : public Thread {
     Queue<dto::Response> responses;
     ProtocolSender& sender;
+    spdlog::logger* log;
 
     friend class ClientHandler;
     void run() override;
-    void kill();
+    void stop() override;
 
    public:
-    explicit Sender(ProtocolSender&);
+    explicit Sender(ProtocolSender&, spdlog::logger*);
 
     MAKE_FIXED(Sender)
 

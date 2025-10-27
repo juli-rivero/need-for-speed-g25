@@ -27,7 +27,7 @@ class Receiver final : public Thread {
 
     void run() override;
 
-    void kill();
+    void stop() override;
 
    private:
     void delegate_response(const dto::ResponseType& request) const;

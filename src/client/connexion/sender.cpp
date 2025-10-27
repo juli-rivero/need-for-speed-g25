@@ -16,8 +16,8 @@ void Sender::run() {
     }
 }
 
-void Sender::kill() {
-    stop();
+void Sender::stop() {
+    Thread::stop();
     if (not sender.is_stream_send_closed()) sender.close_stream_send();
     responses.close();
 }
