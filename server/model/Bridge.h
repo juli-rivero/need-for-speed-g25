@@ -1,6 +1,3 @@
-//
-// Created by elvis on 21/10/25.
-//
 
 #ifndef TALLER_TP_BRIDGE_H
 #define TALLER_TP_BRIDGE_H

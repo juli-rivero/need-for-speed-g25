@@ -24,7 +24,6 @@ void MapLoader::loadFromYAML(
         const auto& mapNode = root["map"];
         auto worldId = world.getWorldId();
 
-        // === Cargar gravedad del mapa ===
         if (mapNode["gravity"]) {
             auto g = mapNode["gravity"];
             b2World_SetGravity(worldId, {g[0].as<float>(), g[1].as<float>()});

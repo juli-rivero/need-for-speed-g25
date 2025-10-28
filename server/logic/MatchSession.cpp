@@ -1,6 +1,3 @@
-//
-// Created by elvis on 23/10/25.
-//
 
 #include "MatchSession.h"
 

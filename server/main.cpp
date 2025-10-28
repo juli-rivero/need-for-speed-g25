@@ -6,8 +6,6 @@
 #include <cmath>
 
 
-
 int main() {
-    //TODO: testear harcodeando las entidades y probar logica
     return 0;
 }

@@ -9,7 +9,6 @@
 
 #include "../physics/IPhysicalBody.h"
 
-class IPhysicalBody;
 
 class Car {
 private:

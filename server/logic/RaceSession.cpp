@@ -1,6 +1,4 @@
-//
-// Created by elvis on 23/10/25.
-//
+
 
 #include "RaceSession.h"
 #include <algorithm>

@@ -1,6 +1,3 @@
-//
-// Created by elvis on 23/10/25.
-//
 
 #ifndef TALLER_TP_IGAMECONFIG_H
 #define TALLER_TP_IGAMECONFIG_H
