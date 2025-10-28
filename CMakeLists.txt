@@ -71,11 +71,15 @@ endif()
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
 if(TALLER_CLIENT OR TALLER_EDITOR)
+    set(SDL2PP_WITH_IMAGE yes)
+    set(SDL2PP_WITH_MIXER yes)
+    set(SDL2PP_WITH_TTF yes)
+    
     include(FetchContent)
     FetchContent_Declare(
         SDL2
         GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG release-2.30.8
+        GIT_TAG release-2.32.10
         GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
         OVERRIDE_FIND_PACKAGE

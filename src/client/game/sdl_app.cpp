@@ -5,9 +5,9 @@ SdlApp::SdlApp(ConnexionController& connexion_controller, bool& quit)
       input_handler(connexion_controller) {
     connexion_controller.control(game);
 
-    // TODO(Franco): borrar cuando esté el quit = true en algun lado, lo pongo
-    // para que el linter no moleste
-    quit = false;
+	Game game;
+	bool error = game.start();
+    quit = error;
 }
 
 SdlApp::~SdlApp() { connexion_controller.decontrol(game); }
