@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.24)
+cmake_minimum_required(VERSION 3.22)
 
 if (POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
@@ -97,8 +97,16 @@ if(TALLER_SERVER)
     # TODO: Sumar libreria Box2D
 endif()
 
-if(TALLER_CLIENTE OR TALLER_EDITOR)
-    # TODO: Sumar libreria Qt
+if(TALLER_CLIENT OR TALLER_EDITOR)
+    # Buscar Qt6 (componentes necesarios para GUI)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+    
+    # Habilitar herramientas automáticas de Qt
+    set(CMAKE_AUTOMOC ON)  # Meta-Object Compiler (para signals/slots)
+    set(CMAKE_AUTOUIC ON)  # User Interface Compiler (para archivos .ui)
+    set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
+    
+    message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
 endif()
 
 # Program section
@@ -118,7 +126,7 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
 endif()
 
 if(TALLER_SERVER)
@@ -151,7 +159,7 @@ if(TALLER_EDITOR)
     target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
 endif()
 
 
