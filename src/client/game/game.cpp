@@ -4,24 +4,16 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-#define ASSETS_PATH ""
-
 bool Game::start() {
-    // Inicializacion de SDL (640x480)
+    // Inicializacion de SDL (ventana 640x480)
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
     SDL2pp::Window window("Need for Speed TPG", SDL_WINDOWPOS_UNDEFINED,
                           SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
     SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-    // Cargar las texturas a usar
-    // Surface car_surface(ASSETS_PATH "/cars/car1.png");
-    // car_surface.SetColorKey(true,
-    // SDL_MapRGB((SDL_PixelFormat)car_surface.GetFormat(), 0xA3, 0xA3, 0x0D));
-
-    // TODO(crook): DEFINIR USO DE ASSETS.
-    SDL2pp::Texture car_sprite(renderer, ASSETS_PATH "/cars/car1.png");
-    SDL2pp::Texture city_sprite(renderer,
-                                ASSETS_PATH "/cities/liberty_city.png");
+    // TODO(crook): Convertir car a una imagen transparente.
+    SDL2pp::Texture car_sprite(renderer, "/assets/cars/car1.png");
+    SDL2pp::Texture city_sprite(renderer, "/assets/cities/liberty_city.png");
 
     // Game loop
     double car_x = renderer.GetOutputWidth() / 2;

@@ -69,12 +69,11 @@ if(TALLER_CLIENT OR TALLER_SERVER)
 endif()
 
 # Install libSDL2 and libSDL2pp (for client or editor)
-# HEY!! TODO XXX: add more dependendies (either for client, server or editor)
-if(TALLER_CLIENT OR TALLER_EDITOR)
+if(TALLER_CLIENT)
     set(SDL2PP_WITH_IMAGE yes)
     set(SDL2PP_WITH_MIXER yes)
     set(SDL2PP_WITH_TTF yes)
-    
+
     include(FetchContent)
     FetchContent_Declare(
         SDL2
@@ -180,6 +179,16 @@ if(TALLER_EDITOR)
     target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
 endif()
 
+# Asset management
+# ----------------
+if(TALLER_CLIENT OR TALLER_SERVER)
+    add_custom_target(copy_assets
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
+    )
+
+    add_dependencies(taller_client copy_assets)
+    add_dependencies(taller_editor copy_assets)
+endif()
 
 # Testing section
 # ---------------
