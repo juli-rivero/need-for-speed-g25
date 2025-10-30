@@ -1,10 +1,31 @@
 #pragma once
 
+#include <SDL2pp/SDL2pp.hh>
+
+#include "client/game/assets.h"
 #include "common/macros.h"
 
 class Game final {
+   private:
+    // Componentes graficos
+    SDL2pp::Renderer& renderer;
+    Assets assets;
+
+    // Componentes logicos
+    // TODO(crook): Temporal
+    double car_x = 0;
+    double car_y = 0;
+    double car_speed = 0;
+    double car_angle = 0;
+
+    // Metodos de actualizacion internos
+    bool send_events();
+    void get_state();
+    void draw_state();
+    void wait_next_frame();
+
    public:
-    Game() = default;
+    explicit Game(SDL2pp::Renderer& renderer);
 
     bool start();
 

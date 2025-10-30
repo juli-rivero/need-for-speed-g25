@@ -5,7 +5,6 @@
 #include "client/game/input_handler.h"
 
 class SdlApp {
-    Game game;
     ConnexionController& connexion_controller;
     InputHandler input_handler;
 
