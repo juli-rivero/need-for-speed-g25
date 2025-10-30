@@ -5,11 +5,7 @@
 #include <QScrollArea>
 
 CarSelectionDialog::CarSelectionDialog(QWidget* parent)
-    : QDialog(parent), selectedCarIndex(0) {
-    
-    setWindowTitle("🏎️ Seleccionar Auto");
-    setMinimumSize(900, 600);
-    
+    : QWidget(parent), selectedCarIndex(0) { 
     initCarTypes();
     setupUI();
     
@@ -94,13 +90,19 @@ void CarSelectionDialog::initCarTypes() {
 
 void CarSelectionDialog::setupUI() {
     mainLayout = new QVBoxLayout(this);
+    mainLayout->setContentsMargins(50, 30, 50, 30);
     
     // Título
-    QLabel* titleLabel = new QLabel("Elige tu auto para la carrera");
+    QLabel* titleLabel = new QLabel("🏎️ Selecciona tu Auto");
+    QFont titleFont = titleLabel->font();
+    titleFont.setPointSize(24);
+    titleFont.setBold(true);
+    titleLabel->setFont(titleFont);
     titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
     
-    // Layout horizontal: lista de autos + panel de detalles
+    mainLayout->addSpacing(20);
+    
     QHBoxLayout* contentLayout = new QHBoxLayout();
     
     // === Panel izquierdo: Lista de autos ===
@@ -162,14 +164,16 @@ void CarSelectionDialog::setupUI() {
     QHBoxLayout* buttonLayout = new QHBoxLayout();
     buttonLayout->addStretch();
     
-    cancelButton = new QPushButton("Cancelar");
-    cancelButton->setMinimumWidth(100);
-    connect(cancelButton, &QPushButton::clicked, this, &QDialog::reject);
+    cancelButton = new QPushButton("❌ Cancelar");
+    cancelButton->setMinimumWidth(150);
+    cancelButton->setMinimumHeight(45);
+    connect(cancelButton, &QPushButton::clicked, this, &CarSelectionDialog::onCancelClicked);
     buttonLayout->addWidget(cancelButton);
     
-    confirmButton = new QPushButton("Confirmar Selección");
+    confirmButton = new QPushButton("✅ Confirmar Selección");
     confirmButton->setMinimumWidth(150);
-    connect(confirmButton, &QPushButton::clicked, this, &QDialog::accept);
+    confirmButton->setMinimumHeight(45);
+    connect(confirmButton, &QPushButton::clicked, this, &CarSelectionDialog::onConfirmClicked);
     buttonLayout->addWidget(confirmButton);
     
     mainLayout->addLayout(buttonLayout);
@@ -241,14 +245,30 @@ QProgressBar* CarSelectionDialog::createStatBar(float value) {
     bar->setTextVisible(true);
     bar->setFormat("%v%");
     
-    // El estilo se aplicará en applyTheme()
-    
     return bar;
 }
 
 void CarSelectionDialog::onCarSelected(int carIndex) {
     selectedCarIndex = carIndex;
     updateCarDetails(carIndex);
+    emit carSelected(carIndex);  
+}
+
+void CarSelectionDialog::onConfirmClicked() {
+    emit confirmRequested();
+}
+
+void CarSelectionDialog::onCancelClicked() {
+    emit cancelRequested();
+}
+
+void CarSelectionDialog::reset() {
+    // Seleccionar el primer auto
+    if (carButtonGroup->buttons().size() > 0) {
+        carButtonGroup->buttons()[0]->setChecked(true);
+        selectedCarIndex = 0;
+        updateCarDetails(0);
+    }
 }
 
 void CarSelectionDialog::updateCarDetails(int carIndex) {
@@ -301,9 +321,9 @@ void CarSelectionDialog::applyTheme() {
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
     
-    // Aplicar estilo al diálogo principal
+    // Aplicar estilo al widget principal
     this->setStyleSheet(QString(
-        "QDialog {"
+        "QWidget {"
         "    background-color: %1;"
         "}"
         "QLabel {"

@@ -34,16 +34,25 @@ struct CarConfig {
     float controllability;
 };
 
-class CarSelectionDialog : public QDialog {
+class CarSelectionDialog : public QWidget {  
     Q_OBJECT
 
 public:
     explicit CarSelectionDialog(QWidget* parent = nullptr);
     
     CarConfig getSelectedCar() const;
+    int getSelectedCarType() const { return selectedCarIndex; } 
+    void reset(); 
+
+signals:
+    void carSelected(int carType);      
+    void confirmRequested();            
+    void cancelRequested();              
 
 private slots:
     void onCarSelected(int carIndex);
+    void onConfirmClicked();   
+    void onCancelClicked();    
     void applyTheme();
 
 private:
@@ -71,7 +80,7 @@ private:
     QProgressBar* controlBar;
     
     QPushButton* confirmButton;
-    QPushButton* cancelButton;  // ← AGREGADO
+    QPushButton* cancelButton;  
 };
 
 #endif // CAR_SELECTION_DIALOG_H
