@@ -1,26 +1,15 @@
 #include "lobby_window.h"
 #include "theme_manager.h"
-#include "create_game_dialog.h"
-#include "car_selection_dialog.h"
 #include <QMessageBox>
 #include <QProgressBar>
 #include <QFrame>
 #include <QToolBar>
+#include <QFormLayout>
+#include <QRegularExpression>
 
 LobbyWindow::LobbyWindow(QWidget *parent)
-    : QMainWindow(parent) {
+    : QMainWindow(parent), currentGameId(-1) {
     
-    // Cambiar de:
-    //     lobbyClient = new MockLobbyClient();
-    // 
-    // A:
-    //     lobbyClient = new RealLobbyClient();
-    // 
-    // RealLobbyClient debe:
-    //   1. Heredar de ILobbyClient (ver client/lobby_client.h)
-    //   2. Implementar los 5 métodos virtuales
-    //   3. Emitir las señales correctas cuando reciba datos del servidor
-
     lobbyClient = new MockLobbyClient();
     
     // Conectar señales del cliente
@@ -32,10 +21,34 @@ LobbyWindow::LobbyWindow(QWidget *parent)
             this, &LobbyWindow::onGameCreated);
     connect(lobbyClient, &ILobbyClient::gameJoined, 
             this, &LobbyWindow::onGameJoined);
+    connect(lobbyClient, &ILobbyClient::playersListUpdated,
+            this, &LobbyWindow::onPlayersListUpdated);
+    connect(lobbyClient, &ILobbyClient::gameStarting,
+            this, &LobbyWindow::onGameStarting);
     connect(lobbyClient, &ILobbyClient::error, 
             this, &LobbyWindow::onError);
     
     setupUI();
+    
+    // Conectar señales del create game widget
+    connect(createGameWidget, &CreateGameDialog::submitRequested,
+            this, &LobbyWindow::onCreateGameSubmit);
+    connect(createGameWidget, &CreateGameDialog::cancelRequested,
+            this, &LobbyWindow::onCreateGameCancel);
+    
+    // Conectar señales del car selection widget
+    connect(carSelectionWidget, &CarSelectionDialog::confirmRequested,
+            this, &LobbyWindow::onCarSelectionConfirm);
+    connect(carSelectionWidget, &CarSelectionDialog::cancelRequested,
+            this, &LobbyWindow::onCarSelectionCancel);
+    
+    // Conectar señales del waiting room widget
+    connect(waitingRoomWidget, &WaitingRoomWidget::leaveGameRequested,
+            this, &LobbyWindow::onWaitingRoomLeaveRequested);
+    connect(waitingRoomWidget, &WaitingRoomWidget::readyStateChanged,
+            this, &LobbyWindow::onWaitingRoomReadyChanged);
+    connect(waitingRoomWidget, &WaitingRoomWidget::startGameRequested,
+            this, &LobbyWindow::onWaitingRoomStartGame);
 
     // Conectar el cambio de tema global
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged,
@@ -58,94 +71,26 @@ LobbyWindow::~LobbyWindow() {
 void LobbyWindow::setupUI() {
     // Configurar ventana principal
     setWindowTitle("Need for Speed - Lobby");
-    setMinimumSize(800, 600);
+    setMinimumSize(1000, 700);
 
-    // ===== Toolbar con selector de tema =====
-    QToolBar* toolbar = new QToolBar("Opciones", this);
-    toolbar->setMovable(false);
-    addToolBar(Qt::TopToolBarArea, toolbar);
+    // Crear stack de páginas
+    stackedWidget = new QStackedWidget(this);
+    setCentralWidget(stackedWidget);
+
+    // Usando widgets modulares
+    lobbyPage = createLobbyPage();
+    createGameWidget = new CreateGameDialog(this);      
+    carSelectionWidget = new CarSelectionDialog(this);  
+    waitingRoomWidget = new WaitingRoomWidget(this);    
     
-    // Selector de tema
-    QLabel* themeLabel = new QLabel("  🎨 Tema: ", toolbar);
-    toolbar->addWidget(themeLabel);
+    // Agregar páginas al stack
+    stackedWidget->addWidget(lobbyPage);              // Índice 0
+    stackedWidget->addWidget(createGameWidget);       // Índice 1
+    stackedWidget->addWidget(carSelectionWidget);     // Índice 2
+    stackedWidget->addWidget(waitingRoomWidget);      // Índice 3
     
-    themeSelector = new QComboBox(toolbar);
-    themeSelector->addItem("🎨 Default", static_cast<int>(ThemeType::Default));
-    themeSelector->addItem("🌙 Dark Mode", static_cast<int>(ThemeType::DarkMode));
-    themeSelector->addItem("🏎️ Racing Bull", static_cast<int>(ThemeType::RacingRed));
-    themeSelector->addItem("💎 Luxury", static_cast<int>(ThemeType::Luxury));
-    themeSelector->addItem("🌊 Ocean Blue", static_cast<int>(ThemeType::OceanBlue));
-    themeSelector->addItem("💥 Post-Apocalypse", static_cast<int>(ThemeType::PostApocalypse));
-    themeSelector->setMinimumWidth(250);
-    
-    connect(themeSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &LobbyWindow::onThemeChanged);
-    
-    toolbar->addWidget(themeSelector);
-    toolbar->addSeparator();
-
-    // Widget central
-    centralWidget = new QWidget(this);
-    setCentralWidget(centralWidget);
-
-    // Layout principal
-    QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
-
-    // Título
-    titleLabel = new QLabel("🏁 Lobby - Need for Speed 🏁", this);
-    QFont titleFont = titleLabel->font();
-    titleFont.setPointSize(18);
-    titleFont.setBold(true);
-    titleLabel->setFont(titleFont);
-    titleLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(titleLabel);
-
-    // Label de estado
-    statusLabel = new QLabel("Conectado al servidor", this);
-    statusLabel->setStyleSheet("color: green;");
-    statusLabel->setAlignment(Qt::AlignCenter);
-    mainLayout->addWidget(statusLabel);
-    
-    // Lista de partidas
-    QLabel *gamesLabel = new QLabel("Partidas Disponibles:", this);
-    mainLayout->addWidget(gamesLabel);
-
-    gamesListWidget = new QListWidget(this);
-    gamesListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
-    mainLayout->addWidget(gamesListWidget);
-
-    // Conectar señales de selección y doble click
-    connect(gamesListWidget, &QListWidget::itemClicked, 
-            this, &LobbyWindow::onGameSelected);
-    connect(gamesListWidget, &QListWidget::itemDoubleClicked, 
-            this, &LobbyWindow::onGameDoubleClicked);
-
-    // Layout para botones
-    QHBoxLayout *buttonsLayout = new QHBoxLayout();
-
-    // Botón Crear Partida
-    createGameButton = new QPushButton("🎮 Crear Partida", this);
-    createGameButton->setMinimumHeight(40);
-    connect(createGameButton, &QPushButton::clicked, 
-            this, &LobbyWindow::onCreateGameClicked);
-    buttonsLayout->addWidget(createGameButton);
-
-    // Botón Unirse a Partida
-    joinGameButton = new QPushButton("🚗 Unirse a Partida", this);
-    joinGameButton->setMinimumHeight(40);
-    joinGameButton->setEnabled(false); // Deshabilitado hasta seleccionar una partida
-    connect(joinGameButton, &QPushButton::clicked, 
-            this, &LobbyWindow::onJoinGameClicked);
-    buttonsLayout->addWidget(joinGameButton);
-
-    // Botón Actualizar
-    refreshButton = new QPushButton("🔄 Actualizar", this);
-    refreshButton->setMinimumHeight(40);
-    connect(refreshButton, &QPushButton::clicked, 
-            this, &LobbyWindow::onRefreshClicked);
-    buttonsLayout->addWidget(refreshButton);
-
-    mainLayout->addLayout(buttonsLayout);
+    // Mostrar lobby por defecto
+    stackedWidget->setCurrentIndex(0);
 }
 
 void LobbyWindow::updateGamesList(const std::vector<GameInfo>& games) {
@@ -162,46 +107,20 @@ void LobbyWindow::updateGamesList(const std::vector<GameInfo>& games) {
         return;
     }
     
-    // Agregar cada partida como un widget personalizado
+    // Agregar cada partida usando GameCardWidget
     for (const GameInfo& game : games) {
         QListWidgetItem* item = new QListWidgetItem(gamesListWidget);
         item->setData(Qt::UserRole, game.id); // Guardar ID de la partida
         
-        QWidget* gameWidget = createGameItemWidget(game);
-        item->setSizeHint(gameWidget->sizeHint());
+        GameCardWidget* gameCard = new GameCardWidget(game);
+        item->setSizeHint(gameCard->sizeHint());
         
         gamesListWidget->addItem(item);
-        gamesListWidget->setItemWidget(item, gameWidget);
+        gamesListWidget->setItemWidget(item, gameCard);
     }
 }
 
-QString LobbyWindow::getMapIcon(const QString& mapName) const {
-    if (mapName == "city") return "🏙️";
-    return "🏎️";
-}
-
-void LobbyWindow::onCreateGameClicked() {
-    // Crear y mostrar el diálogo
-    CreateGameDialog dialog(this);
-    
-    // Ejecutar el diálogo (modal)
-    if (dialog.exec() == QDialog::Accepted) {
-        // Obtener la configuración
-        CreateGameDialog::GameConfig dialogConfig = dialog.getConfig();
-        
-        // Convertir a GameConfig para el cliente
-        GameConfig config;
-        config.name = dialogConfig.name;
-        config.maxPlayers = dialogConfig.maxPlayers;
-        config.raceCount = dialogConfig.raceCount;
-        config.city = dialogConfig.city;
-        
-        // Enviar al servidor
-        statusLabel->setText("Creando partida...");
-        statusLabel->setStyleSheet("color: orange;");
-        lobbyClient->createGame(config);
-    }
-}
+// NAVEGACIÓN ENTRE PÁGINAS
 
 void LobbyWindow::onJoinGameClicked() {
     QListWidgetItem *selectedItem = gamesListWidget->currentItem();
@@ -283,60 +202,36 @@ void LobbyWindow::onGamesListReceived(std::vector<GameInfo> games) {
 }
 
 void LobbyWindow::onGameCreated(int gameId) {
-    Q_UNUSED(gameId);
+    currentGameId = gameId;
     
-    // Mostrar diálogo de selección de auto
-    CarSelectionDialog carDialog(this);
-    if (carDialog.exec() == QDialog::Accepted) {
-        CarConfig selectedCar = carDialog.getSelectedCar();
-        
-        QMessageBox::information(this, "✅ Partida Creada", 
-                                QString("Tu partida ha sido creada exitosamente!\n\n"
-                                        "Auto seleccionado: %1 %2\n"
-                                        "Esperando que otros jugadores se unan...")
-                                .arg(selectedCar.carType)
-                                .arg(getCarEmoji(selectedCar.carType)));
-        // Agregar a la interfaz ILobbyClient:
-        //     virtual void selectCar(int gameId, const CarConfig& car) = 0;
-        // 
-        // Y emitir señal cuando se confirme:
-        //     emit carSelected(int gameId);
-        // 
-        // Descomentar esta línea cuando esté implementado:
-        // lobbyClient->selectCar(gameId, selectedCar);
-    }
+    statusLabel->setText("✅ Partida creada exitosamente");
+    statusLabel->setStyleSheet("color: green;");
     
-    // Actualizar lista
-    lobbyClient->requestGamesList();
+    int selectedCarType = carSelectionWidget->getSelectedCarType();
+    
+    // Simular lista de jugadores inicial (tú como host)
+    std::vector<PlayerInfo> players = {
+        {1, "Tú", selectedCarType, false, true},  // Host
+    };
+    
+    // Configurar y mostrar waiting room
+    waitingRoomWidget->setGameInfo(gameId, players);
+    stackedWidget->setCurrentIndex(3);
+    setWindowTitle("Need for Speed - Sala de Espera");
 }
 
 void LobbyWindow::onGameJoined(int gameId) {
-    Q_UNUSED(gameId);
+    // Guardar el ID de la partida a la que nos unimos
+    joiningGameId = gameId;
     
-    // Mostrar diálogo de selección de auto
-    CarSelectionDialog carDialog(this);
-    if (carDialog.exec() == QDialog::Accepted) {
-        CarConfig selectedCar = carDialog.getSelectedCar();
-        
-        QMessageBox::information(this, "✅ Unido a Partida", 
-                                QString("Te has unido a la partida exitosamente!\n\n"
-                                        "Auto seleccionado: %1 %2\n"
-                                        "Esperando que la partida comience...")
-                                .arg(selectedCar.carType)
-                                .arg(getCarEmoji(selectedCar.carType)));
-        
-        // Descomentar cuando esté listo:
-        // lobbyClient->selectCar(gameId, selectedCar);
-        // ==================================================================
-        // Cuando todos los jugadores estén listos, el servidor enviará una señal
-        // y deberías:
-        //   1. Cerrar la ventana del lobby
-        //   2. Iniciar el cliente SDL2 con los datos de la partida
-        //   3. Cuando termine el juego, volver a mostrar el lobby
-    }
+    // Establecer modo: estamos UNIÉNDONOS a una partida
+    carSelectionMode = CarSelectionMode::Joining;
     
-    // Por ahora solo actualizamos la lista
-    lobbyClient->requestGamesList();
+    // Cuando te unes a una partida, ir a selección de auto
+    showCarSelectionPage();
+    
+    statusLabel->setText("✅ Unido a la partida - Selecciona tu auto");
+    statusLabel->setStyleSheet("color: green;");
 }
 
 void LobbyWindow::onError(QString message) {
@@ -345,7 +240,6 @@ void LobbyWindow::onError(QString message) {
     
     QMessageBox::critical(this, "Error", message);
 }
-
 QString LobbyWindow::getCarEmoji(const QString& carType) const {
     if (carType == "Deportivo") return "🏎️";
     if (carType == "Sedán") return "🚗";
@@ -354,102 +248,6 @@ QString LobbyWindow::getCarEmoji(const QString& carType) const {
     if (carType == "Muscle Car") return "🚗";
     if (carType == "Compacto") return "🚕";
     return "🚗";
-}
-
-QString LobbyWindow::getStatusText(const QString& status) const {
-    if (status == "waiting") return "Esperando";
-    if (status == "ready") return "Lista";
-    if (status == "playing") return "En juego";
-    if (status == "full") return "Llena";
-    if (status == "finished") return "Finalizada";
-    return "Desconocido";
-}
-
-QString LobbyWindow::getStatusColor(const QString& status) const {
-    if (status == "waiting") return "#4CAF50";   // Verde
-    if (status == "ready") return "#FF9800";     // Naranja
-    if (status == "playing") return "#F44336";   // Rojo
-    if (status == "full") return "#9E9E9E";      // Gris
-    if (status == "finished") return "#607D8B";  // Gris azulado
-    return "#000000";
-}
-
-QWidget* LobbyWindow::createGameItemWidget(const GameInfo& game) {
-    ThemeManager& theme = ThemeManager::instance();
-    const ColorPalette& palette = theme.getCurrentPalette();
-    
-    QFrame* frame = new QFrame();
-    frame->setFrameShape(QFrame::Box);
-    frame->setStyleSheet(theme.gameCardStyle());
-    
-    QHBoxLayout* layout = new QHBoxLayout(frame);
-    layout->setContentsMargins(10, 10, 10, 10);
-    
-    // === Columna 1: Icono del mapa ===
-    QLabel* mapIcon = new QLabel(getMapIcon(game.map));
-    mapIcon->setStyleSheet(QString("font-size: 32px; border: none; color: %1;").arg(palette.textPrimary));
-    mapIcon->setFixedWidth(50);
-    mapIcon->setAlignment(Qt::AlignCenter);
-    layout->addWidget(mapIcon);
-    
-    // === Columna 2: Información principal ===
-    QVBoxLayout* infoLayout = new QVBoxLayout();
-    
-    // Nombre de la partida
-    QLabel* nameLabel = new QLabel(game.name);
-    nameLabel->setStyleSheet(QString("font-size: 16px; font-weight: bold; border: none; color: %1;").arg(palette.textPrimary));
-    infoLayout->addWidget(nameLabel);
-    
-    // Mapa
-    QLabel* mapLabel = new QLabel(QString("Mapa: %1").arg(game.map));
-    mapLabel->setStyleSheet(QString("font-size: 12px; color: %1; border: none;").arg(palette.textSecondary));
-    infoLayout->addWidget(mapLabel);
-    
-    layout->addLayout(infoLayout, 1);
-    
-    // === Columna 3: Jugadores con barra de progreso ===
-    QVBoxLayout* playersLayout = new QVBoxLayout();
-    
-    QLabel* playersLabel = new QLabel(QString("👥 %1/%2").arg(game.currentPlayers).arg(game.maxPlayers));
-    playersLabel->setStyleSheet(QString("font-size: 14px; font-weight: bold; border: none; color: %1;").arg(palette.textPrimary));
-    playersLayout->addWidget(playersLabel);
-    
-    // Barra de progreso de jugadores
-    QProgressBar* playersBar = new QProgressBar();
-    playersBar->setRange(0, game.maxPlayers);
-    playersBar->setValue(game.currentPlayers);
-    playersBar->setTextVisible(false);
-    playersBar->setMaximumHeight(8);
-    playersBar->setStyleSheet(theme.progressBarStyle());
-    playersLayout->addWidget(playersBar);
-    
-    layout->addLayout(playersLayout);
-    
-    // === Columna 4: Estado ===
-    QVBoxLayout* statusLayout = new QVBoxLayout();
-    
-    QString statusText = getStatusText(game.status);
-    QString statusColor = getStatusColor(game.status);
-    
-    QLabel* statusLabel = new QLabel(statusText);
-    statusLabel->setStyleSheet(QString(
-        "font-size: 12px;"
-        "font-weight: bold;"
-        "color: white;"
-        "background-color: %1;"
-        "border: none;"
-        "border-radius: 10px;"
-        "padding: 5px 15px;"
-    ).arg(statusColor));
-    statusLabel->setAlignment(Qt::AlignCenter);
-    statusLabel->setFixedWidth(100);
-    
-    statusLayout->addWidget(statusLabel);
-    statusLayout->addStretch();
-    
-    layout->addLayout(statusLayout);
-    
-    return frame;
 }
 
 // GESTIÓN DE TEMAS DINÁMICOS
@@ -480,9 +278,9 @@ void LobbyWindow::applyTheme() {
         refreshButton->setStyleSheet(theme.buttonActionStyle());
     }
     
-    // Actualizar fondo del widget central
-    if (centralWidget) {
-        centralWidget->setStyleSheet(QString(
+    // Actualizar fondo del stackedWidget
+    if (stackedWidget) {
+        stackedWidget->setStyleSheet(QString(
             "QWidget {"
             "    background-color: %1;"
             "}"
@@ -555,4 +353,238 @@ void LobbyWindow::applyTheme() {
     
     // Recrear las tarjetas de juegos con el nuevo tema
     updateGamesList(currentGames);
+}
+
+// ========== MÉTODOS PARA CREAR PÁGINAS ==========
+
+QWidget* LobbyWindow::createLobbyPage() {
+    QWidget* page = new QWidget();
+    QVBoxLayout* layout = new QVBoxLayout(page);
+    
+    // ===== Toolbar con selector de tema =====
+    QHBoxLayout* toolbarLayout = new QHBoxLayout();
+    
+    QLabel* themeLabel = new QLabel("🎨 Tema:", page);
+    toolbarLayout->addWidget(themeLabel);
+    
+    themeSelector = new QComboBox(page);
+    themeSelector->addItem("🎨 Default", static_cast<int>(ThemeType::Default));
+    themeSelector->addItem("🌙 Dark Mode", static_cast<int>(ThemeType::DarkMode));
+    themeSelector->addItem("🏎️ Racing Bull", static_cast<int>(ThemeType::RacingRed));
+    themeSelector->addItem("💎 Luxury", static_cast<int>(ThemeType::Luxury));
+    themeSelector->addItem("🌊 Ocean Blue", static_cast<int>(ThemeType::OceanBlue));
+    themeSelector->addItem("💥 Post-Apocalypse", static_cast<int>(ThemeType::PostApocalypse));
+    themeSelector->setMinimumWidth(200);
+    
+    connect(themeSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
+            this, &LobbyWindow::onThemeChanged);
+    
+    toolbarLayout->addWidget(themeSelector);
+    toolbarLayout->addStretch();
+    layout->addLayout(toolbarLayout);
+    
+    // Título
+    titleLabel = new QLabel("🏁 Lobby - Need for Speed 🏁", page);
+    QFont titleFont = titleLabel->font();
+    titleFont.setPointSize(18);
+    titleFont.setBold(true);
+    titleLabel->setFont(titleFont);
+    titleLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(titleLabel);
+    
+    // Label de estado
+    statusLabel = new QLabel("Conectado al servidor", page);
+    statusLabel->setAlignment(Qt::AlignCenter);
+    layout->addWidget(statusLabel);
+    
+    // Lista de partidas
+    gamesListWidget = new QListWidget(page);
+    gamesListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
+    gamesListWidget->setMinimumHeight(300);
+    layout->addWidget(gamesListWidget);
+    
+    connect(gamesListWidget, &QListWidget::itemClicked,
+            this, &LobbyWindow::onGameSelected);
+    connect(gamesListWidget, &QListWidget::itemDoubleClicked,
+            this, &LobbyWindow::onGameDoubleClicked);
+    
+    // Botones de acción
+    QHBoxLayout* buttonLayout = new QHBoxLayout();
+    
+    createGameButton = new QPushButton("➕ Crear Partida", page);
+    createGameButton->setMinimumHeight(40);
+    connect(createGameButton, &QPushButton::clicked,
+            this, &LobbyWindow::onCreateGameClicked);
+    buttonLayout->addWidget(createGameButton);
+    
+    joinGameButton = new QPushButton("🎮 Unirse a Partida", page);
+    joinGameButton->setMinimumHeight(40);
+    joinGameButton->setEnabled(false);
+    connect(joinGameButton, &QPushButton::clicked,
+            this, &LobbyWindow::onJoinGameClicked);
+    buttonLayout->addWidget(joinGameButton);
+    
+    refreshButton = new QPushButton("🔄 Actualizar", page);
+    refreshButton->setMinimumHeight(40);
+    connect(refreshButton, &QPushButton::clicked,
+            this, &LobbyWindow::onRefreshClicked);
+    buttonLayout->addWidget(refreshButton);
+    
+    layout->addLayout(buttonLayout);
+    
+    return page;
+}
+
+// ========== NAVEGACIÓN ENTRE PÁGINAS ==========
+
+void LobbyWindow::showLobbyPage() {
+    stackedWidget->setCurrentIndex(0);
+    setWindowTitle("Need for Speed - Lobby");
+}
+
+void LobbyWindow::showCreateGamePage() {
+    stackedWidget->setCurrentIndex(1);
+    setWindowTitle("Need for Speed - Crear Partida");
+    createGameWidget->reset();  // Limpiar formulario
+}
+
+void LobbyWindow::showCarSelectionPage() {
+    stackedWidget->setCurrentIndex(2);
+    setWindowTitle("Need for Speed - Seleccionar Auto");
+    carSelectionWidget->reset();  // Resetear selección
+}
+
+// ========== SLOTS DE FORMULARIO DE CREAR PARTIDA ==========
+
+void LobbyWindow::onCreateGameSubmit() {
+    // Obtener configuración del widget
+    auto config = createGameWidget->getConfig();
+    
+    // Validar nombre (el widget ya debería validar, pero por seguridad)
+    if (config.name.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Debes ingresar un nombre para la partida");
+        return;
+    }
+    
+    // Establecer modo: estamos CREANDO una partida
+    carSelectionMode = CarSelectionMode::Creating;
+    
+    // Ir a selección de auto
+    showCarSelectionPage();
+}
+
+void LobbyWindow::onCreateGameCancel() {
+    showLobbyPage();
+}
+
+// ========== SLOTS DE SELECCIÓN DE AUTO ==========
+
+void LobbyWindow::onCarSelectionConfirm() {
+    int selectedCarType = carSelectionWidget->getSelectedCarType();
+    
+    if (selectedCarType == -1) {
+        QMessageBox::warning(this, "Error", "Debes seleccionar un auto");
+        return;
+    }
+    
+    if (carSelectionMode == CarSelectionMode::Creating) {
+        // MODO: Crear nueva partida
+        auto config = createGameWidget->getConfig();
+        
+        GameConfig gameConfig;
+        gameConfig.name = config.name;
+        gameConfig.maxPlayers = config.maxPlayers;
+        gameConfig.raceCount = config.raceCount;
+        gameConfig.lapCount = config.lapCount;
+        gameConfig.city = config.city;
+        gameConfig.carType = selectedCarType;
+        
+        lobbyClient->createGame(gameConfig);
+        
+        // No volver al lobby, onGameCreated() nos llevará a la sala de espera
+        statusLabel->setText("⏳ Creando partida...");
+        
+    } else if (carSelectionMode == CarSelectionMode::Joining) {
+        // MODO: Unirse a partida existente
+        
+        // TODO: Cuando implementes el protocolo real, agregar:
+        // lobbyClient->selectCar(joiningGameId, selectedCarType);
+        
+        // Simular unión exitosa - ir a sala de espera
+        std::vector<PlayerInfo> players = {
+            {1, "Host", 1, true, true},        // Host (ready)
+            {2, "Tú", selectedCarType, false, false},  // Tú (not ready)
+            {3, "Player3", 3, false, false},   // Otro jugador
+        };
+        currentGameId = joiningGameId;
+        
+        // Configurar y mostrar waiting room
+        waitingRoomWidget->setGameInfo(currentGameId, players);
+        stackedWidget->setCurrentIndex(3);
+        setWindowTitle("Need for Speed - Sala de Espera");
+        
+        statusLabel->setText("✅ Te has unido a la partida");
+        statusLabel->setStyleSheet("color: green;");
+    }
+}
+
+void LobbyWindow::onCarSelectionCancel() {
+    if (carSelectionMode == CarSelectionMode::Creating) {
+        // Si estábamos creando, volver al formulario
+        showCreateGamePage();
+    } else {
+        // Si estábamos uniéndonos, volver al lobby
+        showLobbyPage();
+        statusLabel->setText("❌ Cancelado - No te uniste a la partida");
+        statusLabel->setStyleSheet("color: orange;");
+    }
+}
+
+// ========== MODIFICACIÓN DEL SLOT ORIGINAL ==========
+
+void LobbyWindow::onCreateGameClicked() {
+    showCreateGamePage();
+}
+
+// ========== SLOTS DELEGADOS DE SALA DE ESPERA ==========
+
+void LobbyWindow::onWaitingRoomLeaveRequested() {
+    lobbyClient->leaveGame();
+    showLobbyPage();
+    statusLabel->setText("Has salido de la partida");
+    statusLabel->setStyleSheet("color: orange;");
+}
+
+void LobbyWindow::onWaitingRoomReadyChanged(bool ready) {
+    lobbyClient->setReady(ready);
+}
+
+void LobbyWindow::onWaitingRoomStartGame() {
+    QMessageBox::information(this, "🏁 ¡La Carrera Comienza!", 
+                            "¡Todos los jugadores están listos!\n\n"
+                            "La carrera comenzará en breve...");
+    
+    // TODO: Iniciar ventana del juego
+    showLobbyPage();
+    lobbyClient->requestGamesList();
+}
+
+void LobbyWindow::onPlayersListUpdated(std::vector<PlayerInfo> players) {
+    waitingRoomWidget->updatePlayersList(players);
+}
+
+
+void LobbyWindow::onGameStarting() {
+    QMessageBox::information(this, "🏁 ¡La Carrera Comienza!", 
+                            "¡Todos los jugadores están listos!\n\n"
+                            "La carrera comenzará en breve...");
+    
+    // TODO: Aquí iniciar la ventana del juego SDL2
+    // gameWindow = new GameWindow(currentGameId);
+    // gameWindow->show();
+    // this->hide();
+    
+    // Por ahora, volver al lobby
+    showLobbyPage();
+    lobbyClient->requestGamesList();
 }
