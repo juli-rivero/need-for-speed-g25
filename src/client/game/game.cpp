@@ -12,8 +12,8 @@ bool Game::start() {
     SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
 
     // TODO(crook): Convertir car a una imagen transparente.
-    SDL2pp::Texture car_sprite(renderer, "/assets/cars/car1.png");
-    SDL2pp::Texture city_sprite(renderer, "/assets/cities/liberty_city.png");
+    SDL2pp::Texture car_sprite(renderer, "assets/cars/car1.png");
+    SDL2pp::Texture city_sprite(renderer, "assets/cities/liberty_city.png");
 
     // Game loop
     double car_x = renderer.GetOutputWidth() / 2;
@@ -26,7 +26,7 @@ bool Game::start() {
         // Manejo de inputs
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) return false;
+            if (event.type == SDL_QUIT) return true;
 
             if (event.type == SDL_KEYDOWN) {
                 auto tecla = event.key.keysym.sym;
@@ -57,5 +57,5 @@ bool Game::start() {
         SDL_Delay(1000 / 60);
     }
 
-    return false;
+    return true;
 }

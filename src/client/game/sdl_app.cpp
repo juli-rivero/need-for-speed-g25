@@ -6,8 +6,7 @@ SdlApp::SdlApp(ConnexionController& connexion_controller, bool& quit)
     connexion_controller.control(game);
 
     Game game;
-    bool error = game.start();
-    quit = error;
+    quit = game.start();
 }
 
 SdlApp::~SdlApp() { connexion_controller.decontrol(game); }

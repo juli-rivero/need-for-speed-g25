@@ -13,11 +13,11 @@
 
 int main(const int argc, const char* argv[]) {
     try {
-        if (argc != 2) {
-            throw std::runtime_error(
-                "Bad program call. Expected \n"
-                "\t./server <puerto>\n");
-        }
+        // if (argc != 2) {
+        //     throw std::runtime_error(
+        //         "Bad program call. Expected \n"
+        //         "\t./server <puerto>\n");
+        // }
 
         const ArgsParser args_parser(argc, argv);
 
