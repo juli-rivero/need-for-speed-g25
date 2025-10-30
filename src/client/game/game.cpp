@@ -15,7 +15,7 @@ bool Game::send_events() {
         if (event.type == SDL_KEYDOWN) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_q) return true;
+            if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
 
             if (tecla == SDLK_LEFT) car_angle -= 10;
             if (tecla == SDLK_RIGHT) car_angle += 10;
@@ -37,9 +37,18 @@ void Game::get_state() {
 
 void Game::draw_state() {
     renderer.Clear();
-    renderer.Copy(assets.city_liberty, SDL2pp::NullOpt, SDL2pp::Point(0, 0));
-    renderer.Copy(assets.car1, SDL2pp::NullOpt, SDL2pp::Point(car_x, car_y),
-                  car_angle);
+
+    // Definir la camara alrededor del jugador.
+    int cam_x =
+        car_x + assets.car1.GetWidth() / 2 - renderer.GetOutputWidth() / 2;
+    int cam_y =
+        car_y + assets.car1.GetHeight() / 2 - renderer.GetOutputHeight() / 2;
+
+    // Ahora si, dibujar los elementos
+    renderer.Copy(assets.city_liberty, SDL2pp::NullOpt,
+                  SDL2pp::Point(0 - cam_x, 0 - cam_y));
+    renderer.Copy(assets.car1, SDL2pp::NullOpt,
+                  SDL2pp::Point(car_x - cam_x, car_y - cam_y), car_angle);
     renderer.Present();
 }
 
