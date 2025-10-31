@@ -24,6 +24,7 @@ public:
         : id(id), color(color), body(std::move(body)) {}
 
     int getId() const { return id; }
+    float getHealth() const { return health; }
     const std::string& getColor() const { return color; }
 
     Vec2 getPosition() const { return body->getPosition(); }
@@ -31,7 +32,6 @@ public:
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
 
     void accelerate(float dt) {
-        Vec2 vel = body->getLinearVelocity();
         float vx = std::cos(getAngle()) * acceleration * dt;
         float vy = std::sin(getAngle()) * acceleration * dt;
         body->applyForce(vx, vy);

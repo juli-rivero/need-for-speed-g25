@@ -8,29 +8,20 @@
 #include <memory>
 #include <optional>
 
-#include "IGameConfig.h"
+#include "../config/YamlGameConfig.h"
 #include "types.h"
-#include "IRaceEvents.h"
 
 #include "../model/Checkpoint.h"
 #include "../model/Hint.h"
 #include "../model/Car.h"
 
-class RaceSession : public IRaceEvents {
+class RaceSession {
 public:
     enum class State { Countdown, Running, Finished };
 
-    struct PlayerRaceData {
-        PlayerId id{};
-        std::shared_ptr<Car> car;   // modelo lógico del auto (compartido con GameWorld)
-        std::size_t nextCheckpoint{0};
-        bool finished{false};
-        bool disqualified{false};
-        float elapsed{0.0f};        // tiempo crudo
-        float penaltyTime{0.0f};    // penalización a aplicar en esta carrera
-    };
 
-    RaceSession(const IGameConfig& cfg,
+
+    RaceSession(const YamlGameConfig& cfg,
                 CityId city,
                 std::vector<Checkpoint> checkpoints,
                 std::vector<Hint> hints,
@@ -50,16 +41,16 @@ public:
     std::vector<Hint> hintsTowardsNextFor(PlayerId p) const;
 
     // IRaceEvents (llamados por colisiones / sensores)
-    void onCheckpointCrossed(PlayerId player, int checkpointOrder) override;
-    void onCarHighImpact(PlayerId player, float impactFactor) override;
-    void onCarDestroyed(PlayerId player) override;
+    void onCheckpointCrossed(PlayerId player, int checkpointOrder);
+    void onCarHighImpact(PlayerId player, float impactFactor);
+    void onCarDestroyed(PlayerId player);
 
     // util
     State state() const { return _state; }
     float elapsedRaceTime() const { return _raceClock; }
 
 private:
-    const IGameConfig& _cfg;
+    const YamlGameConfig& _cfg;
     CityId _city;
     State _state{State::Countdown};
     float _raceClock{0.0f};                 // reloj global de la carrera
@@ -67,6 +58,16 @@ private:
 
     std::vector<Checkpoint> _checkpoints;   // ordenados por "order"
     std::vector<Hint> _hints;
+
+    struct PlayerRaceData {
+        PlayerId id{};
+        std::shared_ptr<Car> car;   // modelo lógico del auto (compartido con GameWorld)
+        std::size_t nextCheckpoint{0};
+        bool finished{false};
+        bool disqualified{false};
+        float elapsed{0.0f};        // tiempo crudo
+        float penaltyTime{0.0f};    // penalización a aplicar en esta carrera
+    };
 
     std::vector<PlayerRaceData> _players;
 

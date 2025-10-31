@@ -5,11 +5,11 @@
 
 #include "../config/MapLoader.h"      // para cargar CP/Hints desde YAML
 #include "../physics/EntityFactory.h"  // para crear entidades (si generás autos aquí)
-#include "../physics/Box2DBodyAdapter.h"
 
-MatchSession::MatchSession(const IGameConfig& cfg,
+
+MatchSession::MatchSession(const YamlGameConfig& cfg,
                            std::vector<RaceDefinition> raceDefs,
-                           PhysicsWorld& world)
+                           Box2DPhysicsWorld& world)
     : _cfg(cfg),
       _world(world),
       _races(std::move(raceDefs)),
@@ -35,25 +35,22 @@ void MatchSession::startRace(std::size_t raceIndex) {
     MapLoader::loadFromYAML(
         _races[raceIndex].mapFile,
         _world,
-        raceIndex,
         walls,
         bridges,
         checkpoints,
         hints,
-        spawnPoints,
-        playerConfigs
+        spawnPoints
     );
 
 
     std::vector<std::shared_ptr<Car>> cars;
-    auto worldId = _world.getWorldId();
 
     for (size_t i = 0; i < playerConfigs.size(); ++i) {
         const auto& p = playerConfigs[i];
         if (i >= spawnPoints.size()) break;
         const auto& sp = spawnPoints[i];
 
-        auto car = EntityFactory::createCar(worldId, p.id, p.color, sp.x, sp.y);
+        auto car = EntityFactory::createCar(_world ,p.color, sp.x, sp.y);
         cars.push_back(std::move(car));
     }
 
@@ -65,7 +62,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
         std::move(cars),
         _penaltiesForNextRace
     );
-
+    _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
     _penaltiesForNextRace.clear();
 
@@ -87,7 +84,7 @@ void MatchSession::update(float dt) {
         break;
     case State::Intermission:
         _intermissionClock += dt;
-        if (_intermissionClock >= _cfg.intermissionSec()) {
+        if (_intermissionClock >= _cfg.getIntermissionSec()) {
             endIntermissionAndPrepareNextRace();
         }
         break;

@@ -10,16 +10,20 @@
 #include <memory>
 #include <vector>
 
+#include "CollisionManager.h"
+
 //WRAPPER DEL MUNDO
-class PhysicsWorld {
+class Box2DPhysicsWorld {
 private:
     b2WorldId world;
+    std::unique_ptr<CollisionManager> collisionManager;
 public:
-    PhysicsWorld();
-    ~PhysicsWorld();
+    Box2DPhysicsWorld();
+    ~Box2DPhysicsWorld();
 
     void step(float dt);
     b2WorldId getWorldId() const { return world; }
+    CollisionManager& getCollisionManager() { return *collisionManager; }
 
 
 };

@@ -4,6 +4,7 @@
 
 #ifndef TALLER_TP_ENTITYFACTORY_H
 #define TALLER_TP_ENTITYFACTORY_H
+#include "Box2DPhysicsWorld.h"
 #include "../model/Car.h"
 #include "../model/Wall.h"
 #include "../model/Checkpoint.h"
@@ -17,11 +18,12 @@ private:
         return counter++;
     }
 public:
-    static std::unique_ptr<Car> createCar(b2WorldId world,int playerId,const std::string color, float x, float y);
-    static std::unique_ptr<Wall> createBuilding(b2WorldId world, float x, float y, float w, float h);
-    static std::unique_ptr<Checkpoint> createCheckpoint(b2WorldId world, float x, float y, float radius,int order);
+    // Todos reciben una referencia al mundo físico
+    static std::unique_ptr<Car> createCar(Box2DPhysicsWorld& world, const std::string& color, float x, float y);
+    static std::unique_ptr<Wall> createWall(Box2DPhysicsWorld& world, float x, float y, float w, float h);
+    static std::unique_ptr<Checkpoint> createCheckpoint(Box2DPhysicsWorld& world, float x, float y, float w,float h, int order);
     static std::unique_ptr<Hint> createHint(float x, float y, float angle);
-    static std::unique_ptr<Bridge> createBridge(b2WorldId world, float x, float y, float w, float h, bool driveable);
+    static std::unique_ptr<Bridge> createBridge(Box2DPhysicsWorld& world, float x, float y, float w, float h, bool driveable);
 };
 
 #endif

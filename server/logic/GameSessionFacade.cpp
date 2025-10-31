@@ -17,9 +17,10 @@ void GameSessionFacade::update(float dt) {
     if (!running || !match) return;
 
     world.step(dt);
+
     match->update(dt);
 
-    if (match->state() == MatchSession::State::Finished) {
+    if (match->state() == State::Finished) {
         running = false;
     }
 }

@@ -1,29 +1,46 @@
 
 #ifndef TALLER_TP_YAMLGAMECONFIG_H
 #define TALLER_TP_YAMLGAMECONFIG_H
-#include "../logic/IGameConfig.h"
+
 #include "yaml-cpp/yaml.h"
 #include <unordered_map>
 #include <string>
 
-class YamlGameConfig : public IGameConfig {
+#include "../logic/types.h"
+
+class YamlGameConfig {
 private:
     YAML::Node root;
     std::unordered_map<std::string, float> penalties;
-
+    std::vector<CityDefinition> cities;
+    // Race
+    int maxPlayers{8};
+    float timeLimitSec{600.0f};
+    float intermissionSec{10.0f};
+    // Car defaults
+    float defaultHealth{100.0f};
+    float defaultMaxSpeed{150.0f};
+    float defaultAcceleration{10.0f};
+    float defaultMass{1.0f};
+    float defaultControl{1.0f};
 public:
     explicit YamlGameConfig(const std::string& filePath);
+    // Getters
+    int getMaxPlayers() const { return maxPlayers; }
+    float getRaceTimeLimitSec() const { return timeLimitSec; }
+    float getIntermissionSec() const { return intermissionSec; }
 
-    int   maxPlayers() const override;
-    float raceTimeLimitSec() const override;
-    float intermissionSec() const override;
+    float getDefaultHealth() const { return defaultHealth; }
+    float getDefaultMaxSpeed() const { return defaultMaxSpeed; }
+    float getDefaultAcceleration() const { return defaultAcceleration; }
+    float getDefaultMass() const { return defaultMass; }
+    float getDefaultControl() const { return defaultControl; }
 
-    std::optional<float> penaltyFor(const std::string& statName) const override;
+    const std::unordered_map<std::string, float>& getPenalties() const { return penalties; }
+    const std::vector<CityDefinition>& getCities() const { return cities; }
 
-    float defaultCarHealth() const override;
-    float defaultCarMaxSpeed() const override;
-    float defaultCarAcceleration() const override;
-    float defaultCarMass() const override;
-    float defaultCarControl() const override;
+    void printSummary() const;
+
+
 };
 #endif

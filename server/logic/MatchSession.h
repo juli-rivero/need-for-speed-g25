@@ -7,16 +7,18 @@
 #include <unordered_map>
 #include <memory>
 #include "types.h"
-#include "IGameConfig.h"
+#include "../config/YamlGameConfig.h"
 #include "RaceSession.h"
 #include "UpgradeSystem.h"
 
-#include "../physics/PhysicsWorld.h"
+
+#include "../physics/Box2DPhysicsWorld.h"
+
 enum class State { Lobby, Racing, Intermission, Finished };
 class MatchSession {
 private:
-    const IGameConfig& _cfg;
-    PhysicsWorld& _world;
+    const YamlGameConfig& _cfg;
+    Box2DPhysicsWorld& _world;
 
     State _state{State::Lobby};
     std::vector<RaceDefinition> _races;   // N carreras planificadas
@@ -40,9 +42,9 @@ private:
 public:
 
 
-    MatchSession(const IGameConfig& cfg,
+    MatchSession(const YamlGameConfig& cfg,
                  std::vector<RaceDefinition> raceDefs,
-                 PhysicsWorld& world);
+                 Box2DPhysicsWorld& world);
 
     void start();            // Lobby → Racing (carrera 0)
     void update(float dt);   // delega a la carrera actual / intermission

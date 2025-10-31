@@ -4,7 +4,7 @@
 #include <algorithm>
 #include <cmath>
 
-RaceSession::RaceSession(const IGameConfig& cfg,
+RaceSession::RaceSession(const YamlGameConfig& cfg,
                          CityId city,
                          std::vector<Checkpoint> checkpoints,
                          std::vector<Hint> hints,
@@ -41,7 +41,7 @@ bool RaceSession::everyoneDoneOrDQ() const {
 }
 
 void RaceSession::applyTimeLimitIfNeeded() {
-    if (_raceClock >= _cfg.raceTimeLimitSec()) {
+    if (_raceClock >= _cfg.getRaceTimeLimitSec()) {
         // tiempo agotado marcar DNF a quienes no terminaron
         for (auto& p : _players) {
             if (!p.finished && !p.disqualified) {
@@ -91,7 +91,6 @@ std::vector<PlayerResult> RaceSession::makeResults() const {
     for (const auto& p : _players) {
         PlayerResult r;
         r.id = p.id;
-        r.rawTime = p.finished ? p.elapsed : p.elapsed;
         r.penalty = p.penaltyTime;
         r.netTime = p.finished ? (p.elapsed - p.penaltyTime) : p.elapsed;
         r.dnf = (!p.finished || p.disqualified);
@@ -116,7 +115,7 @@ std::optional<Checkpoint> RaceSession::nextCheckpointFor(PlayerId p) const {
 
 std::vector<Hint> RaceSession::hintsTowardsNextFor(PlayerId p) const {
     // Todo: una estrategia simple para devolver todos los hints del mapa o filtrar por "sector".
-
+    (void)p; // evita warning mientras no se usa
     return _hints;
 }
 
@@ -143,6 +142,11 @@ void RaceSession::onCarHighImpact(PlayerId player, float impactFactor) {
         //TODO car->applyDamage(impactFactor * cfgFactor); // agrega a tu Car
         // si cae a 0 → destruir
         // if (car->health() <= 0) onCarDestroyed(player);
+        float dmg = impactFactor * 0.5f;
+        car->damage(dmg);
+        if (car->isDestroyed()) {
+            onCarDestroyed(player);
+        }
     }
 }
 

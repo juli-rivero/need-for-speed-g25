@@ -1,13 +1,16 @@
 target_sources(taller_server
         PRIVATE
         EntityFactory.cpp
-        PhysicsFactory.cpp
-        PhysicsWorld.cpp
+        Box2DPhysicsFactory.cpp
+        Box2DPhysicsWorld.cpp
+        CollisionManager.cpp
         PUBLIC
+        Box2DHash.h
         Box2DBodyAdapter.h
         EntityFactory.h
         IPhysicalBody.h
-        PhysicsBody.h
-        PhysicsFactory.h
-        PhysicsWorld.h
+        Box2dPhysicsBody.h
+        Box2DPhysicsFactory.h
+        Box2DPhysicsWorld.h
+        CollisionManager.h
 )

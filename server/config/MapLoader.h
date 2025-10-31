@@ -7,17 +7,15 @@
 #include <vector>
 #include <memory>
 #include "yaml-cpp/yaml.h"
-#include "../physics/PhysicsWorld.h"
+#include "../physics/Box2DPhysicsWorld.h"
 #include "../model/Checkpoint.h"
 #include "../model/Hint.h"
 
-#include "../model/Car.h"
 
 class Wall;
 class Bridge;
 
 struct SpawnPoint {
-    int playerId;
     float x, y, angle;
 };
 
@@ -30,17 +28,23 @@ struct PlayerConfig {
 
 class MapLoader {
 public:
-    static void loadFromYAML(
-        const std::string& path,
-        PhysicsWorld& world,
-        std::size_t raceIndex,
+    struct MapInfo {
+        std::string name;
+        std::string city;
+        b2Vec2 gravity;
+    };
+
+    static MapInfo loadFromYAML(
+        const std::string& yamlPath,
+        Box2DPhysicsWorld& world,
         std::vector<std::unique_ptr<Wall>>& walls,
         std::vector<std::unique_ptr<Bridge>>& bridges,
         std::vector<Checkpoint>& checkpoints,
         std::vector<Hint>& hints,
-        std::vector<SpawnPoint>& spawnPoints,
-        std::vector<PlayerConfig>& players
+        std::vector<SpawnPoint>& spawnPoints
+
     );
 };
+
 
 #endif

@@ -13,9 +13,9 @@ UpgradeSystem::applyForNextRace(
             // si no trae penalty ya calculada, consultá al config por stat
             float p = up.penalty;
             if (p == 0.0f) {
-                if (auto fromCfg = _cfg.penaltyFor(up.stat)) {
-                    p = *fromCfg;
-                }
+                // if (auto fromCfg = _cfg.penaltyFor(up.stat)) {
+                //     p = *fromCfg;
+                // }
             }
             totalPenalty += p;
             // TODO: aplicar el stat al auto en el armado de la siguiente carrera (no aquí)

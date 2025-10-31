@@ -1,8 +1,7 @@
 #ifndef HINT_H
 #define HINT_H
 
-#include "Entity.h"
-#include "server/physics/IPhysicalBody.h"
+#include "../physics/IPhysicalBody.h"
 
 class Hint {
 private:

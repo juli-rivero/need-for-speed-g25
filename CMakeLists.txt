@@ -145,7 +145,7 @@ if(TALLER_SERVER)
     FetchContent_Declare(
             yaml
             GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-            GIT_TAG v0.8.0
+            GIT_TAG 0.8.0
             GIT_SHALLOW TRUE
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
@@ -160,6 +160,7 @@ if(TALLER_SERVER)
     # Link the taller_common lib target
     target_link_libraries(taller_server PRIVATE
             box2d
+            yaml-cpp
             taller_common
     )
 endif()

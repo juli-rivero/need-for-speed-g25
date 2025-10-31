@@ -7,9 +7,15 @@
 #include <unordered_map>
 #include <memory>
 
+struct RaceDefinition;
 using PlayerId = std::uint32_t;
 
 enum class CityId { LibertyCity, SanAndreas, ViceCity };
+// Representa una ciudad con sus circuitos
+struct CityDefinition {
+    std::string name;
+    std::vector<RaceDefinition> races;
+};
 
 struct PlayerResult {
     PlayerId id{};
