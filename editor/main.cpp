@@ -1,5 +1,11 @@
-#include "common/foo.h"
+#include "editor_window.h"
+#include <QApplication>
 
-int main() {
-    return foo(4);
+int main(int argc, char *argv[]) {
+    QApplication app(argc, argv);
+    
+    EditorWindow editor;
+    editor.show();
+    
+    return app.exec();
 }

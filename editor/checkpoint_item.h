@@ -1,0 +1,67 @@
+#ifndef CHECKPOINT_ITEM_H
+#define CHECKPOINT_ITEM_H
+
+#include <QGraphicsItem>
+#include <QPainter>
+#include <QGraphicsSceneMouseEvent>
+
+// Claves para almacenar datos en QGraphicsItem
+enum ItemDataKey {
+    ItemTypeKey = 0,       // Tipo de item (checkpoint/hint)
+    ItemIdKey = 1,         // ID del item
+    CheckpointTypeKey = 2  // Tipo de checkpoint (start/normal/finish)
+};
+
+// Valores para ItemTypeKey
+enum ItemTypeValue {
+    CheckpointItemType = 100,
+    HintItemType = 101
+};
+
+/**
+ * Item gráfico para representar un checkpoint en el canvas.
+ * Los checkpoints son franjas rectangulares que los jugadores deben cruzar.
+ */
+class CheckpointItem : public QGraphicsItem {
+public:
+    enum CheckpointType {
+        Start,      // Checkpoint de inicio (verde)
+        Normal,     // Checkpoint intermedio (amarillo)
+        Finish      // Checkpoint de meta (rojo)
+    };
+    
+    CheckpointItem(int id, CheckpointType type, QPointF position, 
+                   float rotation = 0.0f, float width = 100.0f);
+    
+    // Métodos de QGraphicsItem
+    QRectF boundingRect() const override;
+    void paint(QPainter* painter, const QStyleOptionGraphicsItem* option, 
+               QWidget* widget = nullptr) override;
+    
+    // Getters y setters
+    int getId() const { return checkpointId; }
+    CheckpointType getType() const { return type; }
+    float getRotation() const { return rotation; }
+    float getWidth() const { return width; }
+    
+    void setRotationAngle(float angle);
+    void setWidth(float w);
+    
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    
+private:
+    int checkpointId;
+    CheckpointType type;
+    float rotation;  // Ángulo en grados
+    float width;     // Ancho de la franja
+    bool dragging;
+    QPointF dragStartPos;
+    
+    QColor getColor() const;
+    QString getLabel() const;
+};
+
+#endif // CHECKPOINT_ITEM_H
