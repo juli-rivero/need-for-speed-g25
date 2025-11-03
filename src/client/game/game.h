@@ -18,6 +18,9 @@ class Game final {
     double car_speed = 0;
     double car_angle = 0;
 
+    bool left_held = false;
+    bool right_held = false;
+
     // Metodos de actualizacion internos
     bool send_events();
     void get_state();

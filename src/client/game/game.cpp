@@ -17,10 +17,17 @@ bool Game::send_events() {
 
             if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
 
-            if (tecla == SDLK_LEFT) car_angle -= 10;
-            if (tecla == SDLK_RIGHT) car_angle += 10;
+            if (tecla == SDLK_LEFT) left_held = true;
+            if (tecla == SDLK_RIGHT) right_held = true;
             if (tecla == SDLK_UP) car_speed -= 1;
             if (tecla == SDLK_DOWN) car_speed += 1;
+        }
+
+        if (event.type == SDL_KEYUP) {
+            auto tecla = event.key.keysym.sym;
+
+            if (tecla == SDLK_LEFT) left_held = false;
+            if (tecla == SDLK_RIGHT) right_held = false;
         }
     }
 
@@ -29,6 +36,9 @@ bool Game::send_events() {
 
 // TODO(crook): temporal, hasta conectar con el servidor.
 void Game::get_state() {
+    if (left_held) car_angle -= 3;
+    if (right_held) car_angle += 3;
+
     if (car_angle > 360) car_angle -= 360;
     if (car_angle < 0) car_angle += 360;
     car_x += sin(-car_angle * 3.14 / 180) * car_speed;
