@@ -10,6 +10,7 @@ class Assets final {
 
     SDL2pp::Texture car1;
     SDL2pp::Texture city_liberty;
+    SDL2pp::Font font;
 
     MAKE_FIXED(Assets)
 };

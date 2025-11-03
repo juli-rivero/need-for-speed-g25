@@ -1,6 +1,7 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
+#include <string>
 
 #include "client/game/assets.h"
 #include "common/macros.h"
@@ -20,6 +21,8 @@ class Game final {
 
     bool left_held = false;
     bool right_held = false;
+
+    std::string hud_text = "Hello, world!";
 
     // Metodos de actualizacion internos
     bool send_events();

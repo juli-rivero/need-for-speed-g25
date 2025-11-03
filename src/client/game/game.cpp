@@ -54,11 +54,20 @@ void Game::draw_state() {
     int cam_y =
         car_y + assets.car1.GetHeight() / 2 - renderer.GetOutputHeight() / 2;
 
-    // Ahora si, dibujar los elementos
+    // Background
     renderer.Copy(assets.city_liberty, SDL2pp::NullOpt,
                   SDL2pp::Point(0 - cam_x, 0 - cam_y));
+
+    // Foreground
     renderer.Copy(assets.car1, SDL2pp::NullOpt,
                   SDL2pp::Point(car_x - cam_x, car_y - cam_y), car_angle);
+
+    // HUD
+    SDL2pp::Texture text_render(
+        renderer,
+        assets.font.RenderText_Solid(hud_text, SDL_Color{255, 255, 255, 255}));
+    renderer.Copy(text_render, SDL2pp::NullOpt, SDL2pp::Point(10, 10));
+
     renderer.Present();
 }
 

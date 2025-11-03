@@ -6,6 +6,7 @@ SdlApp::SdlApp(ConnexionController& connexion_controller, bool& quit)
     : connexion_controller(connexion_controller),
       input_handler(connexion_controller) {
     // Inicializacion de SDL (ventana 640x480)
+    SDL2pp::SDLTTF sdl_ttf;
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
     SDL2pp::Window window("Need for Speed TPG", SDL_WINDOWPOS_UNDEFINED,
                           SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
