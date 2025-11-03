@@ -1,13 +1,14 @@
 #pragma once
 
-#include "client/qt/lobby.h"
+#include "client/qt/windows/waiting_room_widget.h"
 #include "common/dto/dto_lobby.h"
+#include "common/macros.h"
 
 class LobbyController final {
-    Lobby& lobby;
+    WaitingRoomWidget& waiting_room;
 
    public:
-    explicit LobbyController(Lobby& lobby);
+    explicit LobbyController(WaitingRoomWidget& waiting_room);
 
     MAKE_FIXED(LobbyController)
 

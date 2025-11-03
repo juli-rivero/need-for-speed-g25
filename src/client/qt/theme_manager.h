@@ -1,8 +1,7 @@
-#ifndef THEME_MANAGER_H
-#define THEME_MANAGER_H
+#pragma once
 
-#include <QString>
 #include <QObject>
+#include <QString>
 
 /**
  * Enum para identificar los temas disponibles
@@ -29,39 +28,39 @@ struct ColorPalette {
     QString actionHover;
     QString dangerColor;
     QString dangerHover;
-    
+
     // Fondos
     QString cardBackground;
     QString cardBackgroundHover;
     QString borderColor;
     QString borderSelected;
-    
+
     // Textos
     QString textPrimary;
     QString textSecondary;
     QString textLight;
-    
+
     // Estados
     QString statusSuccess;
     QString statusWarning;
     QString statusError;
-    
+
     // Barras de progreso
     QString progressBackground;
     QString progressFill;
-    
+
     // Stats de autos
     QString statSpeed;
     QString statAcceleration;
     QString statHealth;
     QString statMass;
     QString statControl;
-    
+
     // Estados de partida
     QString stateWaiting;
     QString statePlaying;
     QString stateFull;
-    
+
     // Deshabilitado
     QString disabledBackground;
     QString disabledText;
@@ -73,24 +72,24 @@ struct ColorPalette {
 class ThemeManager : public QObject {
     Q_OBJECT
 
-public:
+   public:
     static ThemeManager& instance() {
         static ThemeManager inst;
         return inst;
     }
-    
+
     // Obtener paleta actual
     const ColorPalette& getCurrentPalette() const { return currentPalette; }
-    
+
     // Cambiar tema
     void setTheme(ThemeType type);
-    
+
     // Obtener tipo de tema actual
     ThemeType getCurrentTheme() const { return currentTheme; }
-    
+
     // Obtener nombre del tema
     QString getThemeName(ThemeType type) const;
-    
+
     // Constantes de estilo
     static constexpr int BORDER_RADIUS = 8;
     static constexpr int CARD_BORDER_RADIUS = 8;
@@ -99,7 +98,7 @@ public:
     static constexpr int FONT_SIZE_NORMAL = 14;
     static constexpr int FONT_SIZE_SMALL = 12;
     static constexpr int FONT_SIZE_TINY = 9;
-    
+
     // Funciones de estilo
     QString buttonPrimaryStyle() const;
     QString buttonSecondaryStyle() const;
@@ -108,35 +107,32 @@ public:
     QString gameCardStyle(bool selected = false) const;
     QString carCardStyle() const;  // Estilo para tarjetas de selección de autos
     QString progressBarStyle(const QString& fillColor = "") const;
-    QString carStatBarStyle(float value) const;  // Estilo para barras de stats con color según valor
+    QString carStatBarStyle(float value)
+        const;  // Estilo para barras de stats con color según valor
     QString statusSuccessStyle() const;
     QString statusWarningStyle() const;
     QString statusErrorStyle() const;
 
-signals:
+   signals:
     void themeChanged();
 
-private:
+   private:
     ThemeManager();
     ~ThemeManager() = default;
-    
+
     ThemeManager(const ThemeManager&) = delete;
     ThemeManager& operator=(const ThemeManager&) = delete;
-    
+
     ColorPalette createDefaultPalette();
     ColorPalette createDarkModePalette();
     ColorPalette createRacingRedPalette();
     ColorPalette createLuxuryPalette();
     ColorPalette createOceanBluePalette();
     ColorPalette createPostApocalypsePalette();
-    
+
     ThemeType currentTheme;
     ColorPalette currentPalette;
 };
 
 // Alias para acceso rápido
-inline ThemeManager& Theme() {
-    return ThemeManager::instance();
-}
-
-#endif // THEME_MANAGER_H
+inline ThemeManager& Theme() { return ThemeManager::instance(); }

@@ -7,25 +7,25 @@ ResponseController::ResponseController()
       lobby_controller(nullptr),
       game_controller(nullptr) {}
 
-void ResponseController::control(Browser& browser) {
+void ResponseController::control(LobbyWindow& searching_room) {
     std::lock_guard lock(mtx);
     delete browser_controller;
-    browser_controller = new BrowserController(browser);
+    browser_controller = new BrowserController(searching_room);
 }
 
-void ResponseController::decontrol(Browser&) {
+void ResponseController::decontrol(LobbyWindow&) {
     std::lock_guard lock(mtx);
     delete browser_controller;
     browser_controller = nullptr;
 }
 
-void ResponseController::control(Lobby& lobby) {
+void ResponseController::control(WaitingRoomWidget& waiting_room) {
     std::lock_guard lock(mtx);
     delete lobby_controller;
-    lobby_controller = new LobbyController(lobby);
+    lobby_controller = new LobbyController(waiting_room);
 }
 
-void ResponseController::decontrol(Lobby&) {
+void ResponseController::decontrol(WaitingRoomWidget&) {
     std::lock_guard lock(mtx);
     delete lobby_controller;
     lobby_controller = nullptr;

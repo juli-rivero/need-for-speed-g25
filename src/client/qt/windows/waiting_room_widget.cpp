@@ -1,8 +1,10 @@
-#include "waiting_room_widget.h"
-#include "theme_manager.h"
-#include <QMessageBox>
+#include "client/qt/windows/waiting_room_widget.h"
+
 #include <QFrame>
 #include <QHBoxLayout>
+#include <QMessageBox>
+
+#include "../theme_manager.h"
 
 WaitingRoomWidget::WaitingRoomWidget(QWidget* parent)
     : QWidget(parent), currentGameId(-1), playerIsReady(false) {
@@ -12,7 +14,7 @@ WaitingRoomWidget::WaitingRoomWidget(QWidget* parent)
 void WaitingRoomWidget::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(50, 30, 50, 30);
-    
+
     // Título
     titleLabel = new QLabel("🎮 Sala de Espera", this);
     QFont titleFont = titleLabel->font();
@@ -21,17 +23,18 @@ void WaitingRoomWidget::setupUI() {
     titleLabel->setFont(titleFont);
     titleLabel->setAlignment(Qt::AlignCenter);
     layout->addWidget(titleLabel);
-    
+
     // Estado
-    statusLabel = new QLabel("Esperando que todos los jugadores estén listos...", this);
+    statusLabel =
+        new QLabel("Esperando que todos los jugadores estén listos...", this);
     statusLabel->setAlignment(Qt::AlignCenter);
     QFont statusFont = statusLabel->font();
     statusFont.setPointSize(12);
     statusLabel->setFont(statusFont);
     layout->addWidget(statusLabel);
-    
+
     layout->addSpacing(20);
-    
+
     // Etiqueta de lista
     QLabel* playersLabel = new QLabel("👥 Jugadores en la Sala:", this);
     QFont playersLabelFont = playersLabel->font();
@@ -39,83 +42,84 @@ void WaitingRoomWidget::setupUI() {
     playersLabelFont.setBold(true);
     playersLabel->setFont(playersLabelFont);
     layout->addWidget(playersLabel);
-    
+
     // Lista de jugadores
     playersListWidget = new QListWidget(this);
     playersListWidget->setMinimumHeight(300);
     layout->addWidget(playersListWidget);
-    
+
     layout->addStretch();
-    
+
     // Botones
     QHBoxLayout* buttonLayout = new QHBoxLayout();
-    
+
     leaveButton = new QPushButton("🚪 Salir de la Partida", this);
     leaveButton->setMinimumHeight(45);
-    connect(leaveButton, &QPushButton::clicked,
-            this, &WaitingRoomWidget::onLeaveClicked);
+    connect(leaveButton, &QPushButton::clicked, this,
+            &WaitingRoomWidget::onLeaveClicked);
     buttonLayout->addWidget(leaveButton);
-    
+
     readyButton = new QPushButton("✅ Listo", this);
     readyButton->setMinimumHeight(45);
     readyButton->setCheckable(true);
     readyButton->setStyleSheet(
-        "background-color: #27ae60; color: white; font-weight: bold;"
-    );
-    connect(readyButton, &QPushButton::toggled,
-            this, &WaitingRoomWidget::onReadyToggled);
+        "background-color: #27ae60; color: white; font-weight: bold;");
+    connect(readyButton, &QPushButton::toggled, this,
+            &WaitingRoomWidget::onReadyToggled);
     buttonLayout->addWidget(readyButton);
-    
+
     layout->addLayout(buttonLayout);
 }
 
-void WaitingRoomWidget::setGameInfo(int gameId, const std::vector<PlayerInfo>& players) {
+void WaitingRoomWidget::setGameInfo(int gameId,
+                                    const std::vector<PlayerInfo>& players) {
     currentGameId = gameId;
     currentPlayers = players;
     playerIsReady = false;
-    
+
     // Reset UI
     readyButton->setChecked(false);
     readyButton->setText("✅ Listo");
     readyButton->setStyleSheet(
-        "background-color: #27ae60; color: white; font-weight: bold;"
-    );
-    
+        "background-color: #27ae60; color: white; font-weight: bold;");
+
     updatePlayersList(players);
 }
 
-void WaitingRoomWidget::updatePlayersList(const std::vector<PlayerInfo>& players) {
+void WaitingRoomWidget::updatePlayersList(
+    const std::vector<PlayerInfo>& players) {
     currentPlayers = players;
     playersListWidget->clear();
-    
+
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
-    
+
     for (const PlayerInfo& player : players) {
         QListWidgetItem* item = new QListWidgetItem(playersListWidget);
-        
+
         // Frame del jugador
         QFrame* frame = new QFrame();
         frame->setFrameShape(QFrame::Box);
         frame->setStyleSheet(theme.gameCardStyle());
-        
+
         QHBoxLayout* hlayout = new QHBoxLayout(frame);
         hlayout->setContentsMargins(15, 10, 15, 10);
-        
+
         // Icono del auto
         QLabel* carIcon = new QLabel(getCarEmoji(player.carType));
-        carIcon->setStyleSheet(QString(
-            "font-size: 32px; border: none; color: %1;"
-        ).arg(palette.textPrimary));
+        carIcon->setStyleSheet(
+            QString("font-size: 32px; border: none; color: %1;")
+                .arg(palette.textPrimary));
         hlayout->addWidget(carIcon);
-        
+
         // Nombre
         QLabel* nameLabel = new QLabel(player.name);
-        nameLabel->setStyleSheet(QString(
-            "font-size: 16px; font-weight: bold; border: none; color: %1;"
-        ).arg(palette.textPrimary));
+        nameLabel->setStyleSheet(
+            QString(
+                "font-size: 16px; font-weight: bold; border: none; color: %1;")
+                .arg(palette.textPrimary));
         hlayout->addWidget(nameLabel);
-        
+
         // Badge de host
         if (player.isHost) {
             QLabel* hostBadge = new QLabel("👑 Host");
@@ -125,30 +129,30 @@ void WaitingRoomWidget::updatePlayersList(const std::vector<PlayerInfo>& players
                 "background-color: rgba(255, 215, 0, 0.2);"
                 "border: 1px solid gold;"
                 "border-radius: 10px;"
-                "padding: 3px 10px;"
-            );
+                "padding: 3px 10px;");
             hlayout->addWidget(hostBadge);
         }
-        
+
         hlayout->addStretch();
-        
+
         // Estado ready
-        QLabel* statusLabel = new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
-        statusLabel->setStyleSheet(QString(
-            "font-size: 14px; font-weight: bold; color: %1; "
-            "border: none; padding: 5px 15px;"
-        ).arg(player.isReady ? "#27ae60" : "#95a5a6"));
+        QLabel* statusLabel =
+            new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
+        statusLabel->setStyleSheet(
+            QString("font-size: 14px; font-weight: bold; color: %1; "
+                    "border: none; padding: 5px 15px;")
+                .arg(player.isReady ? "#27ae60" : "#95a5a6"));
         hlayout->addWidget(statusLabel);
-        
+
         item->setSizeHint(frame->sizeHint());
         playersListWidget->addItem(item);
         playersListWidget->setItemWidget(item, frame);
     }
-    
+
     // Actualizar título con contador
-    titleLabel->setText(QString("🎮 Sala de Espera (%1/%2)")
-        .arg(players.size()).arg(8));
-    
+    titleLabel->setText(
+        QString("🎮 Sala de Espera (%1/%2)").arg(players.size()).arg(8));
+
     updateStatusMessage();
 }
 
@@ -158,39 +162,47 @@ void WaitingRoomWidget::updateStatusMessage() {
     for (const auto& p : currentPlayers) {
         if (!p.isReady) allReady = false;
     }
-    
+
     if (allReady && currentPlayers.size() >= 2) {
-        statusLabel->setText("🏁 ¡Todos listos! La carrera comenzará pronto...");
-        statusLabel->setStyleSheet("color: #27ae60; font-size: 14px; font-weight: bold;");
-        
+        statusLabel->setText(
+            "🏁 ¡Todos listos! La carrera comenzará pronto...");
+        statusLabel->setStyleSheet(
+            "color: #27ae60; font-size: 14px; font-weight: bold;");
+
         // Emitir señal para que el padre inicie el juego
         emit startGameRequested();
     } else {
-        statusLabel->setText("⏳ Esperando que todos los jugadores estén listos...");
+        statusLabel->setText(
+            "⏳ Esperando que todos los jugadores estén listos...");
         statusLabel->setStyleSheet("color: #95a5a6; font-size: 12px;");
     }
 }
 
 QString WaitingRoomWidget::getCarEmoji(int carType) const {
-    switch(carType) {
-        case 0: return "🏎️";   // Deportivo
-        case 1: return "🚗";   // Sedán
-        case 2: return "🚙";   // SUV
-        case 3: return "🚚";   // Camión
-        case 4: return "🚗"; // Muscle Car
-        case 5: return "🚕";   // Compacto
-        default: return "🚗";
+    switch (carType) {
+        case 0:
+            return "🏎️";  // Deportivo
+        case 1:
+            return "🚗";  // Sedán
+        case 2:
+            return "🚙";  // SUV
+        case 3:
+            return "🚚";  // Camión
+        case 4:
+            return "🚗";  // Muscle Car
+        case 5:
+            return "🚕";  // Compacto
+        default:
+            return "🚗";
     }
 }
 
 void WaitingRoomWidget::onLeaveClicked() {
-    QMessageBox::StandardButton reply = QMessageBox::question(
-        this, 
-        "Salir de la Partida",
-        "¿Estás seguro que quieres salir de la partida?",
-        QMessageBox::Yes | QMessageBox::No
-    );
-    
+    QMessageBox::StandardButton reply =
+        QMessageBox::question(this, "Salir de la Partida",
+                              "¿Estás seguro que quieres salir de la partida?",
+                              QMessageBox::Yes | QMessageBox::No);
+
     if (reply == QMessageBox::Yes) {
         emit leaveGameRequested();
     }
@@ -198,18 +210,16 @@ void WaitingRoomWidget::onLeaveClicked() {
 
 void WaitingRoomWidget::onReadyToggled(bool checked) {
     playerIsReady = checked;
-    
+
     if (checked) {
         readyButton->setText("❌ Cancelar");
         readyButton->setStyleSheet(
-            "background-color: #e74c3c; color: white; font-weight: bold;"
-        );
+            "background-color: #e74c3c; color: white; font-weight: bold;");
     } else {
         readyButton->setText("✅ Listo");
         readyButton->setStyleSheet(
-            "background-color: #27ae60; color: white; font-weight: bold;"
-        );
+            "background-color: #27ae60; color: white; font-weight: bold;");
     }
-    
+
     emit readyStateChanged(checked);
 }

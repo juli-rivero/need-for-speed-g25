@@ -2,9 +2,10 @@
 
 #include "spdlog/spdlog.h"
 
-BrowserController::BrowserController(Browser& browser) : browser(browser) {
+BrowserController::BrowserController(LobbyWindow& searching_room)
+    : searching_room(searching_room) {
     // TODO(fran): borrar
-    (void)this->browser;
+    (void)this->searching_room;
     spdlog::trace("controlling browser");
 }
 void BrowserController::on(const dto_session::LeaveResponse&) {

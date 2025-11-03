@@ -10,6 +10,7 @@ class App {
 
    public:
     explicit App(const std::string& host, const std::string& port);
+    ~App();
     MAKE_FIXED(App)
 
     void run();

@@ -19,11 +19,11 @@ class ResponseController : public ResponseListener {
 
     MAKE_FIXED(ResponseController)
 
-    void control(Browser& browser);
-    void decontrol(Browser& browser);
+    void control(LobbyWindow& searching_room);
+    void decontrol(LobbyWindow& searching_room);
 
-    void control(Lobby& lobby);
-    void decontrol(Lobby& lobby);
+    void control(WaitingRoomWidget& waiting_room);
+    void decontrol(WaitingRoomWidget& waiting_room);
 
     void control(Game& game);
     void decontrol(Game& game);

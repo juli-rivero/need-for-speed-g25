@@ -120,14 +120,19 @@ if(TALLER_SERVER)
 endif()
 
 if(TALLER_CLIENT OR TALLER_EDITOR)
+    # TODO: hacer un installer con las dependencias de qt:
+    # En ubuntu:
+    # sudo apt update
+    # sudo apt install qt6-base-dev qt6-tools-dev cmake build-essential -y
+
     # Buscar Qt6 (componentes necesarios para GUI)
     find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
-    
+
     # Habilitar herramientas automáticas de Qt
     set(CMAKE_AUTOMOC ON)  # Meta-Object Compiler (para signals/slots)
     set(CMAKE_AUTOUIC ON)  # User Interface Compiler (para archivos .ui)
     set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
-    
+
     message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
 endif()
 

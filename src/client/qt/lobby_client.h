@@ -1,33 +1,32 @@
-#ifndef LOBBY_CLIENT_H
-#define LOBBY_CLIENT_H
+#pragma once
 
-#include <QString>
 #include <QObject>
+#include <QString>
 #include <vector>
 
 // Estructura para representar una partida
 struct GameInfo {
-    int id; 
-    QString name; 
-    QString map; 
+    int id;
+    QString name;
+    QString map;
     int currentPlayers;
-    int maxPlayers; 
-    QString status; // "waiting", "playing", "full"
+    int maxPlayers;
+    QString status;  // "waiting", "playing", "full"
 };
 
 // Estructura para crear una partida
 struct GameConfig {
-    QString name; 
-    int maxPlayers; 
-    int raceCount; 
-    int lapCount; 
+    QString name;
+    int maxPlayers;
+    int raceCount;
+    int lapCount;
     QString city;
-    int carType; 
+    int carType;
 };
 
 // Estructura para representar un jugador en la sala de espera
 struct PlayerInfo {
-    int id;           
+    int id;
     QString name;
     int carType;
     bool isReady;
@@ -42,9 +41,9 @@ struct PlayerInfo {
 class ILobbyClient : public QObject {
     Q_OBJECT
 
-public:
+   public:
     virtual ~ILobbyClient() = default;
-    
+
     // MÉTODOS QUE DEBE IMPLEMENTAR EL PROTOCOLO REAL
     virtual void connectToServer(const QString& host, int port) = 0;
     virtual void requestGamesList() = 0;
@@ -53,13 +52,13 @@ public:
     virtual void leaveGame() = 0;
     virtual void setReady(bool ready) = 0;
     virtual void disconnect() = 0;
-    
-    // TODO (JULI): Agregar estos métodos cuando sea necesario:
+
+    // TODO(juli): Agregar estos métodos cuando sea necesario:
     // virtual void selectCar(int gameId, const CarConfig& car) = 0;
     // virtual void playerReady(int gameId) = 0;
     // virtual void leaveGame(int gameId) = 0;
-    
-signals:
+
+   signals:
     // Emitir estas señales cuando se reciban respuestas del servidor
     void connected();
     void disconnected();
@@ -70,8 +69,8 @@ signals:
     void playersListUpdated(std::vector<PlayerInfo> players);
     void gameStarting();
     void error(QString message);
-    
-    // TODO (JULI): Agregar señales adicionales cuando sea necesario:
+
+    // TODO(juli): Agregar señales adicionales cuando sea necesario:
     // void carSelected(int gameId);
     // void gameStarting(int gameId, /* datos del juego */);
     // void playerLeft(int gameId, int playerId);
@@ -80,16 +79,16 @@ signals:
 /**
  * Implementación MOCK para desarrollo
  * Simula las respuestas del servidor con datos hardcodeados
- * 
+ *
  * ESTA CLASE ES TEMPORAL
  * Más tarde Juli reemplazará esto con la implementación real (RealLobbyClient)
  */
 class MockLobbyClient : public ILobbyClient {
     Q_OBJECT
 
-public:
+   public:
     MockLobbyClient();
-    
+
     void connectToServer(const QString& host, int port) override;
     void requestGamesList() override;
     void createGame(const GameConfig& config) override;
@@ -98,10 +97,8 @@ public:
     void setReady(bool ready) override;
     void disconnect() override;
 
-private:
+   private:
     std::vector<GameInfo> mockGames;
     std::vector<PlayerInfo> mockPlayers;
     void initMockData();
 };
-
-#endif // LOBBY_CLIENT_H

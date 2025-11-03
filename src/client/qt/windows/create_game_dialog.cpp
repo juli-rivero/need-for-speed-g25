@@ -1,20 +1,18 @@
-#include "create_game_dialog.h"
-#include "theme_manager.h"
-#include <QVBoxLayout>
-#include <QHBoxLayout>
+#include "client/qt/windows/create_game_dialog.h"
+
 #include <QFormLayout>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <QGroupBox>
-#include <QMessageBox>
 
-CreateGameDialog::CreateGameDialog(QWidget* parent)
-    : QWidget(parent) {  
+#include "client/qt/theme_manager.h"
+
+CreateGameDialog::CreateGameDialog(QWidget* parent) : QWidget(parent) {
     setupUI();
-    
+
     // Conectar al sistema de temas
-    connect(&ThemeManager::instance(), &ThemeManager::themeChanged,
-            this, &CreateGameDialog::applyTheme);
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
+            &CreateGameDialog::applyTheme);
     applyTheme();  // Aplicar tema inicial
 }
 
@@ -101,21 +99,24 @@ void CreateGameDialog::setupUI() {
     cancelButton = new QPushButton("❌ Cancelar", this);
     cancelButton->setMinimumHeight(45);
     cancelButton->setMinimumWidth(150);
-    connect(cancelButton, &QPushButton::clicked, this, &CreateGameDialog::onCancelClicked);
+    connect(cancelButton, &QPushButton::clicked, this,
+            &CreateGameDialog::onCancelClicked);
     buttonsLayout->addWidget(cancelButton);
 
     createButton = new QPushButton("✅ Crear Partida", this);
     createButton->setMinimumHeight(45);
     createButton->setMinimumWidth(150);
-    createButton->setEnabled(false); // Deshabilitado hasta que haya nombre
-    connect(createButton, &QPushButton::clicked, this, &CreateGameDialog::onSubmitClicked);
+    createButton->setEnabled(false);  // Deshabilitado hasta que haya nombre
+    connect(createButton, &QPushButton::clicked, this,
+            &CreateGameDialog::onSubmitClicked);
     buttonsLayout->addWidget(createButton);
 
     mainLayout->addLayout(buttonsLayout);
 
     // Conectar validación
-    connect(nameEdit, &QLineEdit::textChanged, this, &CreateGameDialog::validateInput);
-    
+    connect(nameEdit, &QLineEdit::textChanged, this,
+            &CreateGameDialog::validateInput);
+
     // Foco inicial en el nombre
     nameEdit->setFocus();
 }
@@ -131,7 +132,7 @@ CreateGameDialog::GameConfig CreateGameDialog::getConfig() const {
     config.name = nameEdit->text().trimmed();
     config.maxPlayers = playersSpin->value();
     config.raceCount = racesSpin->value();
-    config.lapCount = lapsSpin->value();  
+    config.lapCount = lapsSpin->value();
     config.city = cityCombo->currentData().toString();
     return config;
 }
@@ -145,43 +146,37 @@ void CreateGameDialog::reset() {
     createButton->setEnabled(false);
 }
 
-void CreateGameDialog::onSubmitClicked() {
-    emit submitRequested();
-}
+void CreateGameDialog::onSubmitClicked() { emit submitRequested(); }
 
-void CreateGameDialog::onCancelClicked() {
-    emit cancelRequested();
-}
+void CreateGameDialog::onCancelClicked() { emit cancelRequested(); }
 
 void CreateGameDialog::applyTheme() {
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
-    
+
     // Aplicar estilo al widget
-    setStyleSheet(QString(
-        "QWidget {"
-        "  background-color: %1;"
-        "}"
-        "QLabel {"
-        "  color: %2;"
-        "}"
-        "QLineEdit, QSpinBox, QComboBox {"
-        "  background-color: %3;"
-        "  color: %2;"
-        "  border: 1px solid %4;"
-        "  border-radius: 4px;"
-        "  padding: 5px;"
-        "}"
-        "QLineEdit:focus, QSpinBox:focus, QComboBox:focus {"
-        "  border: 2px solid %5;"
-        "}"
-    )
-    .arg(palette.cardBackgroundHover)
-    .arg(palette.textPrimary)
-    .arg(palette.cardBackground)
-    .arg(palette.borderColor)
-    .arg(palette.primaryColor));
-    
+    setStyleSheet(QString("QWidget {"
+                          "  background-color: %1;"
+                          "}"
+                          "QLabel {"
+                          "  color: %2;"
+                          "}"
+                          "QLineEdit, QSpinBox, QComboBox {"
+                          "  background-color: %3;"
+                          "  color: %2;"
+                          "  border: 1px solid %4;"
+                          "  border-radius: 4px;"
+                          "  padding: 5px;"
+                          "}"
+                          "QLineEdit:focus, QSpinBox:focus, QComboBox:focus {"
+                          "  border: 2px solid %5;"
+                          "}")
+                      .arg(palette.cardBackgroundHover)
+                      .arg(palette.textPrimary)
+                      .arg(palette.cardBackground)
+                      .arg(palette.borderColor)
+                      .arg(palette.primaryColor));
+
     // Aplicar estilos a los botones
     createButton->setStyleSheet(theme.buttonPrimaryStyle());
     cancelButton->setStyleSheet(theme.buttonSecondaryStyle());

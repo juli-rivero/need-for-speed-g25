@@ -2,9 +2,10 @@
 
 #include "spdlog/spdlog.h"
 
-LobbyController::LobbyController(Lobby& lobby) : lobby(lobby) {
+LobbyController::LobbyController(WaitingRoomWidget& waiting_room)
+    : waiting_room(waiting_room) {
     // TODO(fran): borrar
-    (void)this->lobby;
+    (void)this->waiting_room;
     spdlog::trace("controlling lobby");
 }
 void LobbyController::on(const dto_lobby::StartResponse&) {

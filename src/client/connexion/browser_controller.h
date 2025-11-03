@@ -1,14 +1,15 @@
 #pragma once
 
-#include "client/qt/browser.h"
+#include "client/qt/windows/lobby_window.h"
 #include "common/dto/dto.h"
 #include "common/dto/dto_session.h"
+#include "common/macros.h"
 
 class BrowserController final {
-    Browser& browser;
+    LobbyWindow& searching_room;
 
    public:
-    explicit BrowserController(Browser& browser);
+    explicit BrowserController(LobbyWindow& searching_room);
 
     MAKE_FIXED(BrowserController)
 
