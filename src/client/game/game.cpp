@@ -17,17 +17,27 @@ bool Game::send_events() {
 
             if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
 
-            if (tecla == SDLK_LEFT) left_held = true;
-            if (tecla == SDLK_RIGHT) right_held = true;
-            if (tecla == SDLK_UP) car_speed -= 1;
-            if (tecla == SDLK_DOWN) car_speed += 1;
+            if (tecla == SDLK_LEFT)
+                left_held = true;  // EVENT: Enviar "iniciar giro izquierda"
+            if (tecla == SDLK_RIGHT)
+                right_held = true;  // EVENT: Enviar "iniciar giro derecha"
+            if (tecla == SDLK_UP)
+                car_speed -= 1;  // EVENT: Enviar "iniciar acelerar"
+            if (tecla == SDLK_DOWN)
+                car_speed += 1;  // EVENT: Enviar "iniciar desacelerar"
+
+            // if (tecla == SDLK_SPACE) // EVENT: Enviar "activar nitro
         }
 
         if (event.type == SDL_KEYUP) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_LEFT) left_held = false;
-            if (tecla == SDLK_RIGHT) right_held = false;
+            if (tecla == SDLK_LEFT)
+                left_held = false;  // EVENT: Enviar "detener giro izquierda"
+            if (tecla == SDLK_RIGHT)
+                right_held = false;  // EVENT: Enviar "detener giro derecha"
+            // if (tecla == SDLK_UP) // EVENT: Enviar "detener acelerar"
+            // if (tecla == SDLK_UP) // EVENT: Enviar "detener desacelerar"
         }
     }
 
@@ -36,6 +46,12 @@ bool Game::send_events() {
 
 // TODO(crook): temporal, hasta conectar con el servidor.
 void Game::get_state() {
+    // EVENT: Aca en teoria es donde actualizaria mi estado interno en base al
+    // snapshot del servidor.
+    //        por ahora calculo todo localmente, como una clase de "simulacion",
+    //        para tener algo para dibujar. Si es necesario borrar esto, despues
+    //        lo vemos.
+
     if (left_held) car_angle -= 3;
     if (right_held) car_angle += 3;
 
