@@ -181,7 +181,7 @@ endif()
 
 # Asset management
 # ----------------
-if(TALLER_CLIENT OR TALLER_SERVER)
+if(TALLER_CLIENT OR TALLER_EDITOR)
     add_custom_target(copy_assets
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_LIST_DIR}/assets ${CMAKE_CURRENT_BINARY_DIR}/assets
     )
