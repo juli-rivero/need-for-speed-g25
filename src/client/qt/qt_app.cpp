@@ -2,10 +2,11 @@
 
 #include <QApplication>
 
+#include "client/connexion/mock_connexion_controller.h"
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-QtWindowManager::QtWindowManager(ConnexionController& connexion_controller,
+QtWindowManager::QtWindowManager(IConnexionController& connexion_controller,
                                  bool& quit)
     : stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
@@ -13,48 +14,46 @@ QtWindowManager::QtWindowManager(ConnexionController& connexion_controller,
           spdlog::trace("window configurated");
           return this;
       })()),
-      searchingRoom(&stack),
-      creatingRoom(&stack),
-      selectingRoom(&stack),
-      waitingRoom(&stack),
-      connexion_controller(connexion_controller) {
-    spdlog::trace("qt app created");
+      searchingWindow(&stack, connexion_controller),
+      creatingWindow(&stack, connexion_controller),
+      selectingWindow(&stack, connexion_controller),
+      waitingWindow(&stack, connexion_controller) {
+    spdlog::trace("controllers controlled");
 
-    ThemeManager::instance().setTheme(
-        ThemeManager::instance().getCurrentTheme());
+    auto mock = MockConnexionController();
 
     setCentralWidget(&stack);
 
     // Agregarlas al stack
-    stack.addWidget(&searchingRoom);
-    stack.addWidget(&creatingRoom);
-    stack.addWidget(&selectingRoom);
-    stack.addWidget(&waitingRoom);
+    stack.addWidget(&searchingWindow);
+    stack.addWidget(&creatingWindow);
+    stack.addWidget(&selectingWindow);
+    stack.addWidget(&waitingWindow);
 
     spdlog::trace("widgets added to stack");
 
     // Mostrar la primera
-    stack.setCurrentWidget(&searchingRoom);
+    stack.setCurrentWidget(&searchingWindow);
 
-    connect(&searchingRoom, &LobbyWindow::createGameClicked, this,
-            &QtWindowManager::show_creating_room);
-    connect(&searchingRoom, &LobbyWindow::joinGameClicked, this,
-            &QtWindowManager::show_selecting_room);
+    connect(&searchingWindow, &SearchingWindow::createGameClicked, this,
+            &QtWindowManager::show_creating_window);
+    connect(&searchingWindow, &SearchingWindow::joinGameClicked, this,
+            &QtWindowManager::show_selecting_window);
 
-    connect(&creatingRoom, &CreateGameDialog::submitRequested, this,
-            &QtWindowManager::show_selecting_room);
-    connect(&creatingRoom, &CreateGameDialog::cancelRequested, this,
-            &QtWindowManager::show_searching_room);
+    connect(&creatingWindow, &CreatingWindow::submitRequested, this,
+            &QtWindowManager::show_selecting_window);
+    connect(&creatingWindow, &CreatingWindow::cancelRequested, this,
+            &QtWindowManager::show_searching_window);
 
-    connect(&selectingRoom, &CarSelectionDialog::confirmRequested, this,
-            &QtWindowManager::show_waiting_room);
-    connect(&selectingRoom, &CarSelectionDialog::cancelRequested, this,
-            &QtWindowManager::show_searching_room);
+    connect(&selectingWindow, &SelectingWindow::confirmRequested, this,
+            &QtWindowManager::show_waiting_window);
+    connect(&selectingWindow, &SelectingWindow::cancelRequested, this,
+            &QtWindowManager::show_searching_window);
 
-    connect(&waitingRoom, &WaitingRoomWidget::readyStateChanged, this,
+    connect(&waitingWindow, &WaitingWindow::readyStateChanged, this,
             &QtWindowManager::continue_game);
-    connect(&waitingRoom, &WaitingRoomWidget::leaveGameRequested, this,
-            &QtWindowManager::show_searching_room);
+    connect(&waitingWindow, &WaitingWindow::leaveGameRequested, this,
+            &QtWindowManager::show_searching_window);
 
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
             &QtWindowManager::applyTheme);
@@ -71,23 +70,21 @@ QtWindowManager::QtWindowManager(ConnexionController& connexion_controller,
     quit = false;  // TODO(juli): borrar
 }
 
-QtWindowManager::~QtWindowManager() {}
-
-void QtWindowManager::show_searching_room() {
+void QtWindowManager::show_searching_window() {
     setWindowTitle("Need for Speed - Buscador de Salas");
-    stack.setCurrentWidget(&searchingRoom);
+    stack.setCurrentWidget(&searchingWindow);
 }
-void QtWindowManager::show_creating_room() {
+void QtWindowManager::show_creating_window() {
     setWindowTitle("Need for Speed - Crear Partida");
-    stack.setCurrentWidget(&creatingRoom);
+    stack.setCurrentWidget(&creatingWindow);
 }
-void QtWindowManager::show_selecting_room() {
+void QtWindowManager::show_selecting_window() {
     setWindowTitle("Need for Speed - Seleccionar Auto");
-    stack.setCurrentWidget(&selectingRoom);
+    stack.setCurrentWidget(&selectingWindow);
 }
-void QtWindowManager::show_waiting_room() {
+void QtWindowManager::show_waiting_window() {
     setWindowTitle("Need for Speed - Sala de Espera");
-    stack.setCurrentWidget(&waitingRoom);
+    stack.setCurrentWidget(&waitingWindow);
 }
 
 void QtWindowManager::continue_game() { QCoreApplication::quit(); }
@@ -101,12 +98,15 @@ void QtWindowManager::applyTheme() {
                             .arg(palette.cardBackgroundHover));
 }
 
-QtApp::QtApp(ConnexionController& connexion_controller, bool& quit) {
+QtApp::QtApp(IConnexionController&, bool& quit) {
     int argc = 0;
+
+    MockConnexionController mock_connexion_controller;
+
     spdlog::trace("creando qpp");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-    QtWindowManager main(connexion_controller, quit);
+    QtWindowManager main(mock_connexion_controller, quit);
     spdlog::trace("exec");
     app.exec();
 }

@@ -3,9 +3,10 @@
 #include <QVBoxLayout>
 
 #include "client/qt/theme_manager.h"
+#include "common/structs.h"
 
-GameCardWidget::GameCardWidget(const GameInfo& info, QWidget* parent)
-    : QFrame(parent), gameInfo(info) {
+GameCardWidget::GameCardWidget(const SessionInfo& info, QWidget* parent)
+    : QFrame(parent), info(info) {
     setupUI();
 
     // Conectar al cambio de tema
@@ -22,7 +23,7 @@ void GameCardWidget::setupUI() {
     layout->setContentsMargins(10, 10, 10, 10);
 
     // === Columna 1: Icono del mapa ===
-    mapIconLabel = new QLabel(getMapIcon(gameInfo.map));
+    mapIconLabel = new QLabel(getMapIcon(info.city.c_str()));
     mapIconLabel->setStyleSheet("font-size: 32px; border: none;");
     mapIconLabel->setFixedWidth(50);
     mapIconLabel->setAlignment(Qt::AlignCenter);
@@ -31,12 +32,12 @@ void GameCardWidget::setupUI() {
     // === Columna 2: Información principal ===
     QVBoxLayout* infoLayout = new QVBoxLayout();
 
-    nameLabel = new QLabel(gameInfo.name);
+    nameLabel = new QLabel(info.city.c_str());
     nameLabel->setStyleSheet(
         "font-size: 16px; font-weight: bold; border: none;");
     infoLayout->addWidget(nameLabel);
 
-    mapLabel = new QLabel(QString("Mapa: %1").arg(gameInfo.map));
+    mapLabel = new QLabel(QString("Mapa: %1").arg(info.city.c_str()));
     mapLabel->setStyleSheet("font-size: 12px; border: none;");
     infoLayout->addWidget(mapLabel);
 
@@ -45,16 +46,15 @@ void GameCardWidget::setupUI() {
     // === Columna 3: Jugadores con barra ===
     QVBoxLayout* playersLayout = new QVBoxLayout();
 
-    playersLabel = new QLabel(QString("👥 %1/%2")
-                                  .arg(gameInfo.currentPlayers)
-                                  .arg(gameInfo.maxPlayers));
+    playersLabel = new QLabel(
+        QString("👥 %1/%2").arg(info.currentPlayers).arg(info.maxPlayers));
     playersLabel->setStyleSheet(
         "font-size: 14px; font-weight: bold; border: none;");
     playersLayout->addWidget(playersLabel);
 
     playersBar = new QProgressBar();
-    playersBar->setRange(0, gameInfo.maxPlayers);
-    playersBar->setValue(gameInfo.currentPlayers);
+    playersBar->setRange(0, info.maxPlayers);
+    playersBar->setValue(info.currentPlayers);
     playersBar->setTextVisible(false);
     playersBar->setMaximumHeight(8);
     playersLayout->addWidget(playersBar);
@@ -64,7 +64,7 @@ void GameCardWidget::setupUI() {
     // === Columna 4: Estado ===
     QVBoxLayout* statusLayout = new QVBoxLayout();
 
-    statusLabel = new QLabel(getStatusText(gameInfo.status));
+    statusLabel = new QLabel(getStatusText(info.status));
     statusLabel->setStyleSheet(QString("font-size: 12px;"
                                        "font-weight: bold;"
                                        "color: white;"
@@ -72,7 +72,7 @@ void GameCardWidget::setupUI() {
                                        "border: none;"
                                        "border-radius: 10px;"
                                        "padding: 5px 15px;")
-                                   .arg(getStatusColor(gameInfo.status)));
+                                   .arg(getStatusColor(info.status)));
     statusLabel->setAlignment(Qt::AlignCenter);
     statusLabel->setFixedWidth(100);
 
@@ -82,21 +82,20 @@ void GameCardWidget::setupUI() {
     layout->addLayout(statusLayout);
 }
 
-void GameCardWidget::updateInfo(const GameInfo& info) {
-    gameInfo = info;
+void GameCardWidget::updateInfo(const SessionInfo& new_info) {
+    info = new_info;
 
     // Actualizar widgets
-    mapIconLabel->setText(getMapIcon(gameInfo.map));
-    nameLabel->setText(gameInfo.name);
-    mapLabel->setText(QString("Mapa: %1").arg(gameInfo.map));
-    playersLabel->setText(QString("👥 %1/%2")
-                              .arg(gameInfo.currentPlayers)
-                              .arg(gameInfo.maxPlayers));
+    mapIconLabel->setText(getMapIcon(info.city.c_str()));
+    nameLabel->setText(info.name.c_str());
+    mapLabel->setText(QString("Mapa: %1").arg(info.city.c_str()));
+    playersLabel->setText(
+        QString("👥 %1/%2").arg(info.currentPlayers).arg(info.maxPlayers));
 
-    playersBar->setRange(0, gameInfo.maxPlayers);
-    playersBar->setValue(gameInfo.currentPlayers);
+    playersBar->setRange(0, info.maxPlayers);
+    playersBar->setValue(info.currentPlayers);
 
-    statusLabel->setText(getStatusText(gameInfo.status));
+    statusLabel->setText(getStatusText(info.status));
     statusLabel->setStyleSheet(QString("font-size: 12px;"
                                        "font-weight: bold;"
                                        "color: white;"
@@ -104,7 +103,7 @@ void GameCardWidget::updateInfo(const GameInfo& info) {
                                        "border: none;"
                                        "border-radius: 10px;"
                                        "padding: 5px 15px;")
-                                   .arg(getStatusColor(gameInfo.status)));
+                                   .arg(getStatusColor(info.status)));
 }
 
 void GameCardWidget::applyTheme() {
@@ -136,20 +135,36 @@ QString GameCardWidget::getMapIcon(const QString& mapName) const {
     return "🏎️";
 }
 
-QString GameCardWidget::getStatusText(const QString& status) const {
-    if (status == "waiting") return "Esperando";
+QString GameCardWidget::getStatusText(const SessionStatus& status) const {
+    switch (status) {
+        case SessionStatus::Full:
+            return "Llena";
+        case SessionStatus::Playing:
+            return "En juego";
+        case SessionStatus::Waiting:
+            return "Esperando";
+    }
+    /*if (status == "waiting") return "Esperando";
     if (status == "ready") return "Lista";
     if (status == "playing") return "En juego";
     if (status == "full") return "Llena";
-    if (status == "finished") return "Finalizada";
+    if (status == "finished") return "Finalizada";*/
     return "Desconocido";
 }
 
-QString GameCardWidget::getStatusColor(const QString& status) const {
-    if (status == "waiting") return "#4CAF50";
+QString GameCardWidget::getStatusColor(const SessionStatus& status) const {
+    switch (status) {
+        case SessionStatus::Full:
+            return "#9E9E9E";
+        case SessionStatus::Playing:
+            return "#F44336";
+        case SessionStatus::Waiting:
+            return "#4CAF50";
+    }
+    /*if (status == "waiting") return "#4CAF50";
     if (status == "ready") return "#FF9800";
     if (status == "playing") return "#F44336";
     if (status == "full") return "#9E9E9E";
-    if (status == "finished") return "#607D8B";
+    if (status == "finished") return "#607D8B";*/
     return "#000000";
 }

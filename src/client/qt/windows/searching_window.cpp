@@ -1,77 +1,79 @@
-#include "client/qt/windows/lobby_window.h"
+#include "client/qt/windows/searching_window.h"
 
 #include <QFormLayout>
 #include <QFrame>
 #include <QMessageBox>
 #include <QToolBar>
+#include <string>
 #include <vector>
 
+#include "client/qt/game_card_widget.h"
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-LobbyWindow::LobbyWindow(QWidget* parent) : QWidget(parent), currentGameId(-1) {
+SearchingWindow::SearchingWindow(QWidget* parent,
+                                 IConnexionController& connexionController)
+    : QWidget(parent),
+      connexionController(connexionController),
+      currentGameId(-1) {
     spdlog::trace("creating lobby window");
-    lobbyClient = new MockLobbyClient();
-    spdlog::trace("created lobby client");
+    // lobbyClient = new MockLobbyClient();
+    // spdlog::trace("created lobby client");
 
     // TODO(juli): borrar y cambiar por mock connexion de la rama base
     // Conectar señales del cliente
-    connect(lobbyClient, &ILobbyClient::connected, this,
-            &LobbyWindow::onConnected);
-    connect(lobbyClient, &ILobbyClient::gamesListReceived, this,
-            &LobbyWindow::onGamesListReceived);
+    // connect(lobbyClient, &ILobbyClient::connected, this,
+    //        &SearchingWindow::onConnected);
+    // connect(lobbyClient, &ILobbyClient::gamesListReceived, this,
+    //        &SearchingWindow::onGamesListReceived);
     // connect(lobbyClient, &ILobbyClient::gameCreated,
-    //         this, &LobbyWindow::onGameCreated);
-    connect(lobbyClient, &ILobbyClient::gameJoined, this,
-            &LobbyWindow::onGameJoined);
+    //         this, &SearchingWindow::onGameCreated);
+    // connect(lobbyClient, &ILobbyClient::gameJoined, this,
+    //        &SearchingWindow::onGameJoined);
     // connect(lobbyClient, &ILobbyClient::playersListUpdated,
-    //        this, &LobbyWindow::onPlayersListUpdated);
+    //        this, &SearchingWindow::onPlayersListUpdated);
     // connect(lobbyClient, &ILobbyClient::gameStarting,
-    //        this, &LobbyWindow::onGameStarting);
-    connect(lobbyClient, &ILobbyClient::error, this, &LobbyWindow::onError);
+    //        this, &SearchingWindow::onGameStarting);
+    // connect(lobbyClient, &ILobbyClient::error, this,
+    // &SearchingWindow::onError);
 
     // TODO(juli): cambiar
     /*// Conectar señales del create game widget
     connect(createGameWidget, &CreateGameDialog::submitRequested,
-            this, &LobbyWindow::onCreateGameSubmit);
+            this, &SearchingWindow::onCreateGameSubmit);
     connect(createGameWidget, &CreateGameDialog::cancelRequested,
-            this, &LobbyWindow::onCreateGameCancel);
+            this, &SearchingWindow::onCreateGameCancel);
 
     // Conectar señales del car selection widget
     connect(carSelectionWidget, &CarSelectionDialog::confirmRequested,
-            this, &LobbyWindow::onCarSelectionConfirm);
+            this, &SearchingWindow::onCarSelectionConfirm);
     connect(carSelectionWidget, &CarSelectionDialog::cancelRequested,
-            this, &LobbyWindow::onCarSelectionCancel);
+            this, &SearchingWindow::onCarSelectionCancel);
 
     // Conectar señales del waiting room widget
     connect(waitingRoomWidget, &WaitingRoomWidget::leaveGameRequested,
-            this, &LobbyWindow::onWaitingRoomLeaveRequested);
+            this, &SearchingWindow::onWaitingRoomLeaveRequested);
     connect(waitingRoomWidget, &WaitingRoomWidget::readyStateChanged,
-            this, &LobbyWindow::onWaitingRoomReadyChanged);
+            this, &SearchingWindow::onWaitingRoomReadyChanged);
     connect(waitingRoomWidget, &WaitingRoomWidget::startGameRequested,
-            this, &LobbyWindow::onWaitingRoomStartGame);*/
-    spdlog::trace("connected signals");
+            this, &SearchingWindow::onWaitingRoomStartGame);*/
+    // spdlog::trace("connected signals");
 
     // Conectar el cambio de tema global
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
-            &LobbyWindow::applyTheme);
+            &SearchingWindow::applyTheme);
 
     createThis();
     // Aplicar tema inicial
     applyTheme();
 
-    lobbyClient->connectToServer("localhost", 8080);
+    connexionController.control(*this);
+    connexionController.request_all_sessions();
 }
 
-LobbyWindow::~LobbyWindow() {
-    // Desconectar del servidor
-    if (lobbyClient) {
-        lobbyClient->disconnect();
-        delete lobbyClient;
-    }
-}
+SearchingWindow::~SearchingWindow() { connexionController.decontrol(*this); }
 
-void LobbyWindow::updateGamesList(const std::vector<GameInfo>& games) {
+void SearchingWindow::updateGamesList(const std::vector<SessionInfo>& games) {
     currentGames = games;
 
     // Limpiar lista actual
@@ -87,9 +89,10 @@ void LobbyWindow::updateGamesList(const std::vector<GameInfo>& games) {
     }
 
     // Agregar cada partida usando GameCardWidget
-    for (const GameInfo& game : games) {
+    for (const SessionInfo& game : games) {
         QListWidgetItem* item = new QListWidgetItem(gamesListWidget);
-        item->setData(Qt::UserRole, game.id);  // Guardar ID de la partida
+        item->setData(Qt::UserRole,
+                      game.name.c_str());  // Guardar ID de la partida
 
         GameCardWidget* gameCard = new GameCardWidget(game);
         item->setSizeHint(gameCard->sizeHint());
@@ -101,17 +104,18 @@ void LobbyWindow::updateGamesList(const std::vector<GameInfo>& games) {
 
 // NAVEGACIÓN ENTRE PÁGINAS
 
-void LobbyWindow::onJoinGameClicked() {
+void SearchingWindow::onJoinGameClicked() {
     QListWidgetItem* selectedItem = gamesListWidget->currentItem();
     if (selectedItem) {
-        int gameId = selectedItem->data(Qt::UserRole).toInt();
+        std::string gameId =
+            selectedItem->data(Qt::UserRole).toString().toUtf8().constData();
 
         // Verificar que no esté llena
         auto it = std::find_if(
             currentGames.begin(), currentGames.end(),
-            [gameId](const GameInfo& g) { return g.id == gameId; });
+            [gameId](const SessionInfo& g) { return g.name == gameId; });
 
-        if (it != currentGames.end() && it->status == "full") {
+        if (it != currentGames.end() && it->status == SessionStatus::Full) {
             QMessageBox::warning(this, "Partida Llena",
                                  "Esta partida ya está llena. Elige otra.");
             return;
@@ -119,40 +123,41 @@ void LobbyWindow::onJoinGameClicked() {
 
         statusLabel->setText("Uniéndose a la partida...");
         statusLabel->setStyleSheet("color: orange;");
-        lobbyClient->joinGame(gameId);
+        connexionController.request_join_session(gameId);
     }
 }
 
-void LobbyWindow::onRefreshClicked() {
+void SearchingWindow::onRefreshClicked() {
     statusLabel->setText("Actualizando...");
     statusLabel->setStyleSheet("color: orange;");
 
     // Solicitar lista actualizada al servidor
-    lobbyClient->requestGamesList();
+    connexionController.request_all_sessions();
 }
 
-void LobbyWindow::onGameSelected(QListWidgetItem* item) {
+void SearchingWindow::onGameSelected(QListWidgetItem* item) {
     // Habilitar botón de unirse cuando se selecciona una partida
     joinGameButton->setEnabled(item != nullptr);
 }
 
-void LobbyWindow::onGameDoubleClicked(QListWidgetItem* item) {
+void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
     if (!item) return;
 
-    int gameId = item->data(Qt::UserRole).toInt();
+    std::string gameId =
+        item->data(Qt::UserRole).toString().toUtf8().constData();
 
     // Verificar que no esté llena o en juego
-    auto it =
-        std::find_if(currentGames.begin(), currentGames.end(),
-                     [gameId](const GameInfo& g) { return g.id == gameId; });
+    auto it = std::find_if(
+        currentGames.begin(), currentGames.end(),
+        [gameId](const SessionInfo& g) { return g.name == gameId; });
 
     if (it != currentGames.end()) {
-        if (it->status == "full") {
+        if (it->status == SessionStatus::Full) {
             QMessageBox::warning(this, "Partida Llena",
                                  "Esta partida ya está llena. Elige otra.");
             return;
         }
-        if (it->status == "playing") {
+        if (it->status == SessionStatus::Playing) {
             QMessageBox::warning(this, "Partida en Curso",
                                  "Esta partida ya comenzó. No puedes unirte.");
             return;
@@ -162,28 +167,28 @@ void LobbyWindow::onGameDoubleClicked(QListWidgetItem* item) {
     // Unirse directamente con doble click
     statusLabel->setText("Uniéndose a la partida...");
     statusLabel->setStyleSheet("color: orange;");
-    lobbyClient->joinGame(gameId);
+    connexionController.request_join_session(gameId);
 }
 
-// Implementación de slots para respuestas del cliente
-void LobbyWindow::onConnected() {
-    statusLabel->setText("✅ Conectado al servidor");
+/*// Implementación de slots para respuestas del cliente
+void SearchingWindow::onConnected() { // ya esta conectado a la hora de crearse
+el widget statusLabel->setText("✅ Conectado al servidor");
     statusLabel->setStyleSheet("color: green;");
 
     // Solicitar lista de partidas al conectar
     lobbyClient->requestGamesList();
-}
+}*/
 
-void LobbyWindow::onGamesListReceived(std::vector<GameInfo> games) {
+/*void SearchingWindow::onGamesListReceived(std::vector<GameInfo> games) {
     updateGamesList(games);
 
     // Feedback visual de actualización exitosa
     statusLabel->setText(
         QString("✅ Lista actualizada (%1 partidas)").arg(games.size()));
     statusLabel->setStyleSheet("color: green;");
-}
+}*/
 
-/*void LobbyWindow::onGameCreated(int gameId) {
+/*void SearchingWindow::onGameCreated(int gameId) {
     currentGameId = gameId;
 
     statusLabel->setText("✅ Partida creada exitosamente");
@@ -202,7 +207,7 @@ void LobbyWindow::onGamesListReceived(std::vector<GameInfo> games) {
     setWindowTitle("Need for Speed - Sala de Espera");
 }*/
 
-void LobbyWindow::onGameJoined(int gameId) {
+void SearchingWindow::onGameJoined(int gameId) {
     // Guardar el ID de la partida a la que nos unimos
     joiningGameId = gameId;
 
@@ -217,13 +222,13 @@ void LobbyWindow::onGameJoined(int gameId) {
     statusLabel->setStyleSheet("color: green;");
 }
 
-void LobbyWindow::onError(QString message) {
+void SearchingWindow::onError(QString message) {
     statusLabel->setText("❌ Error: " + message);
     statusLabel->setStyleSheet("color: red;");
 
     QMessageBox::critical(this, "Error", message);
 }
-QString LobbyWindow::getCarEmoji(const QString& carType) const {
+QString SearchingWindow::getCarEmoji(const QString& carType) const {
     if (carType == "Deportivo") return "🏎️";
     if (carType == "Sedán") return "🚗";
     if (carType == "SUV") return "🚙";
@@ -235,7 +240,7 @@ QString LobbyWindow::getCarEmoji(const QString& carType) const {
 
 // GESTIÓN DE TEMAS DINÁMICOS
 
-void LobbyWindow::onThemeChanged(int index) {
+void SearchingWindow::onThemeChanged(int index) {
     if (index < 0 || !themeSelector) return;
 
     // Obtener el tipo de tema del combo box
@@ -246,7 +251,7 @@ void LobbyWindow::onThemeChanged(int index) {
     ThemeManager::instance().setTheme(selectedTheme);
 }
 
-void LobbyWindow::applyTheme() {
+void SearchingWindow::applyTheme() {
     // Obtener el tema actual
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
@@ -332,7 +337,7 @@ void LobbyWindow::applyTheme() {
 
 // ========== MÉTODOS PARA CREAR PÁGINAS ==========
 
-void LobbyWindow::createThis() {
+void SearchingWindow::createThis() {
     QVBoxLayout* layout = new QVBoxLayout(this);
 
     // ===== Toolbar con selector de tema =====
@@ -355,7 +360,7 @@ void LobbyWindow::createThis() {
     themeSelector->setMinimumWidth(200);
 
     connect(themeSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &LobbyWindow::onThemeChanged);
+            this, &SearchingWindow::onThemeChanged);
 
     toolbarLayout->addWidget(themeSelector);
     toolbarLayout->addStretch();
@@ -382,9 +387,9 @@ void LobbyWindow::createThis() {
     layout->addWidget(gamesListWidget);
 
     connect(gamesListWidget, &QListWidget::itemClicked, this,
-            &LobbyWindow::onGameSelected);
+            &SearchingWindow::onGameSelected);
     connect(gamesListWidget, &QListWidget::itemDoubleClicked, this,
-            &LobbyWindow::onGameDoubleClicked);
+            &SearchingWindow::onGameDoubleClicked);
 
     // Botones de acción
     QHBoxLayout* buttonLayout = new QHBoxLayout();
@@ -392,20 +397,20 @@ void LobbyWindow::createThis() {
     createGameButton = new QPushButton("➕ Crear Partida", this);
     createGameButton->setMinimumHeight(40);
     connect(createGameButton, &QPushButton::clicked, this,
-            &LobbyWindow::onCreateGameClicked);
+            &SearchingWindow::onCreateGameClicked);
     buttonLayout->addWidget(createGameButton);
 
     joinGameButton = new QPushButton("🎮 Unirse a Partida", this);
     joinGameButton->setMinimumHeight(40);
     joinGameButton->setEnabled(false);
     connect(joinGameButton, &QPushButton::clicked, this,
-            &LobbyWindow::onJoinGameClicked);
+            &SearchingWindow::onJoinGameClicked);
     buttonLayout->addWidget(joinGameButton);
 
     refreshButton = new QPushButton("🔄 Actualizar", this);
     refreshButton->setMinimumHeight(40);
     connect(refreshButton, &QPushButton::clicked, this,
-            &LobbyWindow::onRefreshClicked);
+            &SearchingWindow::onRefreshClicked);
     buttonLayout->addWidget(refreshButton);
 
     layout->addLayout(buttonLayout);
@@ -413,7 +418,7 @@ void LobbyWindow::createThis() {
 
 // ========== SLOTS DE FORMULARIO DE CREAR PARTIDA ==========
 
-/*void LobbyWindow::onCreateGameSubmit() {
+/*void SearchingWindow::onCreateGameSubmit() {
     // Obtener configuración del widget
     auto config = createGameWidget->getConfig();
 
@@ -430,13 +435,13 @@ partida"); return;
     showCarSelectionPage();
 }*/
 
-/*void LobbyWindow::onCreateGameCancel() {
+/*void SearchingWindow::onCreateGameCancel() {
     showLobbyPage();
 }*/
 
 // ========== SLOTS DE SELECCIÓN DE AUTO ==========
 
-/*void LobbyWindow::onCarSelectionConfirm() {
+/*void SearchingWindow::onCarSelectionConfirm() {
     int selectedCarType = carSelectionWidget->getSelectedCarType();
 
     if (selectedCarType == -1) {
@@ -484,7 +489,7 @@ partida"); return;
     }
 }*/
 
-/*void LobbyWindow::onCarSelectionCancel() {
+/*void SearchingWindow::onCarSelectionCancel() {
     if (carSelectionMode == CarSelectionMode::Creating) {
         // Si estábamos creando, volver al formulario
         showCreateGamePage();
@@ -498,25 +503,25 @@ partida"); return;
 
 // ========== MODIFICACIÓN DEL SLOT ORIGINAL ==========
 
-void LobbyWindow::onCreateGameClicked() {
+void SearchingWindow::onCreateGameClicked() {
     // showCreateGamePage();
     emit createGameClicked();
 }
 
 // ========== SLOTS DELEGADOS DE SALA DE ESPERA ==========
 
-/*void LobbyWindow::onWaitingRoomLeaveRequested() {
+/*void SearchingWindow::onWaitingRoomLeaveRequested() {
     lobbyClient->leaveGame();
     showLobbyPage();
     statusLabel->setText("Has salido de la partida");
     statusLabel->setStyleSheet("color: orange;");
 }*/
 
-/*void LobbyWindow::onWaitingRoomReadyChanged(bool ready) {
+/*void SearchingWindow::onWaitingRoomReadyChanged(bool ready) {
     lobbyClient->setReady(ready);
 }*/
 
-/*void LobbyWindow::onWaitingRoomStartGame() {
+/*void SearchingWindow::onWaitingRoomStartGame() {
     QMessageBox::information(this, "🏁 ¡La Carrera Comienza!",
                             "¡Todos los jugadores están listos!\n\n"
                             "La carrera comenzará en breve...");
@@ -526,11 +531,11 @@ void LobbyWindow::onCreateGameClicked() {
     lobbyClient->requestGamesList();
 }*/
 
-/*void LobbyWindow::onPlayersListUpdated(std::vector<PlayerInfo> players) {
+/*void SearchingWindow::onPlayersListUpdated(std::vector<PlayerInfo> players) {
     waitingRoomWidget->updatePlayersList(players);
 }*/
 
-/*void LobbyWindow::onGameStarting() {
+/*void SearchingWindow::onGameStarting() {
     QMessageBox::information(this, "🏁 ¡La Carrera Comienza!",
                             "¡Todos los jugadores están listos!\n\n"
                             "La carrera comenzará en breve...");

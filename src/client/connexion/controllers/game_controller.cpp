@@ -1,4 +1,4 @@
-#include "client/connexion/game_controller.h"
+#include "client/connexion/controllers/game_controller.h"
 
 #include "spdlog/spdlog.h"
 

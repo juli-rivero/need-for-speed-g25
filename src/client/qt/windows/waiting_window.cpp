@@ -1,17 +1,23 @@
-#include "client/qt/windows/waiting_room_widget.h"
+#include "client/qt/windows/waiting_window.h"
 
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QMessageBox>
 
-#include "../theme_manager.h"
+#include "client/qt/theme_manager.h"
 
-WaitingRoomWidget::WaitingRoomWidget(QWidget* parent)
-    : QWidget(parent), currentGameId(-1), playerIsReady(false) {
+WaitingWindow::WaitingWindow(QWidget* parent,
+                             IConnexionController& connexionController)
+    : QWidget(parent),
+      connexionController(connexionController),
+      currentGameId(-1),
+      playerIsReady(false) {
     setupUI();
+    connexionController.control(*this);
 }
+WaitingWindow::~WaitingWindow() { connexionController.decontrol(*this); }
 
-void WaitingRoomWidget::setupUI() {
+void WaitingWindow::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(50, 30, 50, 30);
 
@@ -56,7 +62,7 @@ void WaitingRoomWidget::setupUI() {
     leaveButton = new QPushButton("🚪 Salir de la Partida", this);
     leaveButton->setMinimumHeight(45);
     connect(leaveButton, &QPushButton::clicked, this,
-            &WaitingRoomWidget::onLeaveClicked);
+            &WaitingWindow::onLeaveClicked);
     buttonLayout->addWidget(leaveButton);
 
     readyButton = new QPushButton("✅ Listo", this);
@@ -65,14 +71,14 @@ void WaitingRoomWidget::setupUI() {
     readyButton->setStyleSheet(
         "background-color: #27ae60; color: white; font-weight: bold;");
     connect(readyButton, &QPushButton::toggled, this,
-            &WaitingRoomWidget::onReadyToggled);
+            &WaitingWindow::onReadyToggled);
     buttonLayout->addWidget(readyButton);
 
     layout->addLayout(buttonLayout);
 }
 
-void WaitingRoomWidget::setGameInfo(int gameId,
-                                    const std::vector<PlayerInfo>& players) {
+void WaitingWindow::setGameInfo(int gameId,
+                                const std::vector<PlayerInfo>& players) {
     currentGameId = gameId;
     currentPlayers = players;
     playerIsReady = false;
@@ -86,8 +92,7 @@ void WaitingRoomWidget::setGameInfo(int gameId,
     updatePlayersList(players);
 }
 
-void WaitingRoomWidget::updatePlayersList(
-    const std::vector<PlayerInfo>& players) {
+void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
     currentPlayers = players;
     playersListWidget->clear();
 
@@ -113,7 +118,7 @@ void WaitingRoomWidget::updatePlayersList(
         hlayout->addWidget(carIcon);
 
         // Nombre
-        QLabel* nameLabel = new QLabel(player.name);
+        QLabel* nameLabel = new QLabel(player.name.c_str());
         nameLabel->setStyleSheet(
             QString(
                 "font-size: 16px; font-weight: bold; border: none; color: %1;")
@@ -156,7 +161,7 @@ void WaitingRoomWidget::updatePlayersList(
     updateStatusMessage();
 }
 
-void WaitingRoomWidget::updateStatusMessage() {
+void WaitingWindow::updateStatusMessage() {
     // Verificar si todos están listos
     bool allReady = true;
     for (const auto& p : currentPlayers) {
@@ -178,7 +183,7 @@ void WaitingRoomWidget::updateStatusMessage() {
     }
 }
 
-QString WaitingRoomWidget::getCarEmoji(int carType) const {
+QString WaitingWindow::getCarEmoji(int carType) const {
     switch (carType) {
         case 0:
             return "🏎️";  // Deportivo
@@ -197,7 +202,7 @@ QString WaitingRoomWidget::getCarEmoji(int carType) const {
     }
 }
 
-void WaitingRoomWidget::onLeaveClicked() {
+void WaitingWindow::onLeaveClicked() {
     QMessageBox::StandardButton reply =
         QMessageBox::question(this, "Salir de la Partida",
                               "¿Estás seguro que quieres salir de la partida?",
@@ -208,7 +213,7 @@ void WaitingRoomWidget::onLeaveClicked() {
     }
 }
 
-void WaitingRoomWidget::onReadyToggled(bool checked) {
+void WaitingWindow::onReadyToggled(bool checked) {
     playerIsReady = checked;
 
     if (checked) {

@@ -7,21 +7,21 @@
 #include "common/protocol.h"
 #include "common/thread.h"
 
-struct ResponseListener {
-    virtual void on(const dto::ErrorResponse&) = 0;
-    virtual void on(const dto_session::JoinResponse&) = 0;
-    virtual void on(const dto_session::LeaveResponse&) = 0;
-    virtual void on(const dto_session::SearchResponse&) = 0;
-    virtual void on(const dto_lobby::StartResponse&) = 0;
-    virtual ~ResponseListener() = default;
+struct IResponseListener {
+    virtual void recv(const dto::ErrorResponse&) = 0;
+    virtual void recv(const dto_session::JoinResponse&) = 0;
+    virtual void recv(const dto_session::LeaveResponse&) = 0;
+    virtual void recv(const dto_session::SearchResponse&) = 0;
+    virtual void recv(const dto_lobby::StartResponse&) = 0;
+    virtual ~IResponseListener() = default;
 };
 
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
-    ResponseListener& listener;
+    IResponseListener& listener;
 
    public:
-    Receiver(ProtocolReceiver& receiver, ResponseListener& listener);
+    Receiver(ProtocolReceiver& receiver, IResponseListener& listener);
 
     MAKE_FIXED(Receiver)
 

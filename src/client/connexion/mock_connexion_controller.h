@@ -1,14 +1,22 @@
 #pragma once
-#include "client/connexion/connexion_controller.h"
-#include "common/dto/dto_lobby.h"
-#include "common/dto/dto_session.h"
 
-class MockConnexionController final : public ResponseController {
-    MockConnexionController() = default;
+#include <string>
+
+#include "client/connexion/connexion_controller.h"
+#include "common/macros.h"
+
+class MockConnexionController final : public IConnexionController,
+                                      public ResponseController {
+   public:
+    MockConnexionController() {}
+    ~MockConnexionController() override = default;
     MAKE_FIXED(MockConnexionController)
 
-    void send(const dto_session::SearchRequest&);
-    void send(const dto_session::JoinRequest&);
-    void send(const dto_session::LeaveRequest&);
-    void send(const dto_lobby::StartRequest&);
+    using ResponseController::control;
+    using ResponseController::decontrol;
+
+    void request_all_sessions() override;
+    void request_join_session(const std::string& session_id) override;
+    void request_leave_current_session() override;
+    void request_start_game() override;
 };

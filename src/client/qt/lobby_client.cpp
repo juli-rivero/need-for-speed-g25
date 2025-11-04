@@ -1,4 +1,5 @@
 #include "client/qt/lobby_client.h"
+/*
 
 #include <QTimer>
 
@@ -98,3 +99,4 @@ void MockLobbyClient::initMockData() {
         {3, "Jugador 3", 2, true, false},
     };
 }
+*/

@@ -1,7 +1,8 @@
 #pragma once
 
-#include "client/game/game.h"
 #include "common/macros.h"
+
+class Game;
 
 class GameController final {
     Game& game;

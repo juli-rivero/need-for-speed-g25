@@ -1,4 +1,4 @@
-#include "client/qt/windows/create_game_dialog.h"
+#include "client/qt/windows/creating_window.h"
 
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -7,20 +7,21 @@
 
 #include "client/qt/theme_manager.h"
 
-CreateGameDialog::CreateGameDialog(QWidget* parent) : QWidget(parent) {
+CreatingWindow::CreatingWindow(QWidget* parent,
+                               IConnexionController& connexionController)
+    : QWidget(parent), connexionController(connexionController) {
     setupUI();
 
     // Conectar al sistema de temas
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
-            &CreateGameDialog::applyTheme);
+            &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
+    connexionController.control(*this);
 }
 
-CreateGameDialog::~CreateGameDialog() {
-    // Qt maneja la limpieza automáticamente
-}
+CreatingWindow::~CreatingWindow() { connexionController.decontrol(*this); }
 
-void CreateGameDialog::setupUI() {
+void CreatingWindow::setupUI() {
     // Layout principal
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(50, 30, 50, 30);
@@ -100,7 +101,7 @@ void CreateGameDialog::setupUI() {
     cancelButton->setMinimumHeight(45);
     cancelButton->setMinimumWidth(150);
     connect(cancelButton, &QPushButton::clicked, this,
-            &CreateGameDialog::onCancelClicked);
+            &CreatingWindow::onCancelClicked);
     buttonsLayout->addWidget(cancelButton);
 
     createButton = new QPushButton("✅ Crear Partida", this);
@@ -108,26 +109,26 @@ void CreateGameDialog::setupUI() {
     createButton->setMinimumWidth(150);
     createButton->setEnabled(false);  // Deshabilitado hasta que haya nombre
     connect(createButton, &QPushButton::clicked, this,
-            &CreateGameDialog::onSubmitClicked);
+            &CreatingWindow::onSubmitClicked);
     buttonsLayout->addWidget(createButton);
 
     mainLayout->addLayout(buttonsLayout);
 
     // Conectar validación
     connect(nameEdit, &QLineEdit::textChanged, this,
-            &CreateGameDialog::validateInput);
+            &CreatingWindow::validateInput);
 
     // Foco inicial en el nombre
     nameEdit->setFocus();
 }
 
-void CreateGameDialog::validateInput() {
+void CreatingWindow::validateInput() {
     // Habilitar botón crear solo si hay nombre
     QString name = nameEdit->text().trimmed();
     createButton->setEnabled(!name.isEmpty());
 }
 
-CreateGameDialog::GameConfig CreateGameDialog::getConfig() const {
+CreatingWindow::GameConfig CreatingWindow::getConfig() const {
     GameConfig config;
     config.name = nameEdit->text().trimmed();
     config.maxPlayers = playersSpin->value();
@@ -137,7 +138,7 @@ CreateGameDialog::GameConfig CreateGameDialog::getConfig() const {
     return config;
 }
 
-void CreateGameDialog::reset() {
+void CreatingWindow::reset() {
     nameEdit->clear();
     playersSpin->setValue(4);
     racesSpin->setValue(3);
@@ -146,11 +147,11 @@ void CreateGameDialog::reset() {
     createButton->setEnabled(false);
 }
 
-void CreateGameDialog::onSubmitClicked() { emit submitRequested(); }
+void CreatingWindow::onSubmitClicked() { emit submitRequested(); }
 
-void CreateGameDialog::onCancelClicked() { emit cancelRequested(); }
+void CreatingWindow::onCancelClicked() { emit cancelRequested(); }
 
-void CreateGameDialog::applyTheme() {
+void CreatingWindow::applyTheme() {
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
 

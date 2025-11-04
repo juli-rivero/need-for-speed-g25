@@ -1,4 +1,4 @@
-#include "client/qt/windows/car_selection_dialog.h"
+#include "client/qt/windows/selecting_window.h"
 
 #include <QGroupBox>
 #include <QPushButton>
@@ -7,14 +7,17 @@
 
 #include "client/qt/theme_manager.h"
 
-CarSelectionDialog::CarSelectionDialog(QWidget* parent)
-    : QWidget(parent), selectedCarIndex(0) {
+SelectingWindow::SelectingWindow(QWidget* parent,
+                                 IConnexionController& connexionController)
+    : QWidget(parent),
+      connexionController(connexionController),
+      selectedCarIndex(0) {
     initCarTypes();
     setupUI();
 
     // Conectar al cambio de tema global
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
-            &CarSelectionDialog::applyTheme);
+            &SelectingWindow::applyTheme);
 
     // Aplicar tema inicial
     applyTheme();
@@ -23,9 +26,11 @@ CarSelectionDialog::CarSelectionDialog(QWidget* parent)
     if (!carTypes.empty()) {
         updateCarDetails(0);
     }
+    connexionController.control(*this);
 }
+SelectingWindow::~SelectingWindow() { connexionController.decontrol(*this); }
 
-void CarSelectionDialog::initCarTypes() {
+void SelectingWindow::initCarTypes() {
     // Inicializar tipos de autos con sus características
     carTypes = {
         {"Deportivo",
@@ -78,7 +83,7 @@ void CarSelectionDialog::initCarTypes() {
          "🚕"}};
 }
 
-void CarSelectionDialog::setupUI() {
+void SelectingWindow::setupUI() {
     mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(50, 30, 50, 30);
 
@@ -158,24 +163,24 @@ void CarSelectionDialog::setupUI() {
     cancelButton->setMinimumWidth(150);
     cancelButton->setMinimumHeight(45);
     connect(cancelButton, &QPushButton::clicked, this,
-            &CarSelectionDialog::onCancelClicked);
+            &SelectingWindow::onCancelClicked);
     buttonLayout->addWidget(cancelButton);
 
     confirmButton = new QPushButton("✅ Confirmar Selección");
     confirmButton->setMinimumWidth(150);
     confirmButton->setMinimumHeight(45);
     connect(confirmButton, &QPushButton::clicked, this,
-            &CarSelectionDialog::onConfirmClicked);
+            &SelectingWindow::onConfirmClicked);
     buttonLayout->addWidget(confirmButton);
 
     mainLayout->addLayout(buttonLayout);
 
     // Conectar señales
     connect(carButtonGroup, QOverload<int>::of(&QButtonGroup::idClicked), this,
-            &CarSelectionDialog::onCarSelected);
+            &SelectingWindow::onCarSelected);
 }
 
-QWidget* CarSelectionDialog::createCarCard(const CarType& car, int index) {
+QWidget* SelectingWindow::createCarCard(const CarType& car, int index) {
     QWidget* card = new QWidget();
 
     QHBoxLayout* cardLayout = new QHBoxLayout(card);
@@ -230,7 +235,7 @@ QWidget* CarSelectionDialog::createCarCard(const CarType& car, int index) {
     return card;
 }
 
-QProgressBar* CarSelectionDialog::createStatBar(float value) {
+QProgressBar* SelectingWindow::createStatBar(float value) {
     QProgressBar* bar = new QProgressBar();
     bar->setRange(0, 100);
     bar->setValue(static_cast<int>(value * 100));
@@ -240,17 +245,17 @@ QProgressBar* CarSelectionDialog::createStatBar(float value) {
     return bar;
 }
 
-void CarSelectionDialog::onCarSelected(int carIndex) {
+void SelectingWindow::onCarSelected(int carIndex) {
     selectedCarIndex = carIndex;
     updateCarDetails(carIndex);
     emit carSelected(carIndex);
 }
 
-void CarSelectionDialog::onConfirmClicked() { emit confirmRequested(); }
+void SelectingWindow::onConfirmClicked() { emit confirmRequested(); }
 
-void CarSelectionDialog::onCancelClicked() { emit cancelRequested(); }
+void SelectingWindow::onCancelClicked() { emit cancelRequested(); }
 
-void CarSelectionDialog::reset() {
+void SelectingWindow::reset() {
     // Seleccionar el primer auto
     if (carButtonGroup->buttons().size() > 0) {
         carButtonGroup->buttons()[0]->setChecked(true);
@@ -259,7 +264,7 @@ void CarSelectionDialog::reset() {
     }
 }
 
-void CarSelectionDialog::updateCarDetails(int carIndex) {
+void SelectingWindow::updateCarDetails(int carIndex) {
     if (carIndex < 0 || carIndex >= static_cast<int>(carTypes.size())) {
         return;
     }
@@ -284,7 +289,7 @@ void CarSelectionDialog::updateCarDetails(int carIndex) {
     controlBar->setStyleSheet(theme.carStatBarStyle(car.controllability));
 }
 
-CarConfig CarSelectionDialog::getSelectedCar() const {
+CarConfig SelectingWindow::getSelectedCar() const {
     if (selectedCarIndex < 0 ||
         selectedCarIndex >= static_cast<int>(carTypes.size())) {
         // Retornar el primero por defecto
@@ -298,7 +303,7 @@ CarConfig CarSelectionDialog::getSelectedCar() const {
             car.health, car.mass, car.controllability};
 }
 
-void CarSelectionDialog::applyTheme() {
+void SelectingWindow::applyTheme() {
     // Obtener el tema actual
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();

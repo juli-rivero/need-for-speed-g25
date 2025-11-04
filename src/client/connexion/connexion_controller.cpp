@@ -5,7 +5,9 @@
 #include "spdlog/spdlog.h"
 
 ConnexionController::ConnexionController(Protocol&& protocol)
-    : protocol(std::move(protocol)),
+    : ResponseController(),
+      RequestController(sender),
+      protocol(std::move(protocol)),
       receiver(this->protocol, *this),
       sender(this->protocol) {
     receiver.start();

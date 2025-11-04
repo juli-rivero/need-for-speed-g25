@@ -4,40 +4,12 @@
 #include <QString>
 #include <vector>
 
-// Estructura para representar una partida
-struct GameInfo {
-    int id;
-    QString name;
-    QString map;
-    int currentPlayers;
-    int maxPlayers;
-    QString status;  // "waiting", "playing", "full"
-};
-
-// Estructura para crear una partida
-struct GameConfig {
-    QString name;
-    int maxPlayers;
-    int raceCount;
-    int lapCount;
-    QString city;
-    int carType;
-};
-
-// Estructura para representar un jugador en la sala de espera
-struct PlayerInfo {
-    int id;
-    QString name;
-    int carType;
-    bool isReady;
-    bool isHost;
-};
-
 /**
  * Interfaz abstracta para comunicación con el servidor
  * Esto permite que el Lobby use esta interfaz sin importar
  * cómo Juli implemente el protocolo
  */
+/*
 class ILobbyClient : public QObject {
     Q_OBJECT
 
@@ -72,9 +44,10 @@ class ILobbyClient : public QObject {
 
     // TODO(juli): Agregar señales adicionales cuando sea necesario:
     // void carSelected(int gameId);
-    // void gameStarting(int gameId, /* datos del juego */);
+    // void gameStarting(int gameId); // datos del juego
     // void playerLeft(int gameId, int playerId);
 };
+*/
 
 /**
  * Implementación MOCK para desarrollo
@@ -83,6 +56,7 @@ class ILobbyClient : public QObject {
  * ESTA CLASE ES TEMPORAL
  * Más tarde Juli reemplazará esto con la implementación real (RealLobbyClient)
  */
+/*
 class MockLobbyClient : public ILobbyClient {
     Q_OBJECT
 
@@ -102,3 +76,4 @@ class MockLobbyClient : public ILobbyClient {
     std::vector<PlayerInfo> mockPlayers;
     void initMockData();
 };
+*/

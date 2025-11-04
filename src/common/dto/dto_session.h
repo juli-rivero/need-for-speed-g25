@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "common/protocol.h"
+#include "common/structs.h"
 
 namespace dto_session {
 #include "common/dto/macros.inl"
@@ -14,10 +15,6 @@ struct SearchRequest {
 
 struct SearchResponse {
     DECLARE_SERIALIZABLE(SearchResponse)
-    struct SessionInfo {
-        std::string session_id;
-        uint16_t players_count;
-    };
     std::vector<SessionInfo> sessions;
 };
 

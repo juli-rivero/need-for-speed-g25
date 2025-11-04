@@ -7,8 +7,12 @@
 #include <QString>
 #include <QWidget>
 
-class CreateGameDialog : public QWidget {
+#include "client/connexion/connexion_controller.h"
+
+class CreatingWindow final : public QWidget {
     Q_OBJECT
+
+    IConnexionController& connexionController;
 
    public:
     struct GameConfig {
@@ -19,8 +23,8 @@ class CreateGameDialog : public QWidget {
         QString city;
     };
 
-    explicit CreateGameDialog(QWidget* parent = nullptr);
-    ~CreateGameDialog();
+    explicit CreatingWindow(QWidget* parent, IConnexionController&);
+    ~CreatingWindow() override;
 
     GameConfig getConfig() const;
     void reset();

@@ -1,12 +1,16 @@
 #pragma once
 
-#include <utility>
-
 #include "client/connexion/receiver.h"
+#include "client/connexion/request_controller.h"
 #include "client/connexion/response_controller.h"
 #include "client/connexion/sender.h"
 
-class ConnexionController final : public ResponseController {
+struct IConnexionController : virtual IRequestController,
+                              virtual IResponseController {};
+
+class ConnexionController final : public IConnexionController,
+                                  public ResponseController,
+                                  public RequestController {
     Protocol protocol;
     Receiver receiver;
     Sender sender;
@@ -14,18 +18,16 @@ class ConnexionController final : public ResponseController {
    public:
     explicit ConnexionController(Protocol&& protocol);
 
-    MAKE_FIXED(ConnexionController)
-
-    template <typename... Args>
-    void send(Args&&... args) {
-        if (!is_alive()) {
-            throw ClosedProtocol(
-                "trying to send a message to a closed protocol");
-        }
-        sender.send(std::forward<Args>(args)...);
-    }
+    MAKE_UNCOPIABLE(ConnexionController)
 
     ~ConnexionController() override;
+
+    using RequestController::request_all_sessions;
+    using RequestController::request_join_session;
+    using RequestController::request_leave_current_session;
+    using RequestController::request_start_game;
+    using ResponseController::control;
+    using ResponseController::decontrol;
 
    private:
     [[nodiscard]] bool is_alive() const;

@@ -3,75 +3,66 @@
 #include "spdlog/spdlog.h"
 
 ResponseController::ResponseController()
-    : browser_controller(nullptr),
-      lobby_controller(nullptr),
+    : searching_controller(nullptr),
+      creating_controller(nullptr),
+      selecting_controller(nullptr),
+      waiting_controller(nullptr),
       game_controller(nullptr) {}
 
-void ResponseController::control(LobbyWindow& searching_room) {
-    std::lock_guard lock(mtx);
-    delete browser_controller;
-    browser_controller = new BrowserController(searching_room);
-}
+#define DEFINE_CONTROL(WindowType, controller, ControllerType) \
+    void ResponseController::control(WindowType& window) {     \
+        std::lock_guard lock(mtx);                             \
+        delete controller;                                     \
+        controller = new ControllerType(window);               \
+    }
+#define DEFINE_UNCONTROL(WindowType, controller)      \
+    void ResponseController::decontrol(WindowType&) { \
+        std::lock_guard lock(mtx);                    \
+        delete controller;                            \
+        controller = nullptr;                         \
+    }
+#define DEFINE_CONTROL_UNCONTROL(WindowType, controller, ControllerType) \
+    DEFINE_CONTROL(WindowType, controller, ControllerType)               \
+    DEFINE_UNCONTROL(WindowType, controller)
 
-void ResponseController::decontrol(LobbyWindow&) {
-    std::lock_guard lock(mtx);
-    delete browser_controller;
-    browser_controller = nullptr;
-}
-
-void ResponseController::control(WaitingRoomWidget& waiting_room) {
-    std::lock_guard lock(mtx);
-    delete lobby_controller;
-    lobby_controller = new LobbyController(waiting_room);
-}
-
-void ResponseController::decontrol(WaitingRoomWidget&) {
-    std::lock_guard lock(mtx);
-    delete lobby_controller;
-    lobby_controller = nullptr;
-}
-
-void ResponseController::control(Game& game) {
-    std::lock_guard lock(mtx);
-    delete game_controller;
-    game_controller = new GameController(game);
-}
-
-void ResponseController::decontrol(Game&) {
-    std::lock_guard lock(mtx);
-    delete game_controller;
-    game_controller = nullptr;
-}
+DEFINE_CONTROL_UNCONTROL(SearchingWindow, searching_controller,
+                         SearchingController)
+DEFINE_CONTROL_UNCONTROL(CreatingWindow, creating_controller,
+                         CreatingController)
+DEFINE_CONTROL_UNCONTROL(SelectingWindow, selecting_controller,
+                         SelectingController)
+DEFINE_CONTROL_UNCONTROL(WaitingWindow, waiting_controller, WaitingController)
+DEFINE_CONTROL_UNCONTROL(Game, game_controller, GameController)
 
 void ResponseController::decontrol_all() {
     std::lock_guard lock(mtx);
-    delete browser_controller;
-    browser_controller = nullptr;
-    delete lobby_controller;
-    lobby_controller = nullptr;
+    delete searching_controller;
+    searching_controller = nullptr;
+    delete creating_controller;
+    creating_controller = nullptr;
+    delete selecting_controller;
+    selecting_controller = nullptr;
+    delete waiting_controller;
+    waiting_controller = nullptr;
     delete game_controller;
     game_controller = nullptr;
 }
 
 ResponseController::~ResponseController() { decontrol_all(); }
 
-void ResponseController::on(const dto_session::LeaveResponse& r) {
+void ResponseController::recv(const dto_session::LeaveResponse&) {}
+
+void ResponseController::recv(const dto_session::JoinResponse& r) {
     std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
+    if (searching_controller) searching_controller->recv(r);
 }
-void ResponseController::on(const dto_session::JoinResponse& r) {
+void ResponseController::recv(const dto_session::SearchResponse& r) {
     std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
+    if (searching_controller) searching_controller->recv(r);
 }
-void ResponseController::on(const dto_session::SearchResponse& r) {
+
+void ResponseController::recv(const dto_lobby::StartResponse& r) {
     std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
+    if (waiting_controller) waiting_controller->recv(r);
 }
-void ResponseController::on(const dto_lobby::StartResponse& r) {
-    std::lock_guard lock(mtx);
-    if (lobby_controller) lobby_controller->on(r);
-}
-void ResponseController::on(const dto::ErrorResponse& r) {
-    std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
-}
+void ResponseController::recv(const dto::ErrorResponse&) {}

@@ -3,18 +3,19 @@
 #include <QLabel>
 #include <QListWidget>
 #include <QPushButton>
-#include <QVBoxLayout>
 #include <QWidget>
 #include <vector>
 
-#include "../lobby_client.h"
+#include "client/connexion/connexion_controller.h"
 
-class WaitingRoomWidget : public QWidget {
+class WaitingWindow final : public QWidget {
     Q_OBJECT
 
+    IConnexionController& connexionController;
+
    public:
-    explicit WaitingRoomWidget(QWidget* parent = nullptr);
-    ~WaitingRoomWidget() = default;
+    explicit WaitingWindow(QWidget* parent, IConnexionController&);
+    ~WaitingWindow() override;
 
     // Configurar la sala de espera
     void setGameInfo(int gameId, const std::vector<PlayerInfo>& players);

@@ -6,15 +6,21 @@
 #include <QWidget>
 #include <vector>
 
+#include "client/connexion/connexion_controller.h"
 #include "client/qt/game_card_widget.h"
-#include "client/qt/lobby_client.h"
+#include "common/structs.h"
 
-class LobbyWindow : public QWidget {
+class SearchingWindow final : public QWidget {
     Q_OBJECT
 
+    IConnexionController &connexionController;
+
    public:
-    explicit LobbyWindow(QWidget *parent = nullptr);
-    ~LobbyWindow();
+    explicit SearchingWindow(QWidget *parent, IConnexionController &);
+    ~SearchingWindow() override;
+
+    // methods to use for controller
+    void updateGamesList(const std::vector<SessionInfo> &games);
 
    signals:
     void createGameClicked();
@@ -30,8 +36,7 @@ class LobbyWindow : public QWidget {
     void applyTheme();
 
     // Slots para respuestas del cliente
-    void onConnected();
-    void onGamesListReceived(std::vector<GameInfo> games);
+    // void onConnected();
 
     // void onGameCreated(int gameId); Se va a hacer en create_game_dialog
     void onGameJoined(int gameId);
@@ -41,17 +46,13 @@ class LobbyWindow : public QWidget {
     void onError(QString message);
 
    private:
-    void updateGamesList(const std::vector<GameInfo> &games);
     QString getCarEmoji(const QString &carType) const;
 
     // Métodos para crear cada página
     void createThis();
 
-    // Cliente de red (interfaz abstracta)
-    ILobbyClient *lobbyClient;
-
     // Cache de partidas
-    std::vector<GameInfo> currentGames;
+    std::vector<SessionInfo> currentGames;
 
     // Widgets del lobby
     QListWidget *gamesListWidget;

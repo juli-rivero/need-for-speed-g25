@@ -5,7 +5,7 @@
 
 using dto::ResponseType;
 
-Receiver::Receiver(ProtocolReceiver& receiver, ResponseListener& listener)
+Receiver::Receiver(ProtocolReceiver& receiver, IResponseListener& listener)
     : receiver(receiver), listener(listener) {}
 
 void Receiver::run() {
@@ -28,16 +28,16 @@ void Receiver::stop() {
 void Receiver::delegate_response(const ResponseType& request) const {
     switch (request) {
         case ResponseType::JoinResponse:
-            listener.on(receiver.get<dto_session::JoinResponse>());
+            listener.recv(receiver.get<dto_session::JoinResponse>());
             break;
         case ResponseType::LeaveResponse:
-            listener.on(receiver.get<dto_session::LeaveResponse>());
+            listener.recv(receiver.get<dto_session::LeaveResponse>());
             break;
         case ResponseType::SearchResponse:
-            listener.on(receiver.get<dto_session::SearchResponse>());
+            listener.recv(receiver.get<dto_session::SearchResponse>());
             break;
         case ResponseType::StartResponse:
-            listener.on(receiver.get<dto_lobby::StartResponse>());
+            listener.recv(receiver.get<dto_lobby::StartResponse>());
             break;
         default:
             throw std::runtime_error("Unknown request type");

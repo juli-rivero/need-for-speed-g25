@@ -107,8 +107,8 @@ class ThemeManager : public QObject {
     QString gameCardStyle(bool selected = false) const;
     QString carCardStyle() const;  // Estilo para tarjetas de selección de autos
     QString progressBarStyle(const QString& fillColor = "") const;
-    QString carStatBarStyle(float value)
-        const;  // Estilo para barras de stats con color según valor
+    QString carStatBarStyle(float value) const;  // Estilo para barras de stats
+                                                 // con color según valor
     QString statusSuccessStyle() const;
     QString statusWarningStyle() const;
     QString statusErrorStyle() const;

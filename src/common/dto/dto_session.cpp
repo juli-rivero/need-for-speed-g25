@@ -3,62 +3,47 @@
 namespace dto_session {
 
 // SearchRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_session::SearchRequest&) {
-    return p;
-}
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::SearchRequest&) {
+ProtocolReceiver& operator>>(ProtocolReceiver& p, SearchRequest&) { return p; }
+ProtocolSender& operator<<(ProtocolSender& p, const SearchRequest&) {
     return p;
 }
 // SearchResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p,
-                             dto_session::SearchResponse& e) {
-    e.sessions.resize(p.get<uint16_t>());
+ProtocolReceiver& operator>>(ProtocolReceiver& p, SearchResponse& e) {
+    e.sessions.resize(p.get<size_t>());
     for (auto& session : e.sessions) {
-        p >> session.players_count >> session.session_id;
+        p >> session.city >> session.maxPlayers >> session.name >>
+            session.raceCount >> session.currentPlayers;
+        session.status = static_cast<SessionStatus>(p.get<uint8_t>());
     }
     return p;
 }
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::SearchResponse& e) {
-    p << static_cast<uint16_t>(e.sessions.size());
+ProtocolSender& operator<<(ProtocolSender& p, const SearchResponse& e) {
+    p << e.sessions.size();
     for (const auto& session : e.sessions) {
-        p << session.players_count << session.session_id;
+        p << session.city << session.maxPlayers << session.name
+          << session.raceCount << session.currentPlayers
+          << static_cast<uint8_t>(session.status);
     }
     return p;
 }
 // JoinRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_session::JoinRequest& e) {
+ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinRequest& e) {
     p >> e.session_id;
     return p;
 }
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::JoinRequest& e) {
+ProtocolSender& operator<<(ProtocolSender& p, const JoinRequest& e) {
     p << e.session_id;
     return p;
 }
 // JoinResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_session::JoinResponse&) {
-    return p;
-}
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::JoinResponse&) {
-    return p;
-}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse&) { return p; }
+ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse&) { return p; }
 // LeaveRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_session::LeaveRequest&) {
-    return p;
-}
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::LeaveRequest&) {
-    return p;
-}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveRequest&) { return p; }
+ProtocolSender& operator<<(ProtocolSender& p, const LeaveRequest&) { return p; }
 // LeaveResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_session::LeaveResponse&) {
-    return p;
-}
-ProtocolSender& operator<<(ProtocolSender& p,
-                           const dto_session::LeaveResponse&) {
+ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveResponse&) { return p; }
+ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
     return p;
 }
 }  // namespace dto_session
