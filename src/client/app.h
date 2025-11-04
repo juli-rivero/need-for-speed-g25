@@ -3,10 +3,10 @@
 #include <string>
 
 #include "common/macros.h"
-#include "connexion/connexion_controller.h"
+#include "connexion/connexion.h"
 
 class App {
-    ConnexionController connexion_controller;
+    Connexion connexion;
 
    public:
     explicit App(const std::string& host, const std::string& port);

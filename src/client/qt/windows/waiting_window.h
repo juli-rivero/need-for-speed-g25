@@ -6,15 +6,15 @@
 #include <QWidget>
 #include <vector>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 
 class WaitingWindow final : public QWidget {
     Q_OBJECT
 
-    IConnexionController& connexionController;
+    Connexion& connexion;
 
    public:
-    explicit WaitingWindow(QWidget* parent, IConnexionController&);
+    explicit WaitingWindow(QWidget* parent, Connexion&);
     ~WaitingWindow() override;
 
     // Configurar la sala de espera

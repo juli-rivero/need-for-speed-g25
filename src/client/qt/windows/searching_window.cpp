@@ -11,11 +11,8 @@
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-SearchingWindow::SearchingWindow(QWidget* parent,
-                                 IConnexionController& connexionController)
-    : QWidget(parent),
-      connexionController(connexionController),
-      currentGameId(-1) {
+SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
+    : QWidget(parent), connexion(connexion), api(connexion), currentGameId(-1) {
     spdlog::trace("creating lobby window");
     // lobbyClient = new MockLobbyClient();
     // spdlog::trace("created lobby client");
@@ -67,11 +64,11 @@ SearchingWindow::SearchingWindow(QWidget* parent,
     // Aplicar tema inicial
     applyTheme();
 
-    connexionController.control(*this);
-    connexionController.request_all_sessions();
+    connexion.control(*this);
+    api.request_all_sessions();
 }
 
-SearchingWindow::~SearchingWindow() { connexionController.decontrol(*this); }
+SearchingWindow::~SearchingWindow() { connexion.decontrol(*this); }
 
 void SearchingWindow::updateGamesList(const std::vector<SessionInfo>& games) {
     currentGames = games;
@@ -123,7 +120,6 @@ void SearchingWindow::onJoinGameClicked() {
 
         statusLabel->setText("Uniéndose a la partida...");
         statusLabel->setStyleSheet("color: orange;");
-        connexionController.request_join_session(gameId);
     }
 }
 
@@ -132,7 +128,7 @@ void SearchingWindow::onRefreshClicked() {
     statusLabel->setStyleSheet("color: orange;");
 
     // Solicitar lista actualizada al servidor
-    connexionController.request_all_sessions();
+    api.request_all_sessions();
 }
 
 void SearchingWindow::onGameSelected(QListWidgetItem* item) {
@@ -167,7 +163,6 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
     // Unirse directamente con doble click
     statusLabel->setText("Uniéndose a la partida...");
     statusLabel->setStyleSheet("color: orange;");
-    connexionController.request_join_session(gameId);
 }
 
 /*// Implementación de slots para respuestas del cliente

@@ -1,7 +1,6 @@
 #include "client/game/input_handler.h"
 
-InputHandler::InputHandler(ConnexionController& connexion_controller)
-    : connexion_controller(connexion_controller) {
+InputHandler::InputHandler(Connexion& connexion) : connexion(connexion) {
     // TODO(Franco): Borrar
-    (void)this->connexion_controller;
+    (void)this->connexion;
 }

@@ -7,27 +7,27 @@
 #include "common/protocol.h"
 #include "common/thread.h"
 
-struct IResponseListener {
+struct ResponseListener {
     virtual void recv(const dto::ErrorResponse&) = 0;
     virtual void recv(const dto_session::JoinResponse&) = 0;
     virtual void recv(const dto_session::LeaveResponse&) = 0;
     virtual void recv(const dto_session::SearchResponse&) = 0;
     virtual void recv(const dto_lobby::StartResponse&) = 0;
-    virtual ~IResponseListener() = default;
+    virtual ~ResponseListener() = default;
 };
 
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
-    IResponseListener& listener;
+    ResponseListener& listener;
+
+    friend class Connexion;
+    void run() override;
+    void stop() override;
 
    public:
-    Receiver(ProtocolReceiver& receiver, IResponseListener& listener);
+    Receiver(ProtocolReceiver& receiver, ResponseListener& listener);
 
     MAKE_FIXED(Receiver)
-
-    void run() override;
-
-    void stop() override;
 
    private:
     void delegate_response(const dto::ResponseType& request) const;

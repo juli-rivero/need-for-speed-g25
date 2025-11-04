@@ -12,7 +12,7 @@ class Sender final : public Thread {
     Queue<dto::Request> responses;
     ProtocolSender& sender;
 
-    friend class ConnexionController;
+    friend class Connexion;
     void run() override;
     void stop() override;
 

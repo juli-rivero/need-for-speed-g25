@@ -6,16 +6,15 @@
 
 #include "client/qt/theme_manager.h"
 
-WaitingWindow::WaitingWindow(QWidget* parent,
-                             IConnexionController& connexionController)
+WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
-      connexionController(connexionController),
+      connexion(connexion),
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
-    connexionController.control(*this);
+    connexion.control(*this);
 }
-WaitingWindow::~WaitingWindow() { connexionController.decontrol(*this); }
+WaitingWindow::~WaitingWindow() { connexion.decontrol(*this); }
 
 void WaitingWindow::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);

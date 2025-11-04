@@ -1,9 +1,7 @@
-#include "client/connexion/mock_connexion_controller.h"
+#include "client/connexion/requesters/searching_requester.h"
 
-#include "common/dto/dto_session.h"
-
-void MockConnexionController::request_all_sessions() {
-    recv(dto_session::SearchResponse{{
+void MockSearchingRequester::request_all_sessions() const {
+    response_listener.recv(dto_session::SearchResponse{{
         SessionInfo{
             .name = "Los menos capos",
             .maxPlayers = 2,
@@ -29,13 +27,4 @@ void MockConnexionController::request_all_sessions() {
             .status = SessionStatus::Playing,
         },
     }});
-}
-void MockConnexionController::request_join_session(const std::string&) {
-    recv(dto_session::JoinResponse{});
-}
-void MockConnexionController::request_leave_current_session() {
-    recv(dto_session::LeaveResponse{});
-}
-void MockConnexionController::request_start_game() {
-    recv(dto_lobby::StartResponse{});
 }

@@ -7,19 +7,18 @@
 
 #include "client/qt/theme_manager.h"
 
-CreatingWindow::CreatingWindow(QWidget* parent,
-                               IConnexionController& connexionController)
-    : QWidget(parent), connexionController(connexionController) {
+CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
+    : QWidget(parent), connexion(connexion) {
     setupUI();
 
     // Conectar al sistema de temas
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
-    connexionController.control(*this);
+    connexion.control(*this);
 }
 
-CreatingWindow::~CreatingWindow() { connexionController.decontrol(*this); }
+CreatingWindow::~CreatingWindow() { connexion.decontrol(*this); }
 
 void CreatingWindow::setupUI() {
     // Layout principal

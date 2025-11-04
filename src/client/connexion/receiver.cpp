@@ -5,7 +5,7 @@
 
 using dto::ResponseType;
 
-Receiver::Receiver(ProtocolReceiver& receiver, IResponseListener& listener)
+Receiver::Receiver(ProtocolReceiver& receiver, ResponseListener& listener)
     : receiver(receiver), listener(listener) {}
 
 void Receiver::run() {

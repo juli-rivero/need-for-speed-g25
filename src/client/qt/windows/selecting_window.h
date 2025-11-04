@@ -7,7 +7,7 @@
 #include <QVBoxLayout>
 #include <vector>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 
 // Estructura para representar un tipo de auto
 struct CarType {
@@ -35,10 +35,10 @@ struct CarConfig {
 class SelectingWindow final : public QWidget {
     Q_OBJECT
 
-    IConnexionController& connexionController;
+    Connexion& connexion;
 
    public:
-    explicit SelectingWindow(QWidget* parent, IConnexionController&);
+    explicit SelectingWindow(QWidget* parent, Connexion&);
     ~SelectingWindow() override;
 
     CarConfig getSelectedCar() const;

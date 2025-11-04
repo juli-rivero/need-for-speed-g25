@@ -6,17 +6,19 @@
 #include <QWidget>
 #include <vector>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
+#include "client/connexion/requesters/searching_requester.h"
 #include "client/qt/game_card_widget.h"
 #include "common/structs.h"
 
 class SearchingWindow final : public QWidget {
     Q_OBJECT
 
-    IConnexionController &connexionController;
+    Connexion &connexion;
+    MockSearchingRequester api;
 
    public:
-    explicit SearchingWindow(QWidget *parent, IConnexionController &);
+    explicit SearchingWindow(QWidget *parent, Connexion &);
     ~SearchingWindow() override;
 
     // methods to use for controller
