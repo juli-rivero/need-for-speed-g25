@@ -28,16 +28,16 @@ void Receiver::stop() {
 void Receiver::delegate_response(const ResponseType& request) const {
     switch (request) {
         case ResponseType::JoinResponse:
-            listener.recv(receiver.get<dto_session::JoinResponse>());
+            listener.recv(receiver.get<dto_search::JoinResponse>());
+            break;
+        case ResponseType::SearchResponse:
+            listener.recv(receiver.get<dto_search::SearchResponse>());
             break;
         case ResponseType::LeaveResponse:
             listener.recv(receiver.get<dto_session::LeaveResponse>());
             break;
-        case ResponseType::SearchResponse:
-            listener.recv(receiver.get<dto_session::SearchResponse>());
-            break;
         case ResponseType::StartResponse:
-            listener.recv(receiver.get<dto_lobby::StartResponse>());
+            listener.recv(receiver.get<dto_session::StartResponse>());
             break;
         default:
             throw std::runtime_error("Unknown request type");

@@ -1,7 +1,9 @@
 #include "client/connexion/requesters/searching_requester.h"
 
+using dto_search::SearchResponse;
+
 void MockSearchingRequester::request_all_sessions() const {
-    response_listener.recv(dto_session::SearchResponse{{
+    response_listener.recv(SearchResponse{{
         SessionInfo{
             .name = "Los menos capos",
             .maxPlayers = 2,

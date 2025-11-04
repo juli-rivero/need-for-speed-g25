@@ -3,7 +3,7 @@
 #include <string>
 #include <variant>
 
-#include "common/dto/dto_lobby.h"
+#include "common/dto/dto_search.h"
 #include "common/dto/dto_session.h"
 #include "common/protocol.h"
 namespace dto {
@@ -23,8 +23,8 @@ enum class RequestType : uint8_t {
 MAKE_ENUM_SERIALIZABLE(RequestType, uint8_t)
 
 using RequestBody =
-    std::variant<dto_session::SearchRequest, dto_session::JoinRequest,
-                 dto_session::LeaveRequest, dto_lobby::StartRequest>;
+    std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
+                 dto_session::LeaveRequest, dto_session::StartRequest>;
 
 struct Request {
     // Only sendable, if wanted to be received, it must be done first the type
@@ -44,8 +44,8 @@ enum class ResponseType : uint8_t {
 MAKE_ENUM_SERIALIZABLE(ResponseType, uint8_t)
 
 using ResponseBody =
-    std::variant<dto_session::SearchResponse, dto_session::JoinResponse,
-                 dto_session::LeaveResponse, dto_lobby::StartResponse,
+    std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
+                 dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse>;
 
 struct Response {

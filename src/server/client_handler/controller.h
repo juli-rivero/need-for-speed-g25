@@ -1,22 +1,22 @@
 #pragma once
 
-#include "common/dto/dto_lobby.h"
+#include "common/dto/dto_search.h"
 #include "common/dto/dto_session.h"
-#include "server/client_handler/browser_controller.h"
-#include "server/client_handler/game_controller.h"
-#include "server/client_handler/lobby_controller.h"
+#include "controllers/game_controller.h"
+#include "controllers/search_controller.h"
+#include "controllers/session_controller.h"
 #include "server/client_handler/receiver.h"
 
 class Controller final : public RequestListener,
-                         IBrowserEvents,
-                         ILobbyEvents,
+                         ISearchEvents,
+                         ISessionEvents,
                          IGameEvents {
     spdlog::logger* log;
     int id;
     Sender& sender;
 
-    BrowserController* browser_controller;
-    LobbyController* lobby_controller;
+    SearchController* search_controller;
+    SessionController* session_controller;
     GameController* game_controller;
 
     std::mutex mtx;
@@ -28,12 +28,12 @@ class Controller final : public RequestListener,
     MAKE_FIXED(Controller)
 
     // BROWSER CONTROLLER //
-    void on(const dto_session::LeaveRequest&) override;
-    void on(const dto_session::JoinRequest&) override;
-    void on(const dto_session::SearchRequest&) override;
+    void on(const dto_search::JoinRequest&) override;
+    void on(const dto_search::SearchRequest&) override;
 
     // LOBBY CONTROLLER //
-    void on(const dto_lobby::StartRequest&) override;
+    void on(const dto_session::LeaveRequest&) override;
+    void on(const dto_session::StartRequest&) override;
 
     ~Controller() override;
 

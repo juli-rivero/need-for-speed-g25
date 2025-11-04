@@ -22,11 +22,11 @@ void Sender::stop() {
     responses.close();
 }
 
-void Sender::send(const dto_session::SearchRequest& body) {
+void Sender::send(const dto_search::SearchRequest& body) {
     responses.try_push({RequestType::SearchRequest, body});
 }
 
-void Sender::send(const dto_session::JoinRequest& body) {
+void Sender::send(const dto_search::JoinRequest& body) {
     responses.try_push({RequestType::JoinRequest, body});
 }
 
@@ -34,6 +34,6 @@ void Sender::send(const dto_session::LeaveRequest& body) {
     responses.try_push({RequestType::LeaveRequest, body});
 }
 
-void Sender::send(const dto_lobby::StartRequest& body) {
+void Sender::send(const dto_session::StartRequest& body) {
     responses.try_push({RequestType::StartRequest, body});
 }

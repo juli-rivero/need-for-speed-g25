@@ -50,18 +50,18 @@ void ResponseController::decontrol_all() {
 
 ResponseController::~ResponseController() { decontrol_all(); }
 
+void ResponseController::recv(const dto_search::JoinResponse& r) {
+    std::lock_guard lock(mtx);
+    if (searching_controller) searching_controller->recv(r);
+}
+void ResponseController::recv(const dto_search::SearchResponse& r) {
+    std::lock_guard lock(mtx);
+    if (searching_controller) searching_controller->recv(r);
+}
+
 void ResponseController::recv(const dto_session::LeaveResponse&) {}
 
-void ResponseController::recv(const dto_session::JoinResponse& r) {
-    std::lock_guard lock(mtx);
-    if (searching_controller) searching_controller->recv(r);
-}
-void ResponseController::recv(const dto_session::SearchResponse& r) {
-    std::lock_guard lock(mtx);
-    if (searching_controller) searching_controller->recv(r);
-}
-
-void ResponseController::recv(const dto_lobby::StartResponse& r) {
+void ResponseController::recv(const dto_session::StartResponse& r) {
     std::lock_guard lock(mtx);
     if (waiting_controller) waiting_controller->recv(r);
 }

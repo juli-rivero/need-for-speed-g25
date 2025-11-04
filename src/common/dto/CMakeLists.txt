@@ -1,10 +1,10 @@
 target_sources(taller_common
         PRIVATE
         dto.cpp
-        dto_lobby.cpp
+        dto_search.cpp
         dto_session.cpp
         PUBLIC
         dto.h
-        dto_lobby.h
+        dto_search.h
         dto_session.h
 )

@@ -1,18 +1,14 @@
+add_subdirectory(controllers)
+
 target_sources(taller_server
         PRIVATE
         client_handler.cpp
         receiver.cpp
         sender.cpp
         controller.cpp
-        browser_controller.cpp
-        game_controller.cpp
-        lobby_controller.cpp
         PUBLIC
         client_handler.h
         receiver.h
         sender.h
         controller.h
-        browser_controller.h
-        game_controller.h
-        lobby_controller.h
 )

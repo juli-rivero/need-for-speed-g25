@@ -42,12 +42,12 @@ class ResponseController : public ResponseListener {
 
    private:
     // BROWSER CONTROLLER //
-    void recv(const dto_session::LeaveResponse&) override;
-    void recv(const dto_session::JoinResponse&) override;
-    void recv(const dto_session::SearchResponse&) override;
+    void recv(const dto_search::JoinResponse&) override;
+    void recv(const dto_search::SearchResponse&) override;
 
     // LOBBY CONTROLLER //
-    void recv(const dto_lobby::StartResponse&) override;
+    void recv(const dto_session::LeaveResponse&) override;
+    void recv(const dto_session::StartResponse&) override;
 
     void recv(const dto::ErrorResponse&) override;
 

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "common/dto/dto_lobby.h"
+#include "common/dto/dto_session.h"
 #include "common/macros.h"
 
 class WaitingWindow;
@@ -13,5 +13,5 @@ class WaitingController final {
 
     MAKE_FIXED(WaitingController)
 
-    void recv(const dto_lobby::StartResponse&);
+    void recv(const dto_session::StartResponse&);
 };

@@ -7,10 +7,10 @@
 #include "spdlog/spdlog.h"
 
 struct RequestListener {
+    virtual void on(const dto_search::JoinRequest&) = 0;
+    virtual void on(const dto_search::SearchRequest&) = 0;
     virtual void on(const dto_session::LeaveRequest&) = 0;
-    virtual void on(const dto_session::JoinRequest&) = 0;
-    virtual void on(const dto_session::SearchRequest&) = 0;
-    virtual void on(const dto_lobby::StartRequest&) = 0;
+    virtual void on(const dto_session::StartRequest&) = 0;
 
     virtual ~RequestListener() = default;
 };

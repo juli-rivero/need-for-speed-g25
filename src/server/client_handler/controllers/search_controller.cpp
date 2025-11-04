@@ -1,19 +1,16 @@
-#include "server/client_handler/browser_controller.h"
+#include "server/client_handler/controllers/search_controller.h"
 
 #include <string>
 
 using dto::ErrorResponse;
-using dto_session::JoinRequest;
-using dto_session::JoinResponse;
-using dto_session::LeaveRequest;
-using dto_session::LeaveResponse;
-using dto_session::SearchRequest;
-using dto_session::SearchResponse;
+using dto_search::JoinRequest;
+using dto_search::JoinResponse;
+using dto_search::SearchRequest;
+using dto_search::SearchResponse;
 
-BrowserController::BrowserController(SessionsMonitor& sessions_monitor,
-                                     const int client_id, Sender& sender,
-                                     IBrowserEvents& handler,
-                                     spdlog::logger* log)
+SearchController::SearchController(SessionsMonitor& sessions_monitor,
+                                   const int client_id, Sender& sender,
+                                   ISearchEvents& handler, spdlog::logger* log)
     : log(log),
       sessions_monitor(sessions_monitor),
       client_id(client_id),
@@ -22,18 +19,7 @@ BrowserController::BrowserController(SessionsMonitor& sessions_monitor,
     log->debug("controlling browser");
 }
 
-void BrowserController::on(const LeaveRequest&) const {
-    try {
-        sessions_monitor.leave_session(client_id);
-        log->trace("leaved session");
-        sender.send(LeaveResponse{});
-    } catch (std::out_of_range&) {
-        log->error("tried to leave a session and couldn't do it");
-        sender.send(ErrorResponse{});
-    }
-}
-
-void BrowserController::on(const JoinRequest& lobby_join_request) const {
+void SearchController::on(const JoinRequest& lobby_join_request) const {
     const std::string& session_id = lobby_join_request.session_id;
     try {
         Session& session = sessions_monitor.get_session(session_id);
@@ -47,7 +33,7 @@ void BrowserController::on(const JoinRequest& lobby_join_request) const {
     }
 }
 
-void BrowserController::on(const SearchRequest&) const {
+void SearchController::on(const SearchRequest&) const {
     SearchResponse response;
     for (const std::string& session_id : sessions_monitor.get_sessions_ids()) {
         try {

@@ -34,19 +34,19 @@ void Receiver::switch_and_dispatch_request(const RequestType& request) const {
     switch (request) {
         case RequestType::JoinRequest:
             log->trace("Received JoinRequest");
-            listener.on(receiver.get<dto_session::JoinRequest>());
+            listener.on(receiver.get<dto_search::JoinRequest>());
+            break;
+        case RequestType::SearchRequest:
+            log->trace("Received SearchRequest");
+            listener.on(receiver.get<dto_search::SearchRequest>());
             break;
         case RequestType::LeaveRequest:
             log->trace("Received LeaveRequest");
             listener.on(receiver.get<dto_session::LeaveRequest>());
             break;
-        case RequestType::SearchRequest:
-            log->trace("Received SearchRequest");
-            listener.on(receiver.get<dto_session::SearchRequest>());
-            break;
         case RequestType::StartRequest:
             log->trace("Received StartRequest");
-            listener.on(receiver.get<dto_lobby::StartRequest>());
+            listener.on(receiver.get<dto_session::StartRequest>());
             break;
         default:
             throw std::runtime_error("Unknown request type");

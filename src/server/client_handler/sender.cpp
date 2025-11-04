@@ -30,12 +30,12 @@ void Sender::stop() {
     log->trace("Sender stopped");
 }
 
-void Sender::send(const dto_session::SearchResponse& body) {
+void Sender::send(const dto_search::SearchResponse& body) {
     log->trace("sending search response");
     responses.try_push({ResponseType::SearchResponse, body});
 }
 
-void Sender::send(const dto_session::JoinResponse& body) {
+void Sender::send(const dto_search::JoinResponse& body) {
     log->trace("sending join response");
     responses.try_push({ResponseType::JoinResponse, body});
 }
@@ -45,7 +45,7 @@ void Sender::send(const dto_session::LeaveResponse& body) {
     responses.try_push({ResponseType::LeaveResponse, body});
 }
 
-void Sender::send(const dto_lobby::StartResponse& body) {
+void Sender::send(const dto_session::StartResponse& body) {
     log->trace("sending start response");
     responses.try_push({ResponseType::StartResponse, body});
 }
