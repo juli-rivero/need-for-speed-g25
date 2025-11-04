@@ -28,13 +28,15 @@ server: build
 
 hooks:
 ifeq ($(MODE),fast)
-	pre-commit run clang-format --all-files
-	pre-commit run cppcheck --all-files
-	pre-commit run cpplint --all-files
+	pre-commit run trailing-whitespace --all-files ; \
+	pre-commit run end-of-file-fixer --all-files ; \
+	pre-commit run check-yaml --all-files ; \
+	pre-commit run clang-format --all-files ; \
+	pre-commit run cppcheck --all-files ; \
+	pre-commit run cpplint --all-files ;
 else
 	pre-commit run --all-files
 endif
-
 
 exec: build
 	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server; exec bash"
