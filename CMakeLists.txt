@@ -9,6 +9,8 @@ if (NOT DEFINED CMAKE_CXX_STANDARD)
 endif()
 
 set(CMAKE_CXX_EXTENSIONS ON)
+# Genera el compile_commands.json para los clang
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 project(taller_tp
     VERSION 1.0
@@ -25,12 +27,11 @@ option(TALLER_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
 message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
-# HEY TODO XXX: change the name to something that you like
 add_library(taller_common STATIC)
 
 # add the source files that make the lib
 # HEY!! TODO XXX: add more subfolders here
-add_subdirectory(src/common/)
+add_subdirectory(src/common)
 
 
 # set compiler warnings to the targets
@@ -40,15 +41,30 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # Say where the headers will be found required by library target
 # Make this PUBLIC so any dependant linking lib will inherit this
 # location (so our dependants will not have to explicitly request this)
-target_include_directories(taller_common PUBLIC .)
+target_include_directories(taller_common PUBLIC ${CMAKE_SOURCE_DIR}/src/)
 
-# HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
-# compiling the client/editor code.
 #
+# Install libSDL2 and libSDL2pp (for client or editor), it needs dependencies:
 # In xubuntu 24.04 these are:
 #
 # sudo apt-get install libopus-dev libopusfile-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack1 libwavpack-dev libfreetype-dev wavpack
 #
+
+# Install command arguments parser and logging library
+if(TALLER_CLIENT OR TALLER_SERVER)
+    include(FetchContent)
+    FetchContent_Declare(
+            cxxopts
+            GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+            GIT_TAG v3.3.1
+    )
+    FetchContent_Declare(
+            spdlog
+            GIT_REPOSITORY https://github.com/gabime/spdlog.git
+            GIT_TAG v1.16.0
+    )
+    FetchContent_MakeAvailable(cxxopts spdlog)
+endif()
 
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
@@ -99,10 +115,30 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
     FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp )
 endif()
 
+if(TALLER_SERVER)
+    # TODO: Sumar libreria Box2D
+endif()
+
+if(TALLER_CLIENT OR TALLER_EDITOR)
+    # TODO: hacer un installer con las dependencias de qt:
+    # En ubuntu:
+    # sudo apt update
+    # sudo apt install qt6-base-dev qt6-tools-dev cmake build-essential -y
+
+    # Buscar Qt6 (componentes necesarios para GUI)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
+    # Habilitar herramientas automáticas de Qt
+    set(CMAKE_AUTOMOC ON)  # Meta-Object Compiler (para signals/slots)
+    set(CMAKE_AUTOUIC ON)  # User Interface Compiler (para archivos .ui)
+    set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
+
+    message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
+endif()
+
 # Program section
 # ---------------
 if(TALLER_CLIENT)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_client)
 
     # Make them depend on taller_common lib
@@ -118,7 +154,8 @@ if(TALLER_CLIENT)
     target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
+    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp cxxopts spdlog)
 endif()
 
 if(TALLER_SERVER)
@@ -163,10 +200,10 @@ if(TALLER_SERVER)
             yaml-cpp
             taller_common
     )
+    target_link_libraries(taller_server taller_common cxxopts spdlog)
 endif()
 
 if(TALLER_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_editor)
 
     # Make them depend on taller_common lib
@@ -182,7 +219,7 @@ if(TALLER_EDITOR)
     target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
 
     # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp)
+    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
 endif()
 
 

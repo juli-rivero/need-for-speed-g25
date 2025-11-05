@@ -1,7 +1,13 @@
+add_subdirectory(game)
+add_subdirectory(qt)
+add_subdirectory(connexion)
+
 target_sources(taller_client
-    PRIVATE
-    # .cpp files
+        PRIVATE
         main.cpp
-    PUBLIC
-    # .h files
-    )
+        args_parser.cpp
+        app.cpp
+        PUBLIC
+        args_parser.cpp
+        app.h
+)
