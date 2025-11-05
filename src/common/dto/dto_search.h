@@ -25,6 +25,7 @@ struct JoinRequest {
 
 struct JoinResponse {
     DECLARE_SERIALIZABLE(JoinResponse)
+    std::string session_id;
 };
 
 #include "common/dto/macros_undef.inl"

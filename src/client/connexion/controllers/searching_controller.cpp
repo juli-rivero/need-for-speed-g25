@@ -12,8 +12,8 @@ SearchingController::SearchingController(SearchingWindow& searching_window)
     // TODO(fran): borrar
     spdlog::trace("controlling browser");
 }
-void SearchingController::recv(const JoinResponse&) {
-    throw std::runtime_error("not implemented");
+void SearchingController::recv(const JoinResponse& r) {
+    searching_window.joinGame(r.session_id);
 }
 void SearchingController::recv(const SearchResponse& r) {
     searching_window.updateGamesList(r.sessions);

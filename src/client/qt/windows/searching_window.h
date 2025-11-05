@@ -4,6 +4,7 @@
 #include <QListWidget>
 #include <QPushButton>
 #include <QWidget>
+#include <string>
 #include <vector>
 
 #include "client/connexion/connexion.h"
@@ -23,6 +24,7 @@ class SearchingWindow final : public QWidget {
 
     // methods to use for controller
     void updateGamesList(const std::vector<SessionInfo> &games);
+    void joinGame(const std::string &name);
 
    signals:
     void createGameClicked();
@@ -41,7 +43,6 @@ class SearchingWindow final : public QWidget {
     // void onConnected();
 
     // void onGameCreated(int gameId); Se va a hacer en create_game_dialog
-    void onGameJoined(int gameId);
     // void onPlayersListUpdated(std::vector<PlayerInfo> players); se va a hacer
     // en waiting_room_widget void onGameStarting(); se va a hacer en
     // waiting_room_widget

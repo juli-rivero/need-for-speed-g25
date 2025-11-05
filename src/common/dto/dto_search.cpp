@@ -36,7 +36,13 @@ ProtocolSender& operator<<(ProtocolSender& p, const JoinRequest& e) {
     return p;
 }
 // JoinResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse&) { return p; }
+ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse& e) {
+    p >> e.session_id;
+    return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse& e) {
+    p << e.session_id;
+    return p;
+}
 
 }  // namespace dto_search

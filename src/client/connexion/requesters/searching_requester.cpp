@@ -1,5 +1,6 @@
 #include "client/connexion/requesters/searching_requester.h"
 
+using dto_search::JoinResponse;
 using dto_search::SearchResponse;
 
 void MockSearchingRequester::request_all_sessions() const {
@@ -29,4 +30,7 @@ void MockSearchingRequester::request_all_sessions() const {
             .status = SessionStatus::Playing,
         },
     }});
+}
+void MockSearchingRequester::request_join(const std::string& session_id) const {
+    response_listener.recv(JoinResponse{session_id});
 }

@@ -118,6 +118,8 @@ void SearchingWindow::onJoinGameClicked() {
             return;
         }
 
+        api.request_join(gameId);
+
         statusLabel->setText("Uniéndose a la partida...");
         statusLabel->setStyleSheet("color: orange;");
     }
@@ -159,6 +161,7 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
             return;
         }
     }
+    api.request_join(gameId);
 
     // Unirse directamente con doble click
     statusLabel->setText("Uniéndose a la partida...");
@@ -202,12 +205,14 @@ el widget statusLabel->setText("✅ Conectado al servidor");
     setWindowTitle("Need for Speed - Sala de Espera");
 }*/
 
-void SearchingWindow::onGameJoined(int gameId) {
+void SearchingWindow::joinGame(const std::string&) {
     // Guardar el ID de la partida a la que nos unimos
-    joiningGameId = gameId;
+    // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
+    // request para pedirlo
 
     // Establecer modo: estamos UNIÉNDONOS a una partida
-    carSelectionMode = CarSelectionMode::Joining;
+    // carSelectionMode = CarSelectionMode::Joining; # TODO(nico): verificar si
+    // se puede borrar
 
     // Cuando te unes a una partida, ir a selección de auto
     // showCarSelectionPage();
