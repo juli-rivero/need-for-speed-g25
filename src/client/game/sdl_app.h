@@ -1,11 +1,9 @@
 #pragma once
 
 #include "client/connexion/connexion.h"
-#include "client/game/game.h"
 #include "client/game/input_handler.h"
 
 class SdlApp {
-    Game game;
     Connexion& connexion;
     InputHandler input_handler;
 
