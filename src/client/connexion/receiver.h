@@ -9,8 +9,9 @@
 
 struct ResponseListener {
     virtual void recv(const dto::ErrorResponse&) = 0;
-    virtual void recv(const dto_search::JoinResponse&) = 0;
     virtual void recv(const dto_search::SearchResponse&) = 0;
+    virtual void recv(const dto_search::JoinResponse&) = 0;
+    virtual void recv(const dto_search::CreateResponse&) = 0;
     virtual void recv(const dto_session::LeaveResponse&) = 0;
     virtual void recv(const dto_session::StartResponse&) = 0;
     virtual ~ResponseListener() = default;

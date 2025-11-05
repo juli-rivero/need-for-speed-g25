@@ -22,7 +22,7 @@ class SearchingWindow final : public QWidget {
     explicit SearchingWindow(QWidget *parent, Connexion &);
     ~SearchingWindow() override;
 
-    // methods to use for controller
+    // metodos que usa el controlador
     void updateGamesList(const std::vector<SessionInfo> &games);
     void joinGame(const std::string &name);
 

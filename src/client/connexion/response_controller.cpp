@@ -58,6 +58,10 @@ void ResponseController::recv(const dto_search::SearchResponse& r) {
     std::lock_guard lock(mtx);
     if (searching_controller) searching_controller->recv(r);
 }
+void ResponseController::recv(const dto_search::CreateResponse& r) {
+    std::lock_guard lock(mtx);
+    if (searching_controller) creating_controller->recv(r);
+}
 
 void ResponseController::recv(const dto_session::LeaveResponse&) {}
 

@@ -33,6 +33,9 @@ void Receiver::delegate_response(const ResponseType& request) const {
         case ResponseType::SearchResponse:
             listener.recv(receiver.get<dto_search::SearchResponse>());
             break;
+        case ResponseType::CreateResponse:
+            listener.recv(receiver.get<dto_search::CreateResponse>());
+            break;
         case ResponseType::LeaveResponse:
             listener.recv(receiver.get<dto_session::LeaveResponse>());
             break;

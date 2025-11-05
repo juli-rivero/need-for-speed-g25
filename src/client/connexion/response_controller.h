@@ -44,6 +44,7 @@ class ResponseController : public ResponseListener {
     // BROWSER CONTROLLER //
     void recv(const dto_search::JoinResponse&) override;
     void recv(const dto_search::SearchResponse&) override;
+    void recv(const dto_search::CreateResponse&) override;
 
     // LOBBY CONTROLLER //
     void recv(const dto_session::LeaveResponse&) override;

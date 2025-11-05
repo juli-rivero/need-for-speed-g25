@@ -29,6 +29,9 @@ void Sender::send(const dto_search::SearchRequest& body) {
 void Sender::send(const dto_search::JoinRequest& body) {
     responses.try_push({RequestType::JoinRequest, body});
 }
+void Sender::send(const dto_search::CreateRequest& body) {
+    responses.try_push({RequestType::CreateRequest, body});
+}
 
 void Sender::send(const dto_session::LeaveRequest& body) {
     responses.try_push({RequestType::LeaveRequest, body});

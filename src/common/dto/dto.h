@@ -17,6 +17,7 @@ struct ErrorResponse {
 enum class RequestType : uint8_t {
     SearchRequest,
     JoinRequest,
+    CreateRequest,
     LeaveRequest,
     StartRequest,
 };
@@ -24,7 +25,8 @@ MAKE_ENUM_SERIALIZABLE(RequestType, uint8_t)
 
 using RequestBody =
     std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_session::LeaveRequest, dto_session::StartRequest>;
+                 dto_search::CreateRequest, dto_session::LeaveRequest,
+                 dto_session::StartRequest>;
 
 struct Request {
     // Only sendable, if wanted to be received, it must be done first the type
@@ -37,6 +39,7 @@ struct Request {
 enum class ResponseType : uint8_t {
     SearchResponse,
     JoinResponse,
+    CreateResponse,
     LeaveResponse,
     StartResponse,
     ErrorResponse,
@@ -45,8 +48,8 @@ MAKE_ENUM_SERIALIZABLE(ResponseType, uint8_t)
 
 using ResponseBody =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
-                 dto_session::LeaveResponse, dto_session::StartResponse,
-                 ErrorResponse>;
+                 dto_search::CreateResponse, dto_session::LeaveResponse,
+                 dto_session::StartResponse, ErrorResponse>;
 
 struct Response {
     // Only sendable, if wanted to be received, it must be done first the type

@@ -45,4 +45,22 @@ ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse& e) {
     return p;
 }
 
+// CreateRequest SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CreateRequest& e) {
+    p >> e.config.city >> e.config.maxPlayers >> e.config.name >>
+        e.config.raceCount;
+    return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const CreateRequest& e) {
+    p << e.config.city << e.config.maxPlayers << e.config.name
+      << e.config.raceCount;
+    return p;
+}
+
+// CreateResponse SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CreateResponse&) { return p; }
+ProtocolSender& operator<<(ProtocolSender& p, const CreateResponse&) {
+    return p;
+}
+
 }  // namespace dto_search

@@ -7,4 +7,6 @@ struct CreatingRequester : Requester {
 
 struct MockCreatingRequester : MockRequester {
     using MockRequester::MockRequester;
+
+    void create_session(const SessionConfig& config) const;
 };

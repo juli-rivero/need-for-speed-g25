@@ -1,5 +1,7 @@
 #pragma once
 
+#include <client/connexion/requesters/creating_requester.h>
+
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
@@ -13,24 +15,19 @@ class CreatingWindow final : public QWidget {
     Q_OBJECT
 
     Connexion& connexion;
+    MockCreatingRequester api;
 
    public:
-    struct GameConfig {
-        QString name;
-        int maxPlayers;
-        int raceCount;
-        int lapCount;
-        QString city;
-    };
-
     explicit CreatingWindow(QWidget* parent, Connexion&);
     ~CreatingWindow() override;
 
-    GameConfig getConfig() const;
+    // metodos que usa el controlador
+    void createSession();
+
     void reset();
    signals:
-    void submitRequested();
-    void cancelRequested();
+    void sessionCreated();
+    void createCanceled();
 
    private slots:
     void validateInput();

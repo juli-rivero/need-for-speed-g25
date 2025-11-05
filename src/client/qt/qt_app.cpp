@@ -36,9 +36,9 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     connect(&searchingWindow, &SearchingWindow::joinGameClicked, this,
             &QtWindowManager::show_selecting_window);
 
-    connect(&creatingWindow, &CreatingWindow::submitRequested, this,
+    connect(&creatingWindow, &CreatingWindow::sessionCreated, this,
             &QtWindowManager::show_selecting_window);
-    connect(&creatingWindow, &CreatingWindow::cancelRequested, this,
+    connect(&creatingWindow, &CreatingWindow::createCanceled, this,
             &QtWindowManager::show_searching_window);
 
     connect(&selectingWindow, &SelectingWindow::confirmRequested, this,

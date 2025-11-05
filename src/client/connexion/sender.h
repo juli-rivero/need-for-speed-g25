@@ -23,6 +23,7 @@ class Sender final : public Thread {
 
     void send(const dto_search::SearchRequest&);
     void send(const dto_search::JoinRequest&);
+    void send(const dto_search::CreateRequest&);
     void send(const dto_session::LeaveRequest&);
     void send(const dto_session::StartRequest&);
 };
