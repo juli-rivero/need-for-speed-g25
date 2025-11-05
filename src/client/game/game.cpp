@@ -4,7 +4,32 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-Game::Game(SDL2pp::Renderer& renderer) : renderer(renderer), assets(renderer) {}
+Game::Game(SDL2pp::Renderer& renderer) : renderer(renderer), assets(renderer) {
+    renderer.Clear();
+}
+
+//
+// AUXILIAR
+//
+void Game::render(SDL2pp::Texture& texture, int x, int y, double angle,
+                  bool in_world) {
+    SDL2pp::Point pos(x, y);
+    if (in_world) pos -= SDL2pp::Point(cam_x, cam_y);
+
+    renderer.Copy(texture, SDL2pp::NullOpt, pos, angle);
+}
+
+void Game::render(const std::string& texto, int x, int y, bool in_world) {
+    SDL2pp::Surface s =
+        assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
+    SDL2pp::Texture t(renderer, s);
+
+    render(t, x, y, 0, in_world);
+}
+
+//
+// PRINCIPAL
+//
 
 // TODO(crook): temporal, hasta conectar con el servidor.
 bool Game::send_events() {
@@ -37,7 +62,7 @@ bool Game::send_events() {
             if (tecla == SDLK_RIGHT)
                 right_held = false;  // EVENT: Enviar "detener giro derecha"
             // if (tecla == SDLK_UP) // EVENT: Enviar "detener acelerar"
-            // if (tecla == SDLK_UP) // EVENT: Enviar "detener desacelerar"
+            // if (tecla == SDLK_DOWN) // EVENT: Enviar "detener desacelerar"
         }
     }
 
@@ -65,24 +90,18 @@ void Game::draw_state() {
     renderer.Clear();
 
     // Definir la camara alrededor del jugador.
-    int cam_x =
-        car_x + assets.car1.GetWidth() / 2 - renderer.GetOutputWidth() / 2;
-    int cam_y =
+    cam_x = car_x + assets.car1.GetWidth() / 2 - renderer.GetOutputWidth() / 2;
+    cam_y =
         car_y + assets.car1.GetHeight() / 2 - renderer.GetOutputHeight() / 2;
 
-    // Background
-    renderer.Copy(assets.city_liberty, SDL2pp::NullOpt,
-                  SDL2pp::Point(0 - cam_x, 0 - cam_y));
+    // Ciudad
+    render(assets.city_liberty, 0, 0);
 
-    // Foreground
-    renderer.Copy(assets.car1, SDL2pp::NullOpt,
-                  SDL2pp::Point(car_x - cam_x, car_y - cam_y), car_angle);
+    // Coches
+    render(assets.car1, car_x, car_y, car_angle);
 
     // HUD
-    SDL2pp::Texture text_render(
-        renderer,
-        assets.font.RenderText_Solid(hud_text, SDL_Color{255, 255, 255, 255}));
-    renderer.Copy(text_render, SDL2pp::NullOpt, SDL2pp::Point(10, 10));
+    render("Hola, mundo!", 10, 10, false);
 
     renderer.Present();
 }
