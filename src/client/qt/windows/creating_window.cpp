@@ -16,8 +16,7 @@ CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
 }
-
-void CreatingWindow::createSession() { emit sessionCreated(); }
+void CreatingWindow::on_create_response() { emit sessionCreated(); }
 
 void CreatingWindow::setupUI() {
     // Layout principal

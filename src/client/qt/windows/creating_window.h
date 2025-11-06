@@ -17,8 +17,7 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
    public:
     explicit CreatingWindow(QWidget* parent, Connexion&);
 
-    // metodos que usa el controlador
-    void createSession();
+    void on_create_response() override;
 
     void reset();
    signals:
