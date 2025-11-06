@@ -6,11 +6,13 @@
 
 Connexion::Connexion(Protocol&& protocol)
     : protocol(std::move(protocol)),
-      receiver(this->protocol, *this),
+      receiver(this->protocol),
       sender(this->protocol) {
     receiver.start();
     sender.start();
 }
+
+Api& Connexion::get_api() { return sender; }
 
 Connexion::~Connexion() {
     if (sender.is_alive()) sender.stop();

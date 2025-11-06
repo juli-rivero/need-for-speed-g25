@@ -32,7 +32,7 @@ void GameCardWidget::setupUI() {
     // === Columna 2: Información principal ===
     QVBoxLayout* infoLayout = new QVBoxLayout();
 
-    nameLabel = new QLabel(info.city.c_str());
+    nameLabel = new QLabel(info.name.c_str());
     nameLabel->setStyleSheet(
         "font-size: 16px; font-weight: bold; border: none;");
     infoLayout->addWidget(nameLabel);

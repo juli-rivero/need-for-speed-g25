@@ -1,5 +1,7 @@
 #pragma once
 
+#include <client/connexion/connexion.h>
+
 #include <QComboBox>
 #include <QListWidget>
 #include <QPushButton>
@@ -7,24 +9,20 @@
 #include <string>
 #include <vector>
 
-#include "client/connexion/connexion.h"
-#include "client/connexion/requesters/searching_requester.h"
 #include "client/qt/game_card_widget.h"
 #include "common/structs.h"
 
-class SearchingWindow final : public QWidget {
+class SearchingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    Connexion &connexion;
-    MockSearchingRequester api;
+    Api &api;
 
    public:
     explicit SearchingWindow(QWidget *parent, Connexion &);
-    ~SearchingWindow() override;
 
-    // metodos que usa el controlador
-    void updateGamesList(const std::vector<SessionInfo> &games);
-    void joinGame(const std::string &name);
+    // Connexion overrides
+    void on_search_response(const std::vector<SessionInfo> &) override;
+    void on_join_response(const std::string &) override;
 
    signals:
     void createGameClicked();
@@ -49,6 +47,7 @@ class SearchingWindow final : public QWidget {
     void onError(QString message);
 
    private:
+    void updateGamesList(const std::vector<SessionInfo> &games);
     QString getCarEmoji(const QString &carType) const;
 
     // Métodos para crear cada página

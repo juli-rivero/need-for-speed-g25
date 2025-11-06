@@ -8,17 +8,15 @@
 #include "client/qt/theme_manager.h"
 
 CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), connexion(connexion), api(connexion) {
+    : QWidget(parent), Responder(connexion), api(connexion.get_api()) {
     setupUI();
 
     // Conectar al sistema de temas
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
-    connexion.control(*this);
 }
 
-CreatingWindow::~CreatingWindow() { connexion.decontrol(*this); }
 void CreatingWindow::createSession() { emit sessionCreated(); }
 
 void CreatingWindow::setupUI() {
@@ -148,7 +146,7 @@ void CreatingWindow::reset() {
 }
 
 void CreatingWindow::onSubmitClicked() {
-    api.create_session(SessionConfig{
+    api.request_create_session({
         .name = nameEdit->text().trimmed().toUtf8().constData(),
         .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
         .raceCount = static_cast<uint8_t>(racesSpin->value()),

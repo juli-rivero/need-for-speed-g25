@@ -1,7 +1,5 @@
 #pragma once
 
-#include <client/connexion/requesters/creating_requester.h>
-
 #include <QComboBox>
 #include <QLineEdit>
 #include <QPushButton>
@@ -11,15 +9,13 @@
 
 #include "client/connexion/connexion.h"
 
-class CreatingWindow final : public QWidget {
+class CreatingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    Connexion& connexion;
-    MockCreatingRequester api;
+    Api& api;
 
    public:
     explicit CreatingWindow(QWidget* parent, Connexion&);
-    ~CreatingWindow() override;
 
     // metodos que usa el controlador
     void createSession();

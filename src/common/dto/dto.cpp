@@ -13,14 +13,14 @@ ProtocolSender& operator<<(ProtocolSender& p, const dto::ErrorResponse& e) {
 }
 
 // Request SENDABLE
-ProtocolSender& operator<<(ProtocolSender& p, const dto::Request& e) {
+ProtocolSender& operator<<(ProtocolSender& p, const Request& e) {
     p << static_cast<uint8_t>(e.type);
     std::visit([&](const auto& val) { p << val; }, e.body);
     return p;
 }
 
 // Response SENDABLE
-ProtocolSender& operator<<(ProtocolSender& p, const dto::Response& e) {
+ProtocolSender& operator<<(ProtocolSender& p, const Response& e) {
     p << static_cast<uint8_t>(e.type);
     std::visit([&](const auto& val) { p << val; }, e.body);
     return p;

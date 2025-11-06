@@ -8,13 +8,12 @@
 
 WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
-      connexion(connexion),
+      Responder(connexion),
+      api(connexion.get_api()),
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
-    connexion.control(*this);
 }
-WaitingWindow::~WaitingWindow() { connexion.decontrol(*this); }
 
 void WaitingWindow::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);

@@ -1,14 +1,24 @@
 #pragma once
 
+#include <string>
+
 #include "common/dto/dto.h"
-#include "common/dto/dto_search.h"
-#include "common/dto/dto_session.h"
 #include "common/macros.h"
 #include "common/protocol.h"
 #include "common/queue.h"
+#include "common/structs.h"
 #include "common/thread.h"
 
-class Sender final : public Thread {
+struct Api {
+    virtual void request_search_all_sessions() = 0;
+    virtual void request_join_session(const std::string&) = 0;
+    virtual void request_create_session(const SessionConfig&) = 0;
+    virtual void request_leave_current_session() = 0;
+    virtual void request_start_session() = 0;
+    virtual ~Api() = default;
+};
+
+class Sender final : public Thread, public Api {
     Queue<dto::Request> responses;
     ProtocolSender& sender;
 
@@ -21,9 +31,9 @@ class Sender final : public Thread {
 
     MAKE_FIXED(Sender)
 
-    void send(const dto_search::SearchRequest&);
-    void send(const dto_search::JoinRequest&);
-    void send(const dto_search::CreateRequest&);
-    void send(const dto_session::LeaveRequest&);
-    void send(const dto_session::StartRequest&);
+    void request_search_all_sessions() override;
+    void request_join_session(const std::string&) override;
+    void request_create_session(const SessionConfig&) override;
+    void request_leave_current_session() override;
+    void request_start_session() override;
 };

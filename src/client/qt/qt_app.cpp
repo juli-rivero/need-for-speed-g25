@@ -16,8 +16,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
       waitingWindow(&stack, connexion) {
-    spdlog::trace("controllers controlled");
-
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -60,8 +58,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     show();
 
     spdlog::trace("showing window");
-
-    spdlog::trace("exec finished");
 
     quit = false;  // TODO(juli): borrar
 }

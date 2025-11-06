@@ -32,14 +32,13 @@ struct CarConfig {
     float controllability;
 };
 
-class SelectingWindow final : public QWidget {
+class SelectingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    Connexion& connexion;
+    Api& api;
 
    public:
     explicit SelectingWindow(QWidget* parent, Connexion&);
-    ~SelectingWindow() override;
 
     CarConfig getSelectedCar() const;
     int getSelectedCarType() const { return selectedCarIndex; }
