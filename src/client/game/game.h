@@ -14,13 +14,17 @@ class Game final {
 
     // Componentes logicos
     // TODO(crook): Temporal
-    double car_x = 0;
-    double car_y = 0;
-    double car_speed = 0;
-    double car_angle = 0;
-
     bool left_held = false;
     bool right_held = false;
+
+    double car_x[7] = {0};
+    double car_y[7] = {0};
+    double car_speed[7] = {0};
+    double car_angle[7] = {0};
+
+    // Obviamente arrays de referencias no son validas en C++
+    // Porque cuando C++ te hace la vida facil el planeta explotara.
+    SDL2pp::Texture* car_sprite[7];
 
     // Metodos de actualizacion internos
     bool send_events();

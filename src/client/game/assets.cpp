@@ -4,5 +4,11 @@
 
 Assets::Assets(SDL2pp::Renderer& renderer)
     : car1(renderer, "assets/cars/car1.png"),
+      car2(renderer, "assets/cars/car2.png"),
+      car3(renderer, "assets/cars/car3.png"),
+      car4(renderer, "assets/cars/car4.png"),
+      car5(renderer, "assets/cars/car5.png"),
+      car6(renderer, "assets/cars/car6.png"),
+      car7(renderer, "assets/cars/car7.png"),
       city_liberty(renderer, "assets/cities/liberty_city.png"),
       font("assets/fonts/OpenSans-Regular.ttf", 20) {}

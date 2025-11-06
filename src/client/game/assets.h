@@ -9,6 +9,13 @@ class Assets final {
     explicit Assets(SDL2pp::Renderer& renderer);
 
     SDL2pp::Texture car1;
+    SDL2pp::Texture car2;
+    SDL2pp::Texture car3;
+    SDL2pp::Texture car4;
+    SDL2pp::Texture car5;
+    SDL2pp::Texture car6;
+    SDL2pp::Texture car7;
+
     SDL2pp::Texture city_liberty;
     SDL2pp::Font font;
 
