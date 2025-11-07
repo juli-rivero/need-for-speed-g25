@@ -212,7 +212,7 @@ el widget statusLabel->setText("✅ Conectado al servidor");
     setWindowTitle("Need for Speed - Sala de Espera");
 }*/
 
-void SearchingWindow::on_join_response(const std::string&) {
+void SearchingWindow::on_join_response(const SessionInfo&) {
     // Guardar el ID de la partida a la que nos unimos
     // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
     // request para pedirlo
@@ -223,7 +223,11 @@ void SearchingWindow::on_join_response(const std::string&) {
 
     // Cuando te unes a una partida, ir a selección de auto
     // showCarSelectionPage();
-    emit joinGameClicked();
+
+    spdlog::trace("unido a partida");
+
+    QMetaObject::invokeMethod(
+        this, [this]() { emit joinGameClicked(); }, Qt::QueuedConnection);
 
     statusLabel->setText("✅ Unido a la partida - Selecciona tu auto");
     statusLabel->setStyleSheet("color: green;");

@@ -25,7 +25,7 @@ struct JoinRequest {
 
 struct JoinResponse {
     DECLARE_SERIALIZABLE(JoinResponse)
-    std::string session_id;
+    SessionInfo session;
 };
 
 struct CreateRequest {

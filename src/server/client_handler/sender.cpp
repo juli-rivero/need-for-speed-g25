@@ -40,10 +40,10 @@ void Sender::reply_search(const vector<SessionInfo>& info) {
         {ResponseType::SearchResponse, dto_search::SearchResponse{info}});
 }
 
-void Sender::reply_joined() {
+void Sender::reply_joined(const SessionInfo& session) {
     log->trace("sending join response");
     responses.try_push(
-        {ResponseType::JoinResponse, dto_search::JoinResponse{}});
+        {ResponseType::JoinResponse, dto_search::JoinResponse{session}});
 }
 
 void Sender::reply_created() {

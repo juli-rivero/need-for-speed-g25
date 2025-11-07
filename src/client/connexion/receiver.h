@@ -29,7 +29,7 @@ class Receiver final : public Thread {
         explicit Listener(Receiver& receiver);
         virtual void on_error_response(const std::string&) {}
         virtual void on_search_response(const std::vector<SessionInfo>&) {}
-        virtual void on_join_response(const std::string&) {}
+        virtual void on_join_response(const SessionInfo&) {}
         virtual void on_create_response() {}
         virtual void on_leave_response() {}
         virtual void on_start_response() {}

@@ -36,12 +36,17 @@ ProtocolSender& operator<<(ProtocolSender& p, const JoinRequest& e) {
     return p;
 }
 // JoinResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse& e) {
-    p >> e.session_id;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse& r) {
+    SessionInfo& session = r.session;
+    p >> session.city >> session.maxPlayers >> session.name >>
+        session.raceCount >> session.currentPlayers;
+    session.status = static_cast<SessionStatus>(p.get<uint8_t>());
     return p;
 }
-ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse& e) {
-    p << e.session_id;
+ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse& r) {
+    const SessionInfo& session = r.session;
+    p << session.city << session.maxPlayers << session.name << session.raceCount
+      << session.currentPlayers << static_cast<uint8_t>(session.status);
     return p;
 }
 

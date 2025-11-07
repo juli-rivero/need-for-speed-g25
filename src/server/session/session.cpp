@@ -8,7 +8,9 @@
 using spdlog::stdout_color_mt;
 
 Session::Listener::Listener(Session& session)
-    : common::Listener<Session::Listener>(session.emitter), session(session) {}
+    : common::Listener<Session::Listener>(session.emitter), session(session) {
+    session.log->trace("new listener added");
+}
 
 Session::Session(const SessionConfig& config, const int creator)
     : config(config),
