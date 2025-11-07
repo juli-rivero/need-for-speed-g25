@@ -11,4 +11,7 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       car6(renderer, "assets/cars/car6.png"),
       car7(renderer, "assets/cars/car7.png"),
       city_liberty(renderer, "assets/cities/liberty_city.png"),
+      sound_brake("assets/sound/brake.ogg"),
+      sound_crash("assets/sound/crash.ogg"),
+      sound_finish("assets/sound/finish.ogg"),
       font("assets/fonts/OpenSans-Regular.ttf", 20) {}

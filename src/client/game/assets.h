@@ -17,6 +17,11 @@ class Assets final {
     SDL2pp::Texture car7;
 
     SDL2pp::Texture city_liberty;
+
+    SDL2pp::Chunk sound_brake;
+    SDL2pp::Chunk sound_crash;
+    SDL2pp::Chunk sound_finish;
+
     SDL2pp::Font font;
 
     MAKE_FIXED(Assets)

@@ -4,7 +4,8 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-Game::Game(SDL2pp::Renderer& renderer) : renderer(renderer), assets(renderer) {
+Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
+    : renderer(renderer), mixer(mixer), assets(renderer) {
     renderer.Clear();
 
     // Coche 0: yo
@@ -68,6 +69,9 @@ bool Game::send_events() {
                 car_speed[0] += 1;  // EVENT: Enviar "iniciar desacelerar"
 
             // if (tecla == SDLK_SPACE) // EVENT: Enviar "activar nitro
+
+            // Pruebas de sonido, se removeran despues
+            if (tecla == SDLK_c) mixer.PlayChannel(-1, assets.sound_crash);
         }
 
         if (event.type == SDL_KEYUP) {

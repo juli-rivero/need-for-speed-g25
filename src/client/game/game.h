@@ -10,6 +10,7 @@ class Game final {
    private:
     // Componentes graficos
     SDL2pp::Renderer& renderer;
+    SDL2pp::Mixer& mixer;
     Assets assets;
 
     // Componentes logicos
@@ -44,7 +45,7 @@ class Game final {
     void render(const std::string& texto, int x, int y, bool in_world = true);
 
    public:
-    explicit Game(SDL2pp::Renderer& renderer);
+    explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer);
 
     bool start();
 
