@@ -33,6 +33,12 @@ public:
     void applyForce(float fx, float fy) override {
         b2Body_ApplyForceToCenter(body->getId(), {fx, fy}, true);
     }
+    void applyTorque(float torque) override {
+        b2Body_ApplyTorque(body->getId(),torque,true);
+    }
+    void setAngularVelocity(float av) override {
+        b2Body_SetAngularVelocity(body->getId(), av);
+    }
 
     void setLinearVelocity(float vx, float vy) override {
         b2Body_SetLinearVelocity(body->getId(), {vx, vy});

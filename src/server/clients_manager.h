@@ -2,9 +2,9 @@
 
 #include <list>
 
-#include "common/socket.h"
-#include "server/client_handler/client_handler.h"
-#include "server/sessions_monitor.h"
+#include "../common/socket.h"
+#include "client_handler/client_handler.h"
+#include "sessions_monitor.h"
 
 class ClientsManager {
     std::list<ClientHandler> client_handlers;

@@ -13,7 +13,7 @@ struct CarType {
     float acceleration;
     float mass;
     float control;
-    float health;
+    mutable float health;
 
     // --- nitro ---
     float nitroMultiplier;
@@ -21,6 +21,8 @@ struct CarType {
     float nitroCooldown;
 
     // --- físicas ---
+    float width;
+    float height;
     float density;
     float friction;
     float restitution;

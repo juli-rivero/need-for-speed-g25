@@ -2,13 +2,13 @@
 
 #include <spdlog/spdlog.h>
 
-#include "common/dto/dto.h"
-#include "common/dto/dto_lobby.h"
-#include "common/dto/dto_session.h"
-#include "common/macros.h"
-#include "common/protocol.h"
-#include "common/queue.h"
-#include "common/thread.h"
+#include "../../common/dto/dto.h"
+#include "../../common/dto/dto_lobby.h"
+#include "../../common/dto/dto_session.h"
+#include "../../common/macros.h"
+#include "../../common/protocol.h"
+#include "../../common/queue.h"
+#include "../../common/thread.h"
 
 class Sender final : public Thread {
     Queue<dto::Response> responses;

@@ -18,6 +18,9 @@ struct CityDefinition {
     CityId name;
     std::vector<RaceDefinition> races;
 };
+struct SpawnPoint {
+    float x, y, angle;
+};
 struct PlayerConfig {
     PlayerId id;               // id único del jugador
     std::string name;          // nombre visible

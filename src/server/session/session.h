@@ -6,8 +6,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "common/emitter.h"
-#include "server/session/game.h"
+#include "../../common/emitter.h"
+#include "../session/game.h"
 #include "spdlog/spdlog.h"
 
 class Session;

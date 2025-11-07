@@ -17,31 +17,78 @@ struct PlayerInput {
 
 // estado individual del auto
 struct CarSnapshot {
-    int id;
-    std::string playerName;
-    float x{0}, y{0};
-    float angle{0};
-    float vx{0}, vy{0};
-    float speed{0};
-    int checkpoint{0};
-    int lap{1};
-    bool nitro{false};
-    float health{100.0f};
+    int id;            // playerId
+    float x, y;        // posición actual
+    float vx, vy;      // velocidad lineal
+    float angle;       // orientación (radianes)
+    float speed;       // módulo de la velocidad
+    float health;      // salud del vehículo
+    bool nitroActive;  // nitro encendido
+    bool braking;      // si está frenando
+    bool accelerating; // si está acelerando
 };
 
+struct RaceProgressSnapshot {
+    int playerId;
+    int nextCheckpoint;   // número de checkpoint pendiente
+    bool finished;
+    bool disqualified;
+    float elapsedTime;
+};
 
 struct WorldSnapshot {
-    float time{0};
-    float raceTimeLeft{0};
+    float time;            // tiempo global simulado
+    float raceTimeLeft;    // tiempo restante si hay límite
     std::vector<CarSnapshot> cars;
+    std::vector<RaceProgressSnapshot> raceProgress;
+};
+struct WallInfo {
+    int id;
+    float x, y;
+    float w, h;
+};
+
+struct CheckpointInfo {
+    int id;
+    int order;
+    float x, y;
+    float w;
+    float h;
+};
+
+struct HintInfo {
+    int id;
+    float x, y;
+};
+
+struct SpawnPointInfo {
+    int id;
+    float x, y;
+    float angle;
+};
+
+struct CarStaticInfo {
+    int id;
+    std::string playerName;
+    std::string carType;
+    float width;
+    float height;
+    float maxSpeed;
+    float acceleration;
+    float control;
+    float friction;
+    float nitroMultiplier;
 };
 
 // snapshot estático (solo al empezar la partida)
 struct StaticSnapshot {
     std::string mapName;
-    std::vector<std::pair<float,float>> walls;      // posiciones básicas
-    std::vector<std::pair<float,float>> checkpoints;
-    std::vector<std::pair<float,float>> hints;
-    std::vector<std::pair<float,float>> spawnPoints;
+    std::string cityName;
+
+    std::vector<WallInfo> walls;
+    std::vector<CheckpointInfo> checkpoints;
+    std::vector<HintInfo> hints;
+    std::vector<SpawnPointInfo> spawns;
+    std::vector<CarStaticInfo> cars;
 };
 #endif //TALLER_TP_NETWORKTYPES_H

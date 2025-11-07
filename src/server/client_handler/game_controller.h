@@ -1,7 +1,7 @@
 #pragma once
 
-#include "server/client_handler/sender.h"
-#include "server/session/game.h"
+#include "sender.h"
+#include "../session/game.h"
 
 struct IGameEvents {
     virtual void on_game_end() = 0;

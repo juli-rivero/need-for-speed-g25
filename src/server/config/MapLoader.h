@@ -10,14 +10,8 @@
 #include "../session/physics/Box2DPhysicsWorld.h"
 #include "../session/model/Checkpoint.h"
 #include "../session/model/Hint.h"
-
-
-class Wall;
-class Bridge;
-
-struct SpawnPoint {
-    float x, y, angle;
-};
+#include "server/session/model/Bridge.h"
+#include "server/session/model/Wall.h"
 
 
 class MapLoader {

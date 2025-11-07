@@ -9,5 +9,6 @@ target_sources(taller_server
         MatchSession.h
         RaceSession.h
         types.h
+        NetworkTypes.h
         UpgradeSystem.h
 )

@@ -19,6 +19,8 @@ public:
 
     virtual void setTransform(float x, float y, float angle) = 0;
     virtual void applyForce(float fx, float fy) = 0;
+    virtual void applyTorque(float torque) = 0;
+    virtual void setAngularVelocity(float av) = 0;
     virtual void setLinearVelocity(float vx, float vy) = 0;
     virtual Vec2 getLinearVelocity() const = 0;
     virtual b2BodyId getId() const = 0;

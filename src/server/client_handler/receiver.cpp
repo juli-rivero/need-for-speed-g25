@@ -1,4 +1,4 @@
-#include "server/client_handler/receiver.h"
+#include "receiver.h"
 
 #include <iostream>
 #include <stdexcept>

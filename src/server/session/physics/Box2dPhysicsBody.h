@@ -13,8 +13,9 @@ public:
     }
 
     ~Box2dPhysicsBody() {
-        if (b2Body_IsValid(body))
+        if (b2Body_IsValid(body)) {
             b2DestroyBody(body);
+}
     }
 
     b2BodyId getId() const { return body; }

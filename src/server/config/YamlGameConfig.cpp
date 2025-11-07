@@ -22,7 +22,8 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                 CarType type;
                 type.name = c["name"].as<std::string>();
                 type.description = c["description"] ? c["description"].as<std::string>() : "";
-
+                type.width = c["width"].as<float>();
+                type.height = c["height"].as<float>();
                 type.maxSpeed = c["max_speed"].as<float>();
                 type.acceleration = c["acceleration"].as<float>();
                 type.mass = c["mass"].as<float>();

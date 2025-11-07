@@ -12,7 +12,7 @@ std::unique_ptr<Car> EntityFactory::createCar(Box2DPhysicsWorld& world, const Ca
         Box2DPhysicsFactory::createCar(world.getWorldId(), x, y,type)
     );
 
-    auto car = std::make_unique<Car>(nextId(), type.name, phys,type.acceleration,type.control,type.health,type.nitroMultiplier,type.maxSpeed);
+    auto car = std::make_unique<Car>(nextId(), type.name, type,phys);
 
     world.getCollisionManager().registerEntity(phys->getId(), car.get());
     std::cout << "[DEBUG] Paso 5: OK\n";
@@ -24,17 +24,17 @@ std::unique_ptr<Wall> EntityFactory::createWall(Box2DPhysicsWorld& world, float 
         Box2DPhysicsFactory::createBuilding(world.getWorldId(), x, y, w, h)
     );
 
-    auto wall = std::make_unique<Wall>(nextId(), phys);
+    auto wall = std::make_unique<Wall>(nextId(),w,h, phys);
     world.getCollisionManager().registerEntity(phys->getId(), wall.get());
 
     return wall;
 }
 
-std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(Box2DPhysicsWorld& world, float x, float y, float w, float h, int order) {
+std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(Box2DPhysicsWorld& world, float x, float y, float w, float h,float angle, int order) {
     auto phys = Box2DPhysicsFactory::createCheckpoint(world.getWorldId(), x, y, w,h);
     auto body = std::make_shared<Box2DBodyAdapter>(std::move(phys));
 
-    auto cp = std::make_unique<Checkpoint>(nextId(), order,w,h, body);
+    auto cp = std::make_unique<Checkpoint>(nextId(), order,w,h,angle, body);
     world.getCollisionManager().registerEntity(body->getId(), cp.get());
     return cp;
 }

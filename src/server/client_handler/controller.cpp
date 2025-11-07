@@ -1,4 +1,4 @@
-#include "server/client_handler/controller.h"
+#include "controller.h"
 
 Controller::Controller(SessionsMonitor& monitor, const int id, Sender& sender,
                        spdlog::logger* log)

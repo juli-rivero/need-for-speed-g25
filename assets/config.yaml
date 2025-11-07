@@ -11,12 +11,12 @@ physics_defaults:
   density: 1.0
   friction: 0.8
   restitution: 0.1
-  linear_damping: 0.3
-  angular_damping: 0.8
+  linear_damping: 1.8
+  angular_damping: 500
 car_defaults:
   health: 100.0
   max_speed: 150.0
-  acceleration: 10.0
+  acceleration: 100.0
   turn_speed: 2.0
   mass: 1.0
   control: 1.0
@@ -36,20 +36,26 @@ penalties:
 # ===================================
 car_types:
   - name: "Speedster"
+    width: 1.8
+    height: 1.5
     description: "Rápido pero frágil"
-    max_speed: 200
-    acceleration: 18
-    control: 1.3
+    max_speed: 22 # m/s
+    acceleration: 60 #m/s^2
+    control: 0.9
     health: 80
-    mass: 0.8
+    mass: 1.2
     nitro_multiplier: 1.8
     nitro_duration: 3
     nitro_cooldown: 5
     density: 0.9
-    friction: 0.7
+    friction: 0.8
     restitution: 0.2
+    linear_damping: 0.9
+    angular_damping: 5.0
 
   - name: "Tank"
+    width: 1.6
+    height: 3.6
     description: "Lento pero indestructible"
     max_speed: 120
     acceleration: 8
@@ -64,6 +70,8 @@ car_types:
     restitution: 0.05
 
   - name: "Drifter"
+    width: 1.4
+    height: 3.0
     description: "Buen control y derrapes suaves"
     max_speed: 160
     acceleration: 12
@@ -77,6 +85,8 @@ car_types:
     restitution: 0.15
 
   - name: "Rocket"
+    width: 1.9
+    height: 3.5
     description: "Aceleración brutal pero poca maniobra"
     max_speed: 190
     acceleration: 20
@@ -88,6 +98,8 @@ car_types:
     nitro_cooldown: 5
 
   - name: "Classic"
+    width: 1.5
+    height: 3.1
     description: "Equilibrado, sin puntos débiles"
     max_speed: 150
     acceleration: 10
@@ -99,6 +111,8 @@ car_types:
     nitro_cooldown: 5
 
   - name: "Offroad"
+    width: 1.1
+    height: 3.0
     description: "Excelente tracción y peso medio"
     max_speed: 140
     acceleration: 11
@@ -111,6 +125,8 @@ car_types:
     friction: 0.95
 
   - name: "Ghost"
+    width: 1.6
+    height: 2.8
     description: "Liviano y veloz, pero muy frágil"
     max_speed: 210
     acceleration: 17

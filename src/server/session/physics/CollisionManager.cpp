@@ -8,6 +8,7 @@
 class Hint;
 
 void CollisionManager::handleHitEvents(const b2ContactEvents& events) {
+    std::cout << "[CollisionManager] hitCount = " << events.hitCount << std::endl;
     for (int i = 0; i < events.hitCount; ++i) {
         const b2ContactHitEvent& ev = events.hitEvents[i];
         b2BodyId bodyA = b2Shape_GetBody(ev.shapeIdA);
@@ -25,25 +26,31 @@ void CollisionManager::handleHitEvents(const b2ContactEvents& events) {
     }
 }
 void CollisionManager::resolvePhysicalImpact(void* a, void* b, float impact) {
-    Car* carA = dynamic_cast<Car*>(static_cast<Car *>(a));
-    Car* carB = dynamic_cast<Car*>(static_cast<Car *>(b));
-    Wall* wallA = dynamic_cast<Wall*>(static_cast<Wall *>(a));
-    Wall* wallB = dynamic_cast<Wall*>(static_cast<Wall *>(b));
+    auto* entA = static_cast<Entity *>(a);
+    auto* entB = static_cast<Entity *>(b);
 
-    if (carA && carB) {
-        carA->damage(impact * 0.5f);
-        carB->damage(impact * 0.5f);
+    if (!entA || !entB) return;
+
+    // 🚗💥 Muro - Auto
+    if (entA->getEntityType() == EntityType::Car && entB->getEntityType() == EntityType::Wall) {
+        auto* car = static_cast<Car*>(entA);
+        car->damage(impact * 0.5f);
         return;
     }
 
-    if (carA && (wallB || !carB)) {
-        carA->damage(impact * 0.7f);
+    // caso inverso (mismo efecto) Box2D no garantiza el orden de los cuerpos A/B en cada contacto.Por eso siempre hay que manejar ambos sentidos.
+
+    if (entA->getEntityType() == EntityType::Wall && entB->getEntityType() == EntityType::Car) {
+        auto* car = static_cast<Car*>(entB);
+        car->damage(impact * 0.5f);
         return;
     }
 
-    if (carB && (wallA || !carA)) {
-        carB->damage(impact * 0.7f);
-        return;
+    if (entA->getEntityType() == EntityType::Car && entB->getEntityType() == EntityType::Car) {
+        auto* car1 = static_cast<Car*>(entA);
+        auto* car2 = static_cast<Car*>(entB);
+        car1->damage(impact * 0.5f);
+        car2->damage(impact * 0.5f);
     }
 }
 void CollisionManager::handleBeginTouch(const b2ContactEvents& events) {
@@ -82,7 +89,8 @@ void CollisionManager::handleBeginTouch(const b2ContactEvents& events) {
     }
 }*/
 void CollisionManager::process(const b2ContactEvents& events) {
+    std::cout << "[CollisionManager] Procesando colisiones..." << std::endl;
     handleHitEvents(events);
-    handleBeginTouch(events);
+    //handleBeginTouch(events); TODO
     //handleEndTouch(events);
 }

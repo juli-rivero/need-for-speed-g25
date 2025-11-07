@@ -7,7 +7,7 @@
 #include <functional>
 
 struct b2BodyIdHasher {
-    std::size_t operator()(const b2BodyId& id) const noexcept {
+    std::size_t operator()(const b2BodyId id) const noexcept {
         // reinterpretar como puntero entero para hashing estable
         return std::hash<uint64_t>()((uint64_t)(uintptr_t)id.index1);
     }

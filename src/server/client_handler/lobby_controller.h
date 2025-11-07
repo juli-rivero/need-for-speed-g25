@@ -1,8 +1,8 @@
 #pragma once
 
-#include "common/dto/dto_lobby.h"
-#include "server/client_handler/sender.h"
-#include "server/session/session.h"
+#include "../../common/dto/dto_lobby.h"
+#include "sender.h"
+#include "../session/session.h"
 
 struct ILobbyEvents {
     virtual void on_start_game(Game& game) = 0;

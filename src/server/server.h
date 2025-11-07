@@ -2,8 +2,8 @@
 
 #include <string>
 
-#include "common/macros.h"
-#include "server/acceptor.h"
+#include "../common/macros.h"
+#include "acceptor.h"
 
 class Server {
     ClientsManager clients_manager;

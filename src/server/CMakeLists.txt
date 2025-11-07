@@ -1,10 +1,6 @@
-add_subdirectory(client_handler)
-add_subdirectory(session)
-
 target_sources(taller_server
         PRIVATE
         main.cpp
-        PRIVATE
         acceptor.cpp
         clients_manager.cpp
         server.cpp
@@ -17,3 +13,7 @@ target_sources(taller_server
         server.h
         sessions_monitor.h
 )
+add_subdirectory(client_handler)
+add_subdirectory(config)
+add_subdirectory(session)
+

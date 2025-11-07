@@ -45,6 +45,10 @@ void MatchSession::startRace(std::size_t raceIndex) {
         spawnPoints
     );
 
+    // Si es la primera carrera, guardá muros/puentes
+    if (_walls.empty()) _walls = std::move(walls);
+    if (_bridges.empty()) _bridges = std::move(bridges);
+
 
     std::vector<std::shared_ptr<Car>> cars;
     _playerCars.clear();
@@ -63,8 +67,9 @@ void MatchSession::startRace(std::size_t raceIndex) {
                 break;
             }
         }
-        if (!chosenType && !carTypes.empty())
+        if (!chosenType && !carTypes.empty()) {
             chosenType = &carTypes.front();
+        }
 
         auto car = EntityFactory::createCar(_world, *chosenType, sp.x, sp.y);
         _playerCars[p.id] = std::shared_ptr<Car>(std::move(car));
@@ -80,6 +85,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
         std::move(checkpoints),
         std::move(hints),
         std::move(cars),
+        std::move(spawnPoints),
         _penaltiesForNextRace
     );
     _world.getCollisionManager().setRaceSession(_race.get());
@@ -96,31 +102,102 @@ WorldSnapshot MatchSession::getSnapshot() {
     }
     WorldSnapshot snap;
     snap.time = _world.getTime();  // o reloj interno
-    snap.raceTimeLeft = _cfg.getRaceTimeLimitSec(); // temporal
+    snap.raceTimeLeft = std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
     auto cars = _race->getCars();
     std::cerr << "getCars() devolvió " << cars.size() << " autos\n";
     // recorrer autos de la RaceSession
     for (const auto& car : cars) {
         CarSnapshot cs;
         cs.id = car->getId();
-        cs.playerName = "Player_" + std::to_string(car->getId()); // temporal
         cs.x = car->getPosition().x;
         cs.y = car->getPosition().y;
         cs.vx = car->getVelocity().x;
         cs.vy = car->getVelocity().y;
         cs.angle = car->getAngle();
-        cs.speed = std::sqrt(cs.vx*cs.vx + cs.vy*cs.vy);
+        cs.speed = std::sqrt(cs.vx * cs.vx + cs.vy * cs.vy);
         cs.health = car->getHealth();
-        cs.nitro = car->isNitroActive(); // más adelante desde car->isNitroActive()
+        cs.nitroActive = car->isNitroActive();
+        cs.accelerating = car->isAccelerating();
+        cs.braking = car->isBraking();
         snap.cars.push_back(cs);
+    }
+    // 🔹 Progreso de cada jugador
+    for (const auto& p : _race->getPlayerStates()) {
+        RaceProgressSnapshot rp;
+        rp.playerId = p.id;
+        rp.nextCheckpoint = p.nextCheckpoint;
+        rp.finished = p.finished;
+        rp.disqualified = p.disqualified;
+        rp.elapsedTime = p.elapsed;
+        snap.raceProgress.push_back(rp);
     }
     return snap;
 }
 StaticSnapshot MatchSession::getStaticSnapshot() {
     StaticSnapshot s;
-    s.mapName = _races[_currentRace].mapFile;
-    // acá podrías recorrer tus walls, checkpoints, hints y spawns
-    // y pushearlos en s.walls / s.checkpoints / etc
+
+    // 🔹 Datos básicos del mapa
+    const auto& raceDef = _races[_currentRace];
+    s.mapName  = raceDef.mapFile;
+    s.cityName = raceDef.city;
+
+    // 🔹 Extraer walls, bridges, checkpoints, hints y spawnPoints del RaceSession
+    //   (estos los cargaste en startRace(), podés guardarlos como miembros)
+    for (const auto& w : _walls) {
+        WallInfo wi;
+        wi.id = w->getId();
+        wi.x = w->getPosition().x;
+        wi.y = w->getPosition().y;
+        wi.w = w->getWidth();
+        wi.h = w->getHeight();
+        s.walls.push_back(wi);
+    }
+
+    for (const auto& cp : _race->getCheckpoints()) {
+        CheckpointInfo ci;
+        ci.id = cp.getId();
+        ci.order = cp.getOrder();
+        ci.x = cp.getPosition().x;
+        ci.y = cp.getPosition().y;
+        ci.w = cp.getWidth();
+        ci.h = cp.getHeight();
+        s.checkpoints.push_back(ci);
+    }
+
+    for (const auto& h : _race->getHints()) {
+        HintInfo hi;
+        hi.id = h.getId();
+        hi.x = h.getPosition().x;
+        hi.y = h.getPosition().y;
+        s.hints.push_back(hi);
+    }
+
+    for (size_t i = 0; i < _race->getSpawnPoints().size(); ++i) {
+        const auto& sp = _race->getSpawnPoints()[i];
+        SpawnPointInfo spi;
+        spi.id = static_cast<int>(i);
+        spi.x = sp.x;
+        spi.y = sp.y;
+        spi.angle = sp.angle;
+        s.spawns.push_back(spi);
+    }
+
+    // 🔹 Información estática de cada auto
+    for (const auto& [playerId, car] : _playerCars) {
+        CarStaticInfo ci;
+        ci.id = playerId;
+        ci.playerName = "Player_" + std::to_string(playerId); // Podés usar _players[i].name
+        ci.carType = car->getType().name; // si tenés getter del tipo
+        ci.width  = car->getType().width;
+        ci.height = car->getType().height;
+        ci.maxSpeed = car->getType().maxSpeed;
+        ci.acceleration = car->getType().acceleration;
+        ci.control = car->getType().control;
+        ci.friction = car->getType().friction;
+        ci.nitroMultiplier = car->getType().nitroMultiplier;
+        s.cars.push_back(ci);
+    }
+
     return s;
 }
 void MatchSession::update(float dt) {
@@ -128,6 +205,10 @@ void MatchSession::update(float dt) {
         case State::Starting:
             //TODO
         case State::Racing:
+            // Actualizar cada coche según su input persistente
+            for (auto& [id, car] : _playerCars) {
+                car->update();
+            }
             _race->update(dt);
             if (_race->isFinished()) {
                 finishRaceAndComputeTotals();
@@ -136,8 +217,9 @@ void MatchSession::update(float dt) {
             break;
         case State::Intermission:
             _intermissionClock += dt;
-            if (_intermissionClock >= _cfg.getIntermissionSec())
+            if (_intermissionClock >= _cfg.getIntermissionSec()) {
                 endIntermissionAndPrepareNextRace();
+            }
             break;
         case State::Finished:
             break;
@@ -148,15 +230,10 @@ std::shared_ptr<Car> MatchSession::findCarByPlayerId(PlayerId id) {
     auto it = _playerCars.find(id);
     return it != _playerCars.end() ? it->second : nullptr;
 }
-void MatchSession::applyInput(PlayerId id, const PlayerInput& input,float dt) {
+void MatchSession::applyInput(PlayerId id, const PlayerInput& input) {
     auto car = findCarByPlayerId(id);
     if (!car) return;
-
-    if (input.accelerate) car->accelerate(dt);
-    if (input.brake) car->brake(dt);
-    if (input.turn == "left") car->turnLeft(dt);
-    if (input.turn == "right") car->turnRight(dt);
-    car->activateNitro(input.nitro);
+    car->setInput(input.accelerate,input.brake,input.turn,input.nitro);
 }
 void MatchSession::finishRaceAndComputeTotals() {
     _lastResults = _race->makeResults();

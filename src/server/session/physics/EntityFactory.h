@@ -18,7 +18,7 @@ public:
     // Todos reciben una referencia al mundo físico
     static std::unique_ptr<Car> createCar(Box2DPhysicsWorld& world, const CarType& type, float x, float y);
     static std::unique_ptr<Wall> createWall(Box2DPhysicsWorld& world, float x, float y, float w, float h);
-    static std::unique_ptr<Checkpoint> createCheckpoint(Box2DPhysicsWorld& world, float x, float y, float w,float h, int order);
+    static std::unique_ptr<Checkpoint> createCheckpoint(Box2DPhysicsWorld& world, float x, float y, float w,float h, float angle,int order);
     static std::unique_ptr<Hint> createHint(float x, float y, float angle);
     static std::unique_ptr<Bridge> createBridge(Box2DPhysicsWorld& world, float x, float y, float w, float h, bool driveable);
 };

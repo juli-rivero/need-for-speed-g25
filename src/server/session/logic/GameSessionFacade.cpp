@@ -17,8 +17,10 @@ void GameSessionFacade::update(float dt) {
     if (!running || !match) return;
 
     world.step(dt);
-    for (auto& [id, st] : inputStates)
-        match->applyInput(id, st, dt);
+    // 🔹 Aplicar los estados de input actuales a cada jugador
+    for (auto& [id, st] : inputStates) {
+        match->applyInput(id, st);
+    }
     match->update(dt);
 
     if (match->state() == State::Finished) {

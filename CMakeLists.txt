@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.24)
 if (POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
-
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
@@ -111,15 +111,6 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         OVERRIDE_FIND_PACKAGE
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
-
-    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp )
-endif()
-
-if(TALLER_SERVER)
-    # TODO: Sumar libreria Box2D
-endif()
-
-if(TALLER_CLIENT OR TALLER_EDITOR)
     # TODO: hacer un installer con las dependencias de qt:
     # En ubuntu:
     # sudo apt update
@@ -134,40 +125,23 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
     set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
 
     message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
+    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
-# Program section
-# ---------------
-if(TALLER_CLIENT)
-    add_executable(taller_client)
 
-    # Make them depend on taller_common lib
-    add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
 
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(src/client)
-
-    set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
-    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp cxxopts spdlog)
-endif()
 
 if(TALLER_SERVER)
     include(FetchContent)
     # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_server)
+    add_executable(taller_server
+            src/server/main.cpp)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_server taller_common)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
+    # HEY!! TODO XXX: add more subfolders here or in a intern cmakelists.txt
     add_subdirectory(src/server)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
@@ -191,36 +165,23 @@ if(TALLER_SERVER)
     FetchContent_MakeAvailable(box2d yaml)
     target_include_directories(taller_server
             PRIVATE
-            ${box2d_SOURCE_DIR}/include
-            ${CMAKE_BINARY_DIR}/_deps/box2d-src/include
+            box2d
     )
+    # --- NUEVO BLOQUE: SDL2 para modo visual del server ---
+    find_package(SDL2 REQUIRED)
+    include_directories(${SDL2_INCLUDE_DIRS})
     # Link the taller_common lib target
     target_link_libraries(taller_server PRIVATE
+            ${SDL2_LIBRARIES}
             box2d
             yaml-cpp
             taller_common
+            cxxopts
+            spdlog
     )
-    target_link_libraries(taller_server taller_common cxxopts spdlog)
+
 endif()
 
-if(TALLER_EDITOR)
-    add_executable(taller_editor)
-
-    # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common SDL2pp::SDL2pp)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
-    add_subdirectory(src/editor)
-
-    set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
-
-    # add libSDL2pp's headers
-    target_include_directories(taller_editor PRIVATE ${libSDL2pp_SOURCE_DIR})
-
-    # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets)
-endif()
 
 
 # Testing section
@@ -273,3 +234,4 @@ if(TALLER_TESTS)
         GTest::gtest_main
     )
 endif()
+

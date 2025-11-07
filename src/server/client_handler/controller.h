@@ -1,11 +1,11 @@
 #pragma once
 
-#include "common/dto/dto_lobby.h"
-#include "common/dto/dto_session.h"
-#include "server/client_handler/browser_controller.h"
-#include "server/client_handler/game_controller.h"
-#include "server/client_handler/lobby_controller.h"
-#include "server/client_handler/receiver.h"
+#include "../../common/dto/dto_lobby.h"
+#include "../../common/dto/dto_session.h"
+#include "browser_controller.h"
+#include "game_controller.h"
+#include "lobby_controller.h"
+#include "receiver.h"
 
 class Controller final : public RequestListener,
                          IBrowserEvents,

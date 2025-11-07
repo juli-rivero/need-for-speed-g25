@@ -1,9 +1,9 @@
 #pragma once
 
-#include "common/dto/dto.h"
-#include "common/macros.h"
-#include "common/protocol.h"
-#include "common/thread.h"
+#include "../../common/dto/dto.h"
+#include "../../common/macros.h"
+#include "../../common/protocol.h"
+#include "../../common/thread.h"
 #include "spdlog/spdlog.h"
 
 struct RequestListener {

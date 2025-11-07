@@ -1,6 +1,7 @@
 
 
 #include "RaceSession.h"
+#include "../../config/MapLoader.h"
 #include <algorithm>
 #include <cmath>
 
@@ -8,9 +9,14 @@ RaceSession::RaceSession(const YamlGameConfig& cfg,
                          CityId city,
                          std::vector<Checkpoint> checkpoints,
                          std::vector<Hint> hints,
-                         std::vector<std::shared_ptr<Car>> playersCars,
+                         const std::vector<std::shared_ptr<Car>> &playersCars,
+                         std::vector<SpawnPoint> spawn_points,
                          std::unordered_map<PlayerId, float> initialPenaltiesForThisRace)
-    : _cfg(cfg), _city(city), _checkpoints(std::move(checkpoints)), _hints(std::move(hints)) {
+    : _cfg(cfg),
+      _city(city),
+      _checkpoints(std::move(checkpoints)),
+      _hints(std::move(hints)),
+      _spawnPoints(std::move(spawn_points))  {
 
     orderCheckpointsByOrder();
 
@@ -84,13 +90,7 @@ void RaceSession::update(float dt) {
 
     applyTimeLimitIfNeeded();
 }
-const std::vector<std::shared_ptr<Car>> RaceSession::getCars() const {
-    std::vector<std::shared_ptr<Car>> result;
-    result.reserve(_players.size());
-    for (const auto& p : _players)
-        if (p.car) result.push_back(p.car);
-    return result;
-}
+
 std::vector<PlayerResult> RaceSession::makeResults() const {
     std::vector<PlayerResult> out;
     out.reserve(_players.size());

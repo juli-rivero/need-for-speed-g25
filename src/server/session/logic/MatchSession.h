@@ -14,6 +14,8 @@
 
 
 #include "../physics/Box2DPhysicsWorld.h"
+#include "server/session/model/Bridge.h"
+#include "server/session/model/Wall.h"
 
 enum class State { Starting, Racing, Intermission, Finished };
 
@@ -21,6 +23,8 @@ class MatchSession {
 private:
     const YamlGameConfig& _cfg;
     Box2DPhysicsWorld& _world;
+    std::vector<std::unique_ptr<Wall>> _walls;
+    std::vector<std::unique_ptr<Bridge>> _bridges;
     std::vector<PlayerConfig> _players;
     std::unordered_map<PlayerId, std::shared_ptr<Car>> _playerCars;
     State _state{State::Starting};
@@ -52,7 +56,7 @@ public:
 
     void start();            // Lobby → Racing (carrera 0)
     void update(float dt);   // delega a la carrera actual / intermission
-    void applyInput(PlayerId id, const PlayerInput& input,float dt);
+    void applyInput(PlayerId id, const PlayerInput& input);
     WorldSnapshot getSnapshot();
     StaticSnapshot getStaticSnapshot();
     // upgrades propuestos por jugadores (se aplicarán a la próxima carrera)
@@ -63,6 +67,8 @@ public:
 
     // acceso a resultados de la última carrera
     const std::vector<PlayerResult>& lastRaceResults() const { return _lastResults; }
+    const std::vector<std::unique_ptr<Wall>>& getWalls() const { return _walls; }
+    const std::vector<std::unique_ptr<Bridge>>& getBridges() const { return _bridges; }
 
 
 };

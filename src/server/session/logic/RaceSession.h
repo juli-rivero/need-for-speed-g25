@@ -15,6 +15,18 @@
 #include "../model/Hint.h"
 #include "../model/Car.h"
 
+
+struct SpawnPoint;
+struct PlayerRaceData {
+    PlayerId id{};
+    std::shared_ptr<Car> car;   // modelo lógico del auto (compartido con GameWorld)
+    std::size_t nextCheckpoint{0};
+    bool finished{false};
+    bool disqualified{false};
+    float elapsed{0.0f};        // tiempo crudo
+    float penaltyTime{0.0f};    // penalización a aplicar en esta carrera
+};
+
 class RaceSession {
 public:
     enum class State { Countdown, Running, Finished };
@@ -23,13 +35,14 @@ public:
                 CityId city,
                 std::vector<Checkpoint> checkpoints,
                 std::vector<Hint> hints,
-                std::vector<std::shared_ptr<Car>> playersCars,
+                const std::vector<std::shared_ptr<Car>> &playersCars,
+                std::vector<SpawnPoint> spawn_points,
                 std::unordered_map<PlayerId, float> initialPenaltiesForThisRace);
 
     // ciclo
     void start();                 // pasa a Countdown → Running
     void update(float dt);        // reloj global, detección de fin por timeout / llegada total
-    const std::vector<std::shared_ptr<Car>> getCars() const;
+
     // resultados
     bool isFinished() const { return _state == State::Finished; }
     std::vector<PlayerResult> makeResults() const;
@@ -46,7 +59,17 @@ public:
     // util
     State state() const { return _state; }
     float elapsedRaceTime() const { return _raceClock; }
-
+    const std::vector<Checkpoint>& getCheckpoints() const { return _checkpoints; }
+    const std::vector<Hint>& getHints() const { return _hints; }
+    const std::vector<PlayerRaceData>& getPlayerStates() const {return _players;}
+    const std::vector<std::shared_ptr<Car>>& getCars() const {
+        static std::vector<std::shared_ptr<Car>> carsCache;
+        carsCache.clear();
+        for (const auto& p : _players)
+            if (p.car) carsCache.push_back(p.car);
+        return carsCache;
+    }
+    const std::vector<SpawnPoint>& getSpawnPoints() const {return _spawnPoints;}
 private:
     const YamlGameConfig& _cfg;
     CityId _city;
@@ -56,18 +79,8 @@ private:
 
     std::vector<Checkpoint> _checkpoints;   // ordenados por "order"
     std::vector<Hint> _hints;
-
-    struct PlayerRaceData {
-        PlayerId id{};
-        std::shared_ptr<Car> car;   // modelo lógico del auto (compartido con GameWorld)
-        std::size_t nextCheckpoint{0};
-        bool finished{false};
-        bool disqualified{false};
-        float elapsed{0.0f};        // tiempo crudo
-        float penaltyTime{0.0f};    // penalización a aplicar en esta carrera
-    };
-
     std::vector<PlayerRaceData> _players;
+    std::vector<SpawnPoint> _spawnPoints;
 
     bool everyoneDoneOrDQ() const;
     void applyTimeLimitIfNeeded();

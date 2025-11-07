@@ -1,4 +1,4 @@
-#include "server/client_handler/lobby_controller.h"
+#include "lobby_controller.h"
 
 LobbyController::LobbyController(Session& session, const int client_id,
                                  Sender& sender, ILobbyEvents& handler,

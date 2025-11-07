@@ -1,6 +1,6 @@
 #include "MapLoader.h"
-#include "../physics/EntityFactory.h"
-#include "../physics/Box2DBodyAdapter.h"
+#include "../session/physics/EntityFactory.h"
+#include "../session/physics/Box2DBodyAdapter.h"
 #include <iostream>
 
 MapLoader::MapInfo MapLoader::loadFromYAML(
@@ -85,6 +85,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                 n["y"].as<float>(),
                 n["w"].as<float>(),
                 n["h"].as<float>(),
+                n["angle"].as<float>(),
                 n["order"].as<int>()
             );
 

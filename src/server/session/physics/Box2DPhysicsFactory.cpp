@@ -12,12 +12,16 @@ std::unique_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(b2WorldId world
 
     auto body = std::make_unique<Box2dPhysicsBody>(world, def);
 
-    b2Polygon box = b2MakeBox(1.0f, 2.0f);
+    float halfW = type.width / 2.0f;
+    float halfH = type.height / 2.0f;
+    b2Polygon box = b2MakeBox(halfW, halfH);
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = type.density;
     shapeDef.material.friction = type.friction;
     shapeDef.material.restitution = type.restitution;
-
+    shapeDef.isSensor = false;
+    shapeDef.enableContactEvents = true;
+    shapeDef.enableHitEvents = true;
     b2CreatePolygonShape(body->getId(), &shapeDef, &box);
     return body;
 }
@@ -33,6 +37,9 @@ std::unique_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(b2WorldId 
 
     b2ShapeDef sdef = b2DefaultShapeDef();
     sdef.material.friction = 1.0f;
+    sdef.isSensor = false;
+    sdef.enableContactEvents = true;
+    sdef.enableHitEvents = true;
     b2CreatePolygonShape(body->getId(), &sdef, &shape);
     return body;
 }
