@@ -5,7 +5,7 @@
 #include "client/args_parser.h"
 #include "server/server.h"
 #include "spdlog/spdlog.h"
-//#include "server/test_simulador.cpp"
+// #include "server/test_simulador.cpp"
 
 #define PORT argv[1]
 
@@ -13,7 +13,7 @@
 #define SUCCESS 0
 
 int main(const int argc, const char* argv[]) {
-    //test();
+    // test();
     try {
         const ArgsParser args_parser(argc, argv);
 

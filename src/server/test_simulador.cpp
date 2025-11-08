@@ -16,7 +16,6 @@
 #include "session/physics/Box2DPhysicsWorld.h"
 #include "session/physics/EntityFactory.h"
 
-
 // MAIN DE PRUEBAS MANUALES (FISICAS,LOGICA,SERVIDOR) --NO ES EL CLIENTE
 // ============================================================
 
@@ -25,7 +24,6 @@ static const int WIN_W = 1000;
 static const int WIN_H = 700;
 static const float PPM = 20.0f;  // pixels per meter
 static const float DT = 1.0f / 60.0f;
-
 
 static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
                                   SDL_FPoint* center, SDL_RendererFlip flip) {
@@ -40,10 +38,8 @@ static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
     SDL_DestroyTexture(tex);
 }
 
-int test(){
-
-try {
-
+int test() {
+    try {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
             std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
             return 1;
@@ -253,7 +249,6 @@ try {
         SDL_DestroyWindow(window);
         SDL_Quit();
         return 0;
-
     } catch (const std::exception& e) {
         std::cerr << " Error durante las pruebas: " << e.what() << std::endl;
         return 1;

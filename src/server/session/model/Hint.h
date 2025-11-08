@@ -1,5 +1,6 @@
 #pragma once
 #include "../physics/IPhysicalBody.h"
+#include "server/session/model/Entity.h"
 
 class Hint : public Entity {
    private:
