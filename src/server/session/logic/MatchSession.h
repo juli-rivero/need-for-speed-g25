@@ -16,6 +16,7 @@
 #include "../physics/Box2DPhysicsWorld.h"
 #include "server/session/model/Bridge.h"
 #include "server/session/model/Wall.h"
+#include "../../session/model/Player.h"
 
 enum class State { Starting, Racing, Intermission, Finished };
 
@@ -25,8 +26,8 @@ private:
     Box2DPhysicsWorld& _world;
     std::vector<std::unique_ptr<Wall>> _walls;
     std::vector<std::unique_ptr<Bridge>> _bridges;
-    std::vector<PlayerConfig> _players;
-    std::unordered_map<PlayerId, std::shared_ptr<Car>> _playerCars;
+    std::vector<PlayerConfig> _playerConfigs;
+    std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
     State _state{State::Starting};
     std::vector<RaceDefinition> _races;   // N carreras planificadas
     std::size_t _currentRace{0};
@@ -46,7 +47,7 @@ private:
     void finishRaceAndComputeTotals();
     void startIntermission();
     void endIntermissionAndPrepareNextRace();
-    std::shared_ptr<Car> findCarByPlayerId(PlayerId id);
+
 public:
 
     MatchSession(const YamlGameConfig& cfg,
@@ -65,6 +66,8 @@ public:
     const std::unordered_map<PlayerId, float>& totals() const { return _totalTime; }
     State state() const { return _state; }
 
+    static CarSnapshot makeCarSnapshot(const std::shared_ptr<Car>& car);
+    static RaceProgressSnapshot makeRaceProgress(const PlayerRaceData& p);
     // acceso a resultados de la última carrera
     const std::vector<PlayerResult>& lastRaceResults() const { return _lastResults; }
     const std::vector<std::unique_ptr<Wall>>& getWalls() const { return _walls; }

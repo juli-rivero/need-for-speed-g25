@@ -2,7 +2,7 @@
 
 race:
   max_players: 8
-  time_limit_sec: 600        # límite por carrera (10 minutos)
+  time_limit_sec: 6000        # límite por carrera (10 minutos)
   intermission_sec: 10       # pausa entre carreras
 # ===================================
 # CONSTANTES DE FÍSICA

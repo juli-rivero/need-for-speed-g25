@@ -41,7 +41,14 @@ void GameSessionFacade::onPlayerEvent(PlayerId id, const std::string& event) {
 }
 
 WorldSnapshot GameSessionFacade::getSnapshot() const {
-    return match ? match->getSnapshot() : WorldSnapshot{};
+    try {
+        return match ? match->getSnapshot() : WorldSnapshot{};
+    }
+    catch (...) {
+        std::cerr << "[ERROR] Snapshot causó crash." << std::endl;
+        return WorldSnapshot{};
+    }
+
 }
 
 StaticSnapshot GameSessionFacade::getStaticSnapshot() const {

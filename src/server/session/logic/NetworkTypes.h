@@ -15,18 +15,7 @@ struct PlayerInput {
 
 // ========= SNAPSHOTS ==========
 
-// estado individual del auto
-struct CarSnapshot {
-    int id;            // playerId
-    float x, y;        // posición actual
-    float vx, vy;      // velocidad lineal
-    float angle;       // orientación (radianes)
-    float speed;       // módulo de la velocidad
-    float health;      // salud del vehículo
-    bool nitroActive;  // nitro encendido
-    bool braking;      // si está frenando
-    bool accelerating; // si está acelerando
-};
+
 
 struct RaceProgressSnapshot {
     int playerId;
@@ -36,11 +25,35 @@ struct RaceProgressSnapshot {
     float elapsedTime;
 };
 
+enum class CarSpriteType {
+    Speedster,
+    Muscle,
+    Offroad,
+    Truck
+    // y asi..
+};
+// estado individual del auto
+struct CarSnapshot {
+    CarSpriteType type;
+    float x, y;        // posición actual
+    float vx, vy;      // velocidad lineal
+    float angle;       // orientación (radianes)
+    float speed;       // módulo de la velocidad
+    float health;      // salud del vehículo
+    bool nitroActive;  // nitro encendido
+    bool braking;      // si está frenando
+    bool accelerating; // si está acelerando
+};
+struct PlayerSnapshot {
+    int id;                     // ID del jugador
+    std::string name;           // nombre del jugador
+    CarSnapshot car;            // posición, velocidad, etc.
+    RaceProgressSnapshot raceProgress;
+};
 struct WorldSnapshot {
     float time;            // tiempo global simulado
-    float raceTimeLeft;    // tiempo restante si hay límite
-    std::vector<CarSnapshot> cars;
-    std::vector<RaceProgressSnapshot> raceProgress;
+    float raceTimeLeft;    // tiempo restante si hay límite (10min)
+    std::vector<PlayerSnapshot> players;
 };
 struct WallInfo {
     int id;

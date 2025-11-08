@@ -29,4 +29,5 @@ struct CarType {
     float linearDamping;
     float angularDamping;
 };
+
 #endif //TALLER_TP_CARTYPE_H

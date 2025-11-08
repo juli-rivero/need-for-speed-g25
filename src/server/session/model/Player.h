@@ -4,25 +4,27 @@
 #include <string>
 #include <memory>
 #include "Car.h"
-
+#include "../logic/NetworkTypes.h"
 //TODO: PODRIA ser neceario capaz para el networking
 class Player {
 private:
-    int id;
+    PlayerId id;
     std::string name;
-    std::shared_ptr<Car> car;
+    std::shared_ptr<Car> car;             // su auto actual
+    RaceProgressSnapshot raceProgress;    // checkpoint actual, flags, etc.
 
 public:
-    Player(int id, const std::string& name)
-        : id(id), name(name) {}
+    Player(PlayerId id, const std::string& name, std::shared_ptr<Car> car)
+        : id(id), name(name), car(std::move(car)) {}
 
-    ~Player() = default;
-
-    int getId() const { return id; }
+    PlayerId getId() const { return id; }
     const std::string& getName() const { return name; }
-
-    void assignCar(const std::shared_ptr<Car>& c) { car = c; }
     std::shared_ptr<Car> getCar() const { return car; }
+
+    void setRaceProgress(const RaceProgressSnapshot& rp) { raceProgress = rp; }
+    const RaceProgressSnapshot& getRaceProgress() const { return raceProgress; }
+
+    bool isAlive() const { return car && car->getHealth() > 0; }
 };
 
 #endif

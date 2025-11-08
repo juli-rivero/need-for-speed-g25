@@ -9,15 +9,10 @@
 
 #include "../../config/YamlGameConfig.h"
 
-struct RaceDefinition;
 using PlayerId = std::uint32_t;
 
 using CityId = std::string;
-// Representa una ciudad con sus circuitos
-struct CityDefinition {
-    CityId name;
-    std::vector<RaceDefinition> races;
-};
+
 struct SpawnPoint {
     float x, y, angle;
 };
@@ -39,7 +34,11 @@ struct RaceDefinition {
     CityId city;
     std::string mapFile;     // YAML del recorrido (checkpoints/hints)
 };
-
+// Representa una ciudad con sus circuitos
+struct CityDefinition {
+    CityId name;
+    std::vector<RaceDefinition> races;
+};
 struct UpgradeChoice {
     // ejemplo: "max_speed", "acceleration"
     std::string stat;

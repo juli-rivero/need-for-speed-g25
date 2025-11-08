@@ -14,7 +14,6 @@
 
 class Car : public Entity{
 private:
-    int id;
     std::string name;
     bool accelerating{false};
     bool braking{false};
@@ -26,7 +25,7 @@ private:
 
 public:
     Car(int id, const std::string& name, const CarType& type,std::shared_ptr<IPhysicalBody> body)
-        : id(id), name(name), type(&type), health(type.health),body(std::move(body))
+        : Entity(id,EntityType::Car), name(name), type(&type), health(type.health),body(std::move(body))
         {}
 
     int getId() const { return id; }
@@ -76,7 +75,7 @@ public:
         health = std::max(0.0f, health - amount);
     }
     void activateNitro(bool active) { nitroActive = active; }
-    bool isDestroyed() const { return type->health <= 0; }
+    bool isDestroyed() const { return health <= 0; }
     bool isNitroActive() const { return nitroActive; }
     void update() {
         if (accelerating) accelerate();
@@ -85,9 +84,7 @@ public:
         } else if (turning == "right") { turnRight();
 }
     }
-    EntityType getEntityType() const override {
-        return EntityType::Car;
-    }
+
 };
 
 #endif

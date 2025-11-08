@@ -181,18 +181,26 @@ if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
             }
         }
 
-        // Actualizar simulación
-        game.update(DT);
+        try {
+            game.update(DT);
+        } catch (const std::exception& ex) {
+            std::cerr << "[EXCEPCIÓN] " << ex.what() << std::endl;
+            break;
+        }
         totalTime += DT;
 
-        // Obtener snapshot para render
         auto dyn = game.getSnapshot();
-        if (dyn.cars.empty()) continue;
+        if (dyn.players.empty()) continue;
 
+        // Buscar el jugador local (por id)
+        int localPlayerId = 1; // o el ID real de tu jugador "Tester"
+        auto it = std::find_if(dyn.players.begin(), dyn.players.end(),
+                               [&](const PlayerSnapshot& p) { return p.id == localPlayerId; });
 
-        // --- Encontrar el auto del jugador ---
-        const auto& carDyn = dyn.cars[0];
-        // --- Calcular cámara centrada en el auto ---
+        if (it == dyn.players.end()) continue; // por seguridad
+
+        const auto& playerr = *it;
+        const auto& carDyn = playerr.car;  // snapshot del auto ---
         float camX = carDyn.x * PPM - WIN_W / 2.0f;
         float camY = carDyn.y * PPM - WIN_H / 2.0f;
 
@@ -200,8 +208,6 @@ if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         SDL_SetRenderDrawColor(renderer, 25, 25, 25, 255);
         SDL_RenderClear(renderer);
 
-        // --- Dibujar muros ---
-        // --- Dibujar muros ---
         SDL_SetRenderDrawColor(renderer, 200, 40, 40, 255);
         for (const auto& wall : stat.walls) {
             SDL_FRect rect;
@@ -214,7 +220,7 @@ if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
 
             SDL_RenderFillRectF(renderer, &rect);
         }
-        // Convertir coordenadas físicas → píxeles
+
         float px = carDyn.x * PPM - camX;
         float py = carDyn.y * PPM - camY;
 
@@ -231,7 +237,7 @@ if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
         SDL_SetRenderDrawColor(renderer, 40, 180, 240, 255);
         SDL_RenderFillRectExF(renderer, &carRect, angleDeg, &center, SDL_FLIP_NONE);
 
-        // Dibujar “frente” del auto (una línea para ver orientación)
+        // Dibuja “frente” del auto (una línea para ver orientación)
         SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
         float noseLen = carRect.h * 0.5f;
         float nx = px + std::cos(carDyn.angle) * noseLen;

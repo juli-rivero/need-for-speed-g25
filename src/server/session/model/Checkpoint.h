@@ -9,7 +9,7 @@
 
 class Checkpoint : public Entity{
 private:
-    int id;
+
     int order;
     float width;
     float height;
@@ -17,8 +17,11 @@ private:
     std::shared_ptr<IPhysicalBody> body;
 
 public:
-    Checkpoint(int id, int order, float width, float height, float angle,std::shared_ptr<IPhysicalBody> body)
-        : id(id), order(order), width(width), height(height), angle(angle),body(std::move(body)) {}
+    Checkpoint(int id, int order, float width, float height, float angle,
+               std::shared_ptr<IPhysicalBody> body)
+        : Entity(id, EntityType::Checkpoint),
+          order(order), width(width), height(height),
+          angle(angle), body(std::move(body)) {}
 
     int getId() const { return id; }
     int getOrder() const { return order; }
@@ -27,7 +30,7 @@ public:
     float getAngle() const { return angle; }
     float getWidth() const { return width; }
     float getHeight() const { return height; }
-    EntityType getEntityType() const override { return EntityType::Checkpoint; }
+
 };
 
 #endif

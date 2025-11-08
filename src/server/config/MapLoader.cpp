@@ -89,7 +89,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                 n["order"].as<int>()
             );
 
-            checkpoints.push_back(*cp);  // agregás copia ligera (solo datos)
+            checkpoints.push_back(*cp);
             std::cout << "Checkpoint " << cp->getOrder() << " id=" << cp->getId()
                       << " pos=(" << cp->getPosition().x << "," << cp->getPosition().y
                       << ") size=(" << cp->getWidth() << "," << cp->getHeight()
