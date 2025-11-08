@@ -10,15 +10,26 @@ class Bridge : public Entity {
    private:
     std::shared_ptr<IPhysicalBody> lowerBody;
     std::shared_ptr<IPhysicalBody> upperBody;
+    float width;
+    float height;
+    bool driveable;
 
    public:
-    Bridge(const int id, std::shared_ptr<IPhysicalBody> lower,
-           std::shared_ptr<IPhysicalBody> upper)
+    Bridge(int id, float w, float h, std::shared_ptr<IPhysicalBody> lower,
+           std::shared_ptr<IPhysicalBody> upper, bool driveable = true)
         : Entity(id, EntityType::Bridge),
           lowerBody(std::move(lower)),
-          upperBody(std::move(upper)) {}
+          upperBody(std::move(upper)),
+          width(w),
+          height(h),
+          driveable(driveable) {}
 
     int getId() const { return id; }
     Vec2 getLowerPosition() const { return lowerBody->getPosition(); }
     Vec2 getUpperPosition() const { return upperBody->getPosition(); }
+    float getWidth() const { return width; }
+    float getHeight() const { return height; }
+
+    bool isDriveable() const { return driveable; }
+    void setDriveable(bool state) { driveable = state; }
 };

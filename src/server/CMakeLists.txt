@@ -6,7 +6,7 @@ target_sources(taller_server
         server.cpp
         sessions_monitor.cpp
         args_parser.cpp
-        test_simulador.cpp
+        test_simulador.h
         PUBLIC
         args_parser.h
         acceptor.h

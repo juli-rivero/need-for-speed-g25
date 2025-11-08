@@ -1,3 +1,5 @@
+#pragma once
+
 #include <SDL2/SDL.h>
 
 #include <chrono>
@@ -164,8 +166,115 @@ int test() {
                 rect.y = wall.y * PPM - rect.h / 2.0f - camY;
 
                 SDL_RenderFillRectF(renderer, &rect);
+            }  // ============================================================
+            // 🔹 Dibujar BRIDGES (puentes)
+            // ============================================================
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+            SDL_SetRenderDrawColor(renderer, 100, 100, 255,
+                                   100);  // azul translúcido
+            for (const auto& br : stat.bridges) {
+                SDL_FRect rectLower, rectUpper;
+
+                rectLower.w = rectUpper.w = br.w * PPM;
+                rectLower.h = rectUpper.h = br.h * PPM;
+
+                rectLower.x = br.lowerX * PPM - rectLower.w / 2.0f - camX;
+                rectLower.y = br.lowerY * PPM - rectLower.h / 2.0f - camY;
+                rectUpper.x = br.upperX * PPM - rectUpper.w / 2.0f - camX;
+                rectUpper.y = br.upperY * PPM - rectUpper.h / 2.0f - camY;
+
+                if (br.driveable) {
+                    // Si es transitable → mostrar el superior más brillante
+                    SDL_SetRenderDrawColor(renderer, 100, 180, 255, 180);
+                    SDL_RenderFillRectF(renderer, &rectUpper);
+                    SDL_SetRenderDrawColor(renderer, 80, 140, 230, 255);
+                    SDL_RenderDrawRectF(renderer, &rectUpper);
+                } else {
+                    // No transitable → mostrar el inferior más visible
+                    SDL_SetRenderDrawColor(renderer, 60, 60, 180, 160);
+                    SDL_RenderFillRectF(renderer, &rectLower);
+                    SDL_SetRenderDrawColor(renderer, 40, 40, 150, 255);
+                    SDL_RenderDrawRectF(renderer, &rectLower);
+                }
             }
 
+            // ============================================================
+            // 🔹 Dibujar CHECKPOINTS
+            // ============================================================
+            for (const auto& cp : stat.checkpoints) {
+                SDL_FRect rect;
+                rect.w = cp.w * PPM;
+                rect.h = cp.h * PPM;
+                rect.x = cp.x * PPM - rect.w / 2.0f - camX;
+                rect.y = cp.y * PPM - rect.h / 2.0f - camY;
+
+                int alpha = 70 + (cp.order * 15);
+                if (alpha > 180) alpha = 180;
+
+                SDL_SetRenderDrawColor(renderer, 0, 255, 100,
+                                       alpha);  // verde suave
+                SDL_RenderFillRectF(renderer, &rect);
+                SDL_SetRenderDrawColor(renderer, 0, 180, 80, 200);
+                SDL_RenderDrawRectF(renderer, &rect);
+            }
+
+            // ============================================================
+            // 🔹 Dibujar HINTS
+            // ============================================================
+            for (const auto& hint : stat.hints) {
+                float radius = 0.4f * PPM;  // tamaño visible
+                float cx = hint.x * PPM - camX;
+                float cy = hint.y * PPM - camY;
+
+                // círculo simple (polígono aproximado)
+                SDL_SetRenderDrawColor(renderer, 255, 200, 0, 180);
+                const int segments = 12;
+                for (int i = 0; i < segments; ++i) {
+                    float a1 = (i / static_cast<float>(segments)) * 2 * M_PI;
+                    float a2 =
+                        ((i + 1) / static_cast<float>(segments)) * 2 * M_PI;
+                    float x1 = cx + std::cos(a1) * radius;
+                    float y1 = cy + std::sin(a1) * radius;
+                    float x2 = cx + std::cos(a2) * radius;
+                    float y2 = cy + std::sin(a2) * radius;
+                    SDL_RenderDrawLineF(renderer, x1, y1, x2, y2);
+                }
+            }
+            // --- Dibujar checkpoints ---
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+            for (const auto& cp : stat.checkpoints) {
+                SDL_FRect rect;
+                rect.w = cp.w * PPM;
+                rect.h = cp.h * PPM;
+
+                // coordenadas físicas → píxeles
+                rect.x = cp.x * PPM - rect.w / 2.0f - camX;
+                rect.y = cp.y * PPM - rect.h / 2.0f - camY;
+
+                // color según el orden (más claros al inicio)
+                int alpha = 60 + (cp.order * 20);
+                if (alpha > 180) alpha = 180;
+
+                SDL_SetRenderDrawColor(renderer, 0, 255, 120, alpha);
+                SDL_RenderFillRectF(renderer, &rect);
+
+                // borde más fuerte para distinguirlo
+                SDL_SetRenderDrawColor(renderer, 0, 200, 100, 255);
+                SDL_RenderDrawRectF(renderer, &rect);
+
+                // línea de dirección del checkpoint (opcional)
+                float cx = rect.x + rect.w / 2.0f;
+                float cy = rect.y + rect.h / 2.0f;
+                float len = rect.h * 0.8f;
+                float nx =
+                    cx + std::cos(cp.order * 0.2f) * len;  // solo estética
+                float ny = cy + std::sin(cp.order * 0.2f) * len;
+                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 80);
+                SDL_RenderDrawLineF(renderer, cx, cy, nx, ny);
+            }
+            SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
             float px = carDyn.x * PPM - camX;
             float py = carDyn.y * PPM - camY;
 

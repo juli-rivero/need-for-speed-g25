@@ -61,7 +61,8 @@ std::unique_ptr<Bridge> EntityFactory::createBridge(Box2DPhysicsWorld& world,
     auto lower = std::make_shared<Box2DBodyAdapter>(std::move(lowerBody));
     auto upper = std::make_shared<Box2DBodyAdapter>(std::move(upperBody));
 
-    auto bridge = std::make_unique<Bridge>(nextId(), lower, upper);
+    auto bridge =
+        std::make_unique<Bridge>(nextId(), w, h, lower, upper, driveable);
 
     world.getCollisionManager().registerEntity(lower->getId(), bridge.get());
     world.getCollisionManager().registerEntity(upper->getId(), bridge.get());

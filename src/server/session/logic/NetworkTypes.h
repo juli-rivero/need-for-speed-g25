@@ -91,6 +91,13 @@ struct CarStaticInfo {
     float friction;
     float nitroMultiplier;
 };
+struct BridgeInfo {
+    int id;
+    float lowerX, lowerY;
+    float upperX, upperY;
+    float w, h;
+    bool driveable;
+};
 
 // snapshot estático (solo al empezar la partida)
 struct StaticSnapshot {
@@ -98,6 +105,7 @@ struct StaticSnapshot {
     std::string cityName;
 
     std::vector<WallInfo> walls;
+    std::vector<BridgeInfo> bridges;
     std::vector<CheckpointInfo> checkpoints;
     std::vector<HintInfo> hints;
     std::vector<SpawnPointInfo> spawns;

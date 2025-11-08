@@ -161,7 +161,18 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         wi.h = w->getHeight();
         s.walls.push_back(wi);
     }
-
+    for (const auto& br : _bridges) {
+        BridgeInfo bi;
+        bi.id = br->getId();
+        bi.lowerX = br->getLowerPosition().x;
+        bi.lowerY = br->getLowerPosition().y;
+        bi.upperX = br->getUpperPosition().x;
+        bi.upperY = br->getUpperPosition().y;
+        bi.w = br->getWidth();
+        bi.h = br->getHeight();
+        bi.driveable = br->isDriveable();
+        s.bridges.push_back(bi);
+    }
     for (const auto& cp : _race->getCheckpoints()) {
         CheckpointInfo ci;
         ci.id = cp.getId();
