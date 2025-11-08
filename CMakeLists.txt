@@ -3,10 +3,11 @@ cmake_minimum_required(VERSION 3.24)
 if (POLICY CMP0135)
     cmake_policy(SET CMP0135 NEW)
 endif()
-set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 if (NOT DEFINED CMAKE_CXX_STANDARD)
     set(CMAKE_CXX_STANDARD 20)
 endif()
+
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 set(CMAKE_CXX_EXTENSIONS ON)
 # Genera el compile_commands.json para los clang
@@ -68,7 +69,7 @@ endif()
 
 # Install libSDL2 and libSDL2pp (for client or editor)
 # HEY!! TODO XXX: add more dependendies (either for client, server or editor)
-if(TALLER_CLIENT OR TALLER_EDITOR)
+if(TALLER_CLIENT OR TALLER_EDITOR OR TALLER_SERVER)
     include(FetchContent)
     FetchContent_Declare(
         SDL2
@@ -111,6 +112,8 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         OVERRIDE_FIND_PACKAGE
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
+    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
+
     # TODO: hacer un installer con las dependencias de qt:
     # En ubuntu:
     # sudo apt update
@@ -125,26 +128,10 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
     set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
 
     message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
-    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
 endif()
 
-
-
-
-if(TALLER_SERVER)
+if (TALLER_SERVER)
     include(FetchContent)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
-    add_executable(taller_server
-            src/server/main.cpp)
-
-    # Make them depend on taller_common lib
-    add_dependencies(taller_server taller_common)
-
-    # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here or in a intern cmakelists.txt
-    add_subdirectory(src/server)
-
-    set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
     FetchContent_Declare(
             box2d
             GIT_REPOSITORY https://github.com/erincatto/box2d.git
@@ -163,25 +150,63 @@ if(TALLER_SERVER)
     )
 
     FetchContent_MakeAvailable(box2d yaml)
-    target_include_directories(taller_server
-            PRIVATE
-            box2d
-    )
-    # --- NUEVO BLOQUE: SDL2 para modo visual del server ---
-    find_package(SDL2 REQUIRED)
-    include_directories(${SDL2_INCLUDE_DIRS})
+endif ()
+
+# Program section
+# ---------------
+if(TALLER_CLIENT)
+    add_executable(taller_client)
+
+    # Make them depend on taller_common lib
+    add_dependencies(taller_client taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets cxxopts spdlog)
+
+    # Add source files and enable warnings
+    # HEY!! TODO XXX: add more subfolders here
+    add_subdirectory(src/client)
+
+    set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+
+    # add libSDL2pp's headers
+    target_include_directories(taller_client PRIVATE ${libSDL2pp_SOURCE_DIR})
+
     # Link the taller_common lib target
-    target_link_libraries(taller_server PRIVATE
-            ${SDL2_LIBRARIES}
+    target_link_libraries(taller_client taller_common SDL2pp::SDL2pp Qt6::Core Qt6::Widgets cxxopts spdlog)
+endif()
+
+if(TALLER_SERVER)
+    # HEY!! TODO XXX: Change the name of the executable to the one you like!
+    add_executable(taller_server
+            src/server/main.cpp)
+
+    # Make them depend on taller_common lib
+    add_dependencies(taller_server
+            taller_common
+            SDL2pp::SDL2pp
             box2d
             yaml-cpp
+            cxxopts
+            spdlog
+    )
+
+    # Add source files and enable warnings
+    # HEY!! TODO XXX: add more subfolders here or in a intern cmakelists.txt
+    add_subdirectory(src/server)
+
+    set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
+
+    target_include_directories(taller_server PRIVATE ${libSDL2pp_SOURCE_DIR} box2d)
+
+    # Link the taller_common lib target
+    target_link_libraries(taller_server PRIVATE
             taller_common
+            SDL2pp::SDL2pp
+            box2d
+            yaml-cpp
             cxxopts
             spdlog
     )
 
 endif()
-
 
 
 # Testing section
