@@ -1,24 +1,27 @@
+#pragma once
 
-#ifndef TALLER_TP_GAMESESSIONFACADE_H
-#define TALLER_TP_GAMESESSIONFACADE_H
+#include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
-
-#include "../logic/MatchSession.h"
 #include "../../config/YamlGameConfig.h"
+#include "../logic/MatchSession.h"
 #include "../physics/Box2DPhysicsWorld.h"
 
 class GameSessionFacade {
-private:
+   private:
     Box2DPhysicsWorld world;
     const YamlGameConfig& config;
     std::unique_ptr<MatchSession> match;
     bool running{false};
-    //estados persistentes de input por jugador
+    // estados persistentes de input por jugador
     std::unordered_map<PlayerId, PlayerInput> inputStates;
 
-public:
+   public:
     explicit GameSessionFacade(const YamlGameConfig& configPath);
-    void start(const std::vector<RaceDefinition>& races, const std::vector<PlayerConfig>& players);
+    void start(const std::vector<RaceDefinition>& races,
+               const std::vector<PlayerConfig>& players);
     void update(float dt);
     bool isRunning() const { return running; }
     void stop();
@@ -28,5 +31,3 @@ public:
     WorldSnapshot getSnapshot() const;
     StaticSnapshot getStaticSnapshot() const;
 };
-
-#endif

@@ -1,20 +1,14 @@
+#pragma once
 
-#ifndef TALLER_TP_ENTITY_H
-#define TALLER_TP_ENTITY_H
-
-enum class EntityType { Car, Wall, Checkpoint, Hint};
-
+enum class EntityType { Car, Wall, Checkpoint, Hint, Bridge };
 
 class Entity {
-protected:
+   protected:
     int id;
     EntityType type;
-public:
+
+   public:
     Entity(int id, EntityType type) : id(id), type(type) {}
     virtual ~Entity() = default;
     EntityType getEntityType() const { return type; }
-
 };
-
-
-#endif //TALLER_TP_ENTITY_H

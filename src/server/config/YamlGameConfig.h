@@ -1,18 +1,17 @@
+#pragma once
 
-#ifndef TALLER_TP_YAMLGAMECONFIG_H
-#define TALLER_TP_YAMLGAMECONFIG_H
-
-#include "yaml-cpp/yaml.h"
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-#include "../session/model/CarType.h"
 #include "../session/logic/types.h"
+#include "../session/model/CarType.h"
+#include "yaml-cpp/yaml.h"
 
 struct CityDefinition;
 
 class YamlGameConfig {
-private:
+   private:
     YAML::Node root;
 
     std::unordered_map<std::string, float> penalties;
@@ -24,7 +23,7 @@ private:
     float timeLimitSec{};
     float intermissionSec{};
 
-public:
+   public:
     explicit YamlGameConfig(const std::string& filePath);
 
     // Getters
@@ -32,10 +31,11 @@ public:
     float getRaceTimeLimitSec() const { return timeLimitSec; }
     float getIntermissionSec() const { return intermissionSec; }
 
-    const std::unordered_map<std::string, float>& getPenalties() const { return penalties; }
+    const std::unordered_map<std::string, float>& getPenalties() const {
+        return penalties;
+    }
     const std::vector<CityDefinition>& getCities() const { return cities; }
     const std::vector<CarType>& getCarTypes() const { return carTypes; }
 
     void printSummary() const;
 };
-#endif

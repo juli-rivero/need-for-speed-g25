@@ -4,9 +4,7 @@ target_sources(taller_server
         Car.h
         Checkpoint.h
         Hint.h
-        NpcCar.h
         Player.h
-        Track.h
         Wall.h
         CarType.h
         Entity.h

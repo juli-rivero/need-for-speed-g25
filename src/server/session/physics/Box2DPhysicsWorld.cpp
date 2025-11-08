@@ -7,9 +7,7 @@ Box2DPhysicsWorld::Box2DPhysicsWorld() {
     collisionManager = std::make_unique<CollisionManager>();
 }
 
-Box2DPhysicsWorld::~Box2DPhysicsWorld() {
-    b2DestroyWorld(world);
-}
+Box2DPhysicsWorld::~Box2DPhysicsWorld() { b2DestroyWorld(world); }
 
 void Box2DPhysicsWorld::step(float dt) {
     b2World_Step(world, dt, 4);

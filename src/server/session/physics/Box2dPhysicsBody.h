@@ -1,21 +1,16 @@
-
-#ifndef NEED_FOR_SPEED_G25_PHYSICSBODY_H
-#define NEED_FOR_SPEED_G25_PHYSICSBODY_H
-
+#pragma once
 
 #include <box2d/box2d.h>
-//WRAPPER DE UN CUERPO FISICO
+// WRAPPER DE UN CUERPO FISICO
 class Box2dPhysicsBody {
-public:
+   public:
     Box2dPhysicsBody(b2WorldId world, const b2BodyDef& def)
-        : world(world) {
-        body = b2CreateBody(world, &def);
-    }
+        : world(world), body(b2CreateBody(world, &def)) {}
 
     ~Box2dPhysicsBody() {
         if (b2Body_IsValid(body)) {
             b2DestroyBody(body);
-}
+        }
     }
 
     b2BodyId getId() const { return body; }
@@ -24,13 +19,9 @@ public:
         b2Body_SetTransform(body, {x, y}, b2MakeRot(angle));
     }
 
-    b2Vec2 getPosition() const {
-        return b2Body_GetPosition(body);
-    }
+    b2Vec2 getPosition() const { return b2Body_GetPosition(body); }
 
-
-private:
-    b2WorldId world;
+   private:
+    [[maybe_unused]] b2WorldId world;  // TODO(elvis) se usara luego
     b2BodyId body;
 };
-#endif //NEED_FOR_SPEED_G25_PHYSICSBODY_H

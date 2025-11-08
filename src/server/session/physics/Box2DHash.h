@@ -1,8 +1,8 @@
 
-#ifndef TALLER_TP_BOX2DHASH_H
-#define TALLER_TP_BOX2DHASH_H
+#pragma once
 
 #include <box2d/box2d.h>
+
 #include <cstddef>
 #include <functional>
 
@@ -18,4 +18,3 @@ struct b2BodyIdEqual {
         return a.index1 == b.index1 && a.world0 == b.world0;
     }
 };
-#endif //TALLER_TP_BOX2DHASH_H

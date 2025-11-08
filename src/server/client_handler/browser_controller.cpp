@@ -1,4 +1,4 @@
-#include "browser_controller.h"
+#include "server/client_handler/browser_controller.h"
 
 #include <string>
 

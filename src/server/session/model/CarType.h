@@ -1,6 +1,6 @@
 
-#ifndef TALLER_TP_CARTYPE_H
-#define TALLER_TP_CARTYPE_H
+#pragma once
+
 #include <string>
 
 // === Estructura de un tipo de auto ===
@@ -29,5 +29,3 @@ struct CarType {
     float linearDamping;
     float angularDamping;
 };
-
-#endif //TALLER_TP_CARTYPE_H

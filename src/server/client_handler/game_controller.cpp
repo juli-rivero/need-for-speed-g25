@@ -1,4 +1,4 @@
-#include "game_controller.h"
+#include "server/client_handler/game_controller.h"
 
 GameController::GameController(Game& game, const int client_id, Sender& sender,
                                IGameEvents& handler, spdlog::logger* log)

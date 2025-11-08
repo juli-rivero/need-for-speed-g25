@@ -1,47 +1,43 @@
+#pragma once
 
-#ifndef TALLER_TP_RACESESSION_H
-#define TALLER_TP_RACESESSION_H
-
-
-#include <vector>
-#include <unordered_map>
 #include <memory>
 #include <optional>
+#include <unordered_map>
+#include <vector>
 
 #include "../../config/YamlGameConfig.h"
-#include "types.h"
-
+#include "../model/Car.h"
 #include "../model/Checkpoint.h"
 #include "../model/Hint.h"
-#include "../model/Car.h"
-
+#include "server/session/logic/types.h"
 
 struct SpawnPoint;
 struct PlayerRaceData {
     PlayerId id{};
-    std::shared_ptr<Car> car;   // modelo lógico del auto (compartido con GameWorld)
+    std::shared_ptr<Car>
+        car;  // modelo lógico del auto (compartido con GameWorld)
     std::size_t nextCheckpoint{0};
     bool finished{false};
     bool disqualified{false};
-    float elapsed{0.0f};        // tiempo crudo
-    float penaltyTime{0.0f};    // penalización a aplicar en esta carrera
+    float elapsed{0.0f};      // tiempo crudo
+    float penaltyTime{0.0f};  // penalización a aplicar en esta carrera
 };
 
 class RaceSession {
-public:
+   public:
     enum class State { Countdown, Running, Finished };
 
-    RaceSession(const YamlGameConfig& cfg,
-                CityId city,
-                std::vector<Checkpoint> checkpoints,
-                std::vector<Hint> hints,
-                const std::vector<std::shared_ptr<Car>> &playersCars,
-                std::vector<SpawnPoint> spawn_points,
-                std::unordered_map<PlayerId, float> initialPenaltiesForThisRace);
+    RaceSession(
+        const YamlGameConfig& cfg, CityId city,
+        std::vector<Checkpoint> checkpoints, std::vector<Hint> hints,
+        const std::vector<std::shared_ptr<Car>>& playersCars,
+        std::vector<SpawnPoint> spawn_points,
+        std::unordered_map<PlayerId, float> initialPenaltiesForThisRace);
 
     // ciclo
-    void start();                 // pasa a Countdown → Running
-    void update(float dt);        // reloj global, detección de fin por timeout / llegada total
+    void start();           // pasa a Countdown → Running
+    void update(float dt);  // reloj global, detección de fin por timeout /
+                            // llegada total
 
     // resultados
     bool isFinished() const { return _state == State::Finished; }
@@ -59,32 +55,40 @@ public:
     // util
     State state() const { return _state; }
     float elapsedRaceTime() const { return _raceClock; }
-    const std::vector<Checkpoint>& getCheckpoints() const { return _checkpoints; }
+    const std::vector<Checkpoint>& getCheckpoints() const {
+        return _checkpoints;
+    }
     const std::vector<Hint>& getHints() const { return _hints; }
-    const std::vector<PlayerRaceData>& getPlayerStates() const {return _players;}
+    const std::vector<PlayerRaceData>& getPlayerStates() const {
+        return _players;
+    }
     const std::vector<std::shared_ptr<Car>>& getCars() const {
         static std::vector<std::shared_ptr<Car>> carsCache;
         carsCache.clear();
-        for (const auto& p : _players)
-            if (p.car) carsCache.push_back(p.car);
+        for (const auto& p : _players) {
+            if (p.car) {
+                carsCache.push_back(p.car);
+            }
+        }
         return carsCache;
     }
-    const std::vector<SpawnPoint>& getSpawnPoints() const {return _spawnPoints;}
-private:
+    const std::vector<SpawnPoint>& getSpawnPoints() const {
+        return _spawnPoints;
+    }
+
+   private:
     const YamlGameConfig& _cfg;
     CityId _city;
     State _state{State::Countdown};
-    float _raceClock{0.0f};                 // reloj global de la carrera
-    float _countdownTime{3.0f};             // opcional: 3s antes de largar
+    float _raceClock{0.0f};      // reloj global de la carrera
+    float _countdownTime{3.0f};  // opcional: 3s antes de largar
 
-    std::vector<Checkpoint> _checkpoints;   // ordenados por "order"
+    std::vector<Checkpoint> _checkpoints;  // ordenados por "order"
     std::vector<Hint> _hints;
     std::vector<PlayerRaceData> _players;
     std::vector<SpawnPoint> _spawnPoints;
 
     bool everyoneDoneOrDQ() const;
     void applyTimeLimitIfNeeded();
-    void orderCheckpointsByOrder(); // asegura orden ascendente por "order"
+    void orderCheckpointsByOrder();  // asegura orden ascendente por "order"
 };
-
-#endif //TALLER_TP_RACESESSION_H

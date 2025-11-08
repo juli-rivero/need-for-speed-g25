@@ -234,4 +234,3 @@ if(TALLER_TESTS)
         GTest::gtest_main
     )
 endif()
-

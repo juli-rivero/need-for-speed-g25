@@ -1,35 +1,38 @@
-#ifndef CAR_H
-#define CAR_H
+#pragma once
 
+#include <algorithm>
 #include <cmath>
 #include <iostream>
 #include <memory>
-
-
 #include <string>
-#include "Entity.h"
+#include <utility>
+
 #include "../physics/IPhysicalBody.h"
+#include "Entity.h"
+#include "server/session/model/CarType.h"
 
-
-
-class Car : public Entity{
-private:
+class Car : public Entity {
+   private:
     std::string name;
     bool accelerating{false};
     bool braking{false};
     std::string turning{false};
     bool nitroActive{false};
-    const CarType* type;
+    const CarType& carType;
     float health;
     std::shared_ptr<IPhysicalBody> body;
 
-public:
-    Car(int id, const std::string& name, const CarType& type,std::shared_ptr<IPhysicalBody> body)
-        : Entity(id,EntityType::Car), name(name), type(&type), health(type.health),body(std::move(body))
-        {}
+   public:
+    Car(int id, const std::string& name, const CarType& type,
+        std::shared_ptr<IPhysicalBody> body)
+        : Entity(id, EntityType::Car),
+          name(name),
+          carType(type),
+          health(type.health),
+          body(std::move(body)) {}
 
     int getId() const { return id; }
-    const CarType& getType() const { return *type; } // acceso seguro
+    const CarType& getType() const { return carType; }  // acceso seguro
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
@@ -43,48 +46,42 @@ public:
     bool isAccelerating() const { return accelerating; }
     bool isBraking() const { return braking; }
     void accelerate() {
-
-        float force = type->acceleration * (nitroActive ? type->nitroMultiplier : 1.0f);
-        Vec2 dir = { std::cos(getAngle()), std::sin(getAngle()) };
-        body->applyForce(dir.x * force , dir.y * force);
+        float force = carType.acceleration *
+                      (nitroActive ? carType.nitroMultiplier : 1.0f);
+        Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
+        body->applyForce(dir.x * force, dir.y * force);
 
         // Limitar la velocidad máxima
         Vec2 vel = body->getLinearVelocity();
         float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
-        if (speed > type->maxSpeed) {
-            float scale = type->maxSpeed / speed;
+        if (speed > carType.maxSpeed) {
+            float scale = carType.maxSpeed / speed;
             body->setLinearVelocity(vel.x * scale, vel.y * scale);
         }
     }
 
     void brake() {
-        Vec2 dir = { std::cos(getAngle()), std::sin(getAngle()) };
-        float force = type->acceleration * 0.5f; // la mitad que acelerar hacia adelante
-        body->applyForce(-dir.x * force , -dir.y * force);
+        Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
+        float force = carType.acceleration *
+                      0.5f;  // la mitad que acelerar hacia adelante
+        body->applyForce(-dir.x * force, -dir.y * force);
     }
 
-    void turnLeft() {
-        body->applyTorque(-type->control*20.0f);
-    }
+    void turnLeft() { body->applyTorque(-carType.control * 20.0f); }
 
-    void turnRight() {
-        body->applyTorque(type->control*20.0f);
-    }
+    void turnRight() { body->applyTorque(carType.control * 20.0f); }
     float getHealth() const { return health; }
-    void damage(float amount) {
-        health = std::max(0.0f, health - amount);
-    }
+    void damage(float amount) { health = std::max(0.0f, health - amount); }
     void activateNitro(bool active) { nitroActive = active; }
     bool isDestroyed() const { return health <= 0; }
     bool isNitroActive() const { return nitroActive; }
     void update() {
         if (accelerating) accelerate();
         if (braking) brake();
-        if (turning == "left") { turnLeft();
-        } else if (turning == "right") { turnRight();
-}
+        if (turning == "left") {
+            turnLeft();
+        } else if (turning == "right") {
+            turnRight();
+        }
     }
-
 };
-
-#endif

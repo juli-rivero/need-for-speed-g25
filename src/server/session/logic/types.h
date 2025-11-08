@@ -1,11 +1,10 @@
+#pragma once
 
-#ifndef TALLER_TP_TYPES_H
-#define TALLER_TP_TYPES_H
 #include <cstdint>
-#include <string>
-#include <vector>
-#include <unordered_map>
 #include <memory>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 #include "../../config/YamlGameConfig.h"
 
@@ -17,22 +16,22 @@ struct SpawnPoint {
     float x, y, angle;
 };
 struct PlayerConfig {
-    PlayerId id;               // id único del jugador
-    std::string name;          // nombre visible
-    std::string carTypeName;   // nombre del tipo de auto (Speedster, Tank, etc.)
+    PlayerId id;              // id único del jugador
+    std::string name;         // nombre visible
+    std::string carTypeName;  // nombre del tipo de auto (Speedster, Tank, etc.)
 };
 
 struct PlayerResult {
     PlayerId id{};
-    float rawTime{0.0f};     // tiempo crudo al llegar a meta
-    float penalty{0.0f};     // penalización aplicada en esta carrera
-    float netTime{0.0f};     // rawTime - penalty
-    bool dnf{false};         // no terminó / descalificado
+    float rawTime{0.0f};  // tiempo crudo al llegar a meta
+    float penalty{0.0f};  // penalización aplicada en esta carrera
+    float netTime{0.0f};  // rawTime - penalty
+    bool dnf{false};      // no terminó / descalificado
 };
 
 struct RaceDefinition {
     CityId city;
-    std::string mapFile;     // YAML del recorrido (checkpoints/hints)
+    std::string mapFile;  // YAML del recorrido (checkpoints/hints)
 };
 // Representa una ciudad con sus circuitos
 struct CityDefinition {
@@ -43,6 +42,5 @@ struct UpgradeChoice {
     // ejemplo: "max_speed", "acceleration"
     std::string stat;
     float delta{0.0f};
-    float penalty{0.0f};     // segundos que se aplicarán en la próxima carrera
+    float penalty{0.0f};  // segundos que se aplicarán en la próxima carrera
 };
-#endif //TALLER_TP_TYPES_H

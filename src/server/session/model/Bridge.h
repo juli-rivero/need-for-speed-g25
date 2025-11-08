@@ -1,24 +1,24 @@
+#pragma once
 
-#ifndef TALLER_TP_BRIDGE_H
-#define TALLER_TP_BRIDGE_H
 #include <memory>
+#include <utility>
 
 #include "../physics/IPhysicalBody.h"
+#include "server/session/model/Entity.h"
 
-
-
-class Bridge {
-private:
-    int id;
+class Bridge : public Entity {
+   private:
     std::shared_ptr<IPhysicalBody> lowerBody;
     std::shared_ptr<IPhysicalBody> upperBody;
 
-public:
-    Bridge(int id, std::shared_ptr<IPhysicalBody> lower, std::shared_ptr<IPhysicalBody> upper)
-        : id(id), lowerBody(std::move(lower)), upperBody(std::move(upper)) {}
+   public:
+    Bridge(const int id, std::shared_ptr<IPhysicalBody> lower,
+           std::shared_ptr<IPhysicalBody> upper)
+        : Entity(id, EntityType::Bridge),
+          lowerBody(std::move(lower)),
+          upperBody(std::move(upper)) {}
 
     int getId() const { return id; }
     Vec2 getLowerPosition() const { return lowerBody->getPosition(); }
     Vec2 getUpperPosition() const { return upperBody->getPosition(); }
 };
-#endif //TALLER_TP_BRIDGE_H

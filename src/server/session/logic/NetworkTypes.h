@@ -1,9 +1,10 @@
+#pragma once
 
-#ifndef TALLER_TP_NETWORKTYPES_H
-#define TALLER_TP_NETWORKTYPES_H
 #include <string>
-#include <vector>
 #include <unordered_map>
+#include <vector>
+
+#include "server/session/logic/types.h"
 
 // ========= INPUTS ==========
 struct PlayerInput {
@@ -15,11 +16,9 @@ struct PlayerInput {
 
 // ========= SNAPSHOTS ==========
 
-
-
 struct RaceProgressSnapshot {
-    int playerId;
-    int nextCheckpoint;   // número de checkpoint pendiente
+    PlayerId playerId;
+    int nextCheckpoint;  // número de checkpoint pendiente
     bool finished;
     bool disqualified;
     float elapsedTime;
@@ -35,24 +34,24 @@ enum class CarSpriteType {
 // estado individual del auto
 struct CarSnapshot {
     CarSpriteType type;
-    float x, y;        // posición actual
-    float vx, vy;      // velocidad lineal
-    float angle;       // orientación (radianes)
-    float speed;       // módulo de la velocidad
-    float health;      // salud del vehículo
-    bool nitroActive;  // nitro encendido
-    bool braking;      // si está frenando
-    bool accelerating; // si está acelerando
+    float x, y;         // posición actual
+    float vx, vy;       // velocidad lineal
+    float angle;        // orientación (radianes)
+    float speed;        // módulo de la velocidad
+    float health;       // salud del vehículo
+    bool nitroActive;   // nitro encendido
+    bool braking;       // si está frenando
+    bool accelerating;  // si está acelerando
 };
 struct PlayerSnapshot {
-    int id;                     // ID del jugador
-    std::string name;           // nombre del jugador
-    CarSnapshot car;            // posición, velocidad, etc.
+    int id;            // ID del jugador
+    std::string name;  // nombre del jugador
+    CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
 };
 struct WorldSnapshot {
-    float time;            // tiempo global simulado
-    float raceTimeLeft;    // tiempo restante si hay límite (10min)
+    float time{0.0f};          // tiempo global simulado
+    float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
     std::vector<PlayerSnapshot> players;
 };
 struct WallInfo {
@@ -104,4 +103,3 @@ struct StaticSnapshot {
     std::vector<SpawnPointInfo> spawns;
     std::vector<CarStaticInfo> cars;
 };
-#endif //TALLER_TP_NETWORKTYPES_H

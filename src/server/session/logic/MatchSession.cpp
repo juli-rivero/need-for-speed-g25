@@ -1,27 +1,29 @@
 
 #include "MatchSession.h"
 
+#include <algorithm>
 #include <iostream>
+#include <string>
+#include <utility>
 
-#include "../../config/MapLoader.h"      // para cargar CP/Hints desde YAML
+#include "../../config/MapLoader.h"  // para cargar CP/Hints desde YAML
 #include "../physics/EntityFactory.h"  // para crear entidades (si generás autos aquí)
-
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
                            std::vector<RaceDefinition> raceDefs,
                            Box2DPhysicsWorld& world,
-                           std::vector<PlayerConfig> players
-                           )
+                           std::vector<PlayerConfig> players)
     : _cfg(cfg),
       _world(world),
       _playerConfigs(std::move(players)),
       _races(std::move(raceDefs)),
-      _upgradeSystem(cfg) {
-
-}
+      _upgradeSystem(cfg) {}
 
 void MatchSession::start() {
-    if (_races.empty()) { _state = State::Finished; return; }
+    if (_races.empty()) {
+        _state = State::Finished;
+        return;
+    }
     _state = State::Racing;
     startRace(0);
 }
@@ -29,32 +31,23 @@ void MatchSession::start() {
 void MatchSession::startRace(std::size_t raceIndex) {
     _currentRace = raceIndex;
 
-
     std::vector<std::unique_ptr<Wall>> walls;
     std::vector<std::unique_ptr<Bridge>> bridges;
     std::vector<Checkpoint> checkpoints;
     std::vector<Hint> hints;
     std::vector<SpawnPoint> spawnPoints;
 
-
-    MapLoader::loadFromYAML(
-        _races[raceIndex].mapFile,
-        _world,
-        walls,
-        bridges,
-        checkpoints,
-        hints,
-        spawnPoints
-    );
+    MapLoader::loadFromYAML(_races[raceIndex].mapFile, _world, walls, bridges,
+                            checkpoints, hints, spawnPoints);
 
     // Si es la primera carrera, guardá muros/puentes
     if (_walls.empty()) _walls = std::move(walls);
     if (_bridges.empty()) _bridges = std::move(bridges);
 
-
     std::vector<std::shared_ptr<Car>> cars;
     _players.clear();
 
+    // se crea los jugadores aqui
     for (size_t i = 0; i < _playerConfigs.size(); ++i) {
         const auto& p = _playerConfigs[i];
         if (i >= spawnPoints.size()) break;
@@ -79,33 +72,27 @@ void MatchSession::startRace(std::size_t raceIndex) {
         _players[p.id] = std::move(player);
 
         std::cout << " Jugador " << p.name << " usa auto tipo '"
-                  << chosenType->name << "' en posición (" << sp.x << "," << sp.y << ")\n";
+                  << chosenType->name << "' en posición (" << sp.x << ","
+                  << sp.y << ")\n";
     }
 
     _race = std::make_unique<RaceSession>(
-        _cfg,
-        _races[raceIndex].city,
-        std::move(checkpoints),
-        std::move(hints),
-        std::move(cars),
-        std::move(spawnPoints),
-        _penaltiesForNextRace
-    );
+        _cfg, _races[raceIndex].city, std::move(checkpoints), std::move(hints),
+        std::move(cars), std::move(spawnPoints), _penaltiesForNextRace);
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
     _penaltiesForNextRace.clear();
 
-    std::cout << "Carrera " << (raceIndex + 1)
-              << " iniciada en " << _races[raceIndex].city << std::endl;
+    std::cout << "Carrera " << (raceIndex + 1) << " iniciada en "
+              << _races[raceIndex].city << std::endl;
 }
 
 static CarSpriteType toCarSpriteType(const std::string& name) {
     if (name == "Speedster") return CarSpriteType::Speedster;
-    if (name == "Muscle")    return CarSpriteType::Muscle;
-    if (name == "Offroad")   return CarSpriteType::Offroad;
-    return CarSpriteType::Truck; // valor por defecto
+    if (name == "Muscle") return CarSpriteType::Muscle;
+    if (name == "Offroad") return CarSpriteType::Offroad;
+    return CarSpriteType::Truck;  // valor por defecto
 }
-
 
 CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     CarSnapshot cs;
@@ -125,7 +112,6 @@ CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     return cs;
 }
 
-
 RaceProgressSnapshot MatchSession::makeRaceProgress(const PlayerRaceData& p) {
     RaceProgressSnapshot rp;
     rp.playerId = p.id;
@@ -136,7 +122,6 @@ RaceProgressSnapshot MatchSession::makeRaceProgress(const PlayerRaceData& p) {
     return rp;
 }
 
-
 WorldSnapshot MatchSession::getSnapshot() {
     WorldSnapshot snap;
 
@@ -146,14 +131,15 @@ WorldSnapshot MatchSession::getSnapshot() {
     }
 
     snap.time = _world.getTime();
-    snap.raceTimeLeft = std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
+    snap.raceTimeLeft =
+        std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
 
     for (const auto& [id, player] : _players) {
         PlayerSnapshot ps;
         ps.id = id;
         ps.name = player->getName();
         ps.car = makeCarSnapshot(player->getCar());
-        ps.raceProgress = player->getRaceProgress();
+        ps.raceProgress = player->snapshot();
         snap.players.push_back(std::move(ps));
     }
 
@@ -162,11 +148,9 @@ WorldSnapshot MatchSession::getSnapshot() {
 StaticSnapshot MatchSession::getStaticSnapshot() {
     StaticSnapshot s;
 
-
     const auto& raceDef = _races[_currentRace];
-    s.mapName  = raceDef.mapFile;
+    s.mapName = raceDef.mapFile;
     s.cityName = raceDef.city;
-
 
     for (const auto& w : _walls) {
         WallInfo wi;
@@ -207,7 +191,6 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         s.spawns.push_back(spi);
     }
 
-
     for (const auto& [playerId, player] : _players) {
         const auto& car = player->getCar();
         const auto& type = car->getType();
@@ -216,7 +199,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         ci.id = playerId;
         ci.playerName = player->getName();
         ci.carType = type.name;
-        ci.width  = type.width;
+        ci.width = type.width;
         ci.height = type.height;
         ci.maxSpeed = type.maxSpeed;
         ci.acceleration = type.acceleration;
@@ -231,7 +214,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
 void MatchSession::update(float dt) {
     switch (_state) {
         case State::Starting:
-            //TODO
+            // TODO(elvis)
         case State::Racing:
             // Actualizar cada coche según su input persistente
             for (auto& [id, player] : _players) {
@@ -257,7 +240,8 @@ void MatchSession::update(float dt) {
 void MatchSession::applyInput(PlayerId id, const PlayerInput& input) {
     auto it = _players.find(id);
     if (it == _players.end()) return;
-    it->second->getCar()->setInput(input.accelerate, input.brake, input.turn, input.nitro);
+    it->second->getCar()->setInput(input.accelerate, input.brake, input.turn,
+                                   input.nitro);
 }
 void MatchSession::finishRaceAndComputeTotals() {
     _lastResults = _race->makeResults();
@@ -273,16 +257,17 @@ void MatchSession::startIntermission() {
     _intermissionClock = 0.0f;
 }
 
-void MatchSession::queueUpgrades(const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups) {
-    _queuedUpgrades = ups; // se acumulan para la próxima carrera
+void MatchSession::queueUpgrades(
+    const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups) {
+    _queuedUpgrades = ups;  // se acumulan para la próxima carrera
 }
 
 void MatchSession::endIntermissionAndPrepareNextRace() {
-
     _penaltiesForNextRace = _upgradeSystem.applyForNextRace(_queuedUpgrades);
 
-    // TODO: aplicar mejoras a los autos de cada jugador ANTES de crear la próxima RaceSession.
-    // p.ej: playerCar->setMaxSpeed(playerCar->getMaxSpeed() + delta);
+    // TODO(elvis): aplicar mejoras a los autos de cada jugador ANTES de crear
+    // la próxima RaceSession. p.ej:
+    // playerCar->setMaxSpeed(playerCar->getMaxSpeed() + delta);
 
     _queuedUpgrades.clear();
 

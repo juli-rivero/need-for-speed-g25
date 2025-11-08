@@ -1,8 +1,8 @@
 #pragma once
 
 #include "../../common/dto/dto_session.h"
-#include "sender.h"
 #include "../sessions_monitor.h"
+#include "server/client_handler/sender.h"
 
 struct IBrowserEvents {
     virtual void on_join_session(Session&) = 0;

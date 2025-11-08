@@ -1,4 +1,4 @@
-#include "../../server/session/game.h"
+#include "server/session/game.h"
 
 #include "spdlog/logger.h"
 

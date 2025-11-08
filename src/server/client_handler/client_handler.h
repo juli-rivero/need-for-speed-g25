@@ -2,11 +2,11 @@
 
 #include <memory>
 
-#include "controller.h"
-#include "receiver.h"
-#include "sender.h"
-#include "../sessions_monitor.h"
 #include "../../common/protocol.h"
+#include "../sessions_monitor.h"
+#include "server/client_handler/controller.h"
+#include "server/client_handler/receiver.h"
+#include "server/client_handler/sender.h"
 
 class ClientHandler final {
     enum class Step {

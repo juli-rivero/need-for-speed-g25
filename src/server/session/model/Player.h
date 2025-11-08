@@ -1,30 +1,42 @@
-#ifndef PLAYER_H
-#define PLAYER_H
+#pragma once
 
-#include <string>
 #include <memory>
-#include "Car.h"
+#include <string>
+#include <utility>
+
 #include "../logic/NetworkTypes.h"
-//TODO: PODRIA ser neceario capaz para el networking
+#include "Car.h"
+
 class Player {
-private:
+   private:
     PlayerId id;
     std::string name;
-    std::shared_ptr<Car> car;             // su auto actual
-    RaceProgressSnapshot raceProgress;    // checkpoint actual, flags, etc.
+    std::shared_ptr<Car> car;  // su auto actual
+    // Estado dinámico de carrera
+    int nextCheckpoint{0};
+    bool finished{false};
+    bool disqualified{false};
+    float elapsedTime{0.0f};
 
-public:
+   public:
     Player(PlayerId id, const std::string& name, std::shared_ptr<Car> car)
         : id(id), name(name), car(std::move(car)) {}
+    // === Estado interno ===
+    void advanceCheckpoint() { ++nextCheckpoint; }
+    void setDisqualified(bool dq) { disqualified = dq; }
+    void setFinished(bool fin) { finished = fin; }
+    void addElapsed(float dt) { elapsedTime += dt; }
+
+    bool isAlive() const { return car && car->getHealth() > 0; }
+    bool hasFinished() const { return finished; }
+    bool isDisqualified() const { return disqualified; }
 
     PlayerId getId() const { return id; }
     const std::string& getName() const { return name; }
     std::shared_ptr<Car> getCar() const { return car; }
 
-    void setRaceProgress(const RaceProgressSnapshot& rp) { raceProgress = rp; }
-    const RaceProgressSnapshot& getRaceProgress() const { return raceProgress; }
-
-    bool isAlive() const { return car && car->getHealth() > 0; }
+    // === Serialización ===
+    RaceProgressSnapshot snapshot() const {
+        return {id, nextCheckpoint, finished, disqualified, elapsedTime};
+    }
 };
-
-#endif

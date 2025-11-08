@@ -1,10 +1,9 @@
 
 #include "UpgradeSystem.h"
 
-std::unordered_map<PlayerId, float>
-UpgradeSystem::applyForNextRace(
-    const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& upsByPlayer) {
-
+std::unordered_map<PlayerId, float> UpgradeSystem::applyForNextRace(
+    const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>&
+        upsByPlayer) {
     std::unordered_map<PlayerId, float> penalties;
 
     for (auto& [pid, ups] : upsByPlayer) {
@@ -18,7 +17,8 @@ UpgradeSystem::applyForNextRace(
                 // }
             }
             totalPenalty += p;
-            // TODO: aplicar el stat al auto en el armado de la siguiente carrera (no aquí)
+            // TODO(elvis): aplicar el stat al auto en el armado de la siguiente
+            // carrera (no aquí)
         }
         penalties[pid] = totalPenalty;
     }
