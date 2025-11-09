@@ -1,12 +1,18 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
+#include <list>
 #include <string>
 
 #include "client/game/assets.h"
+#include "client/game/car.h"
 #include "common/macros.h"
 
+class Car;
+
 class Game final {
+    friend class Car;
+
    private:
     // Componentes graficos
     SDL2pp::Renderer& renderer;
@@ -14,18 +20,14 @@ class Game final {
     Assets assets;
 
     // Componentes logicos
-    // TODO(crook): Temporal
+    // TODO(crook): Estado de teclas temporal, se tienen que enviar eventos
     bool left_held = false;
     bool right_held = false;
+    bool up_held = false;
+    bool down_held = false;
+    bool space_pressed = true;
 
-    double car_x[7] = {0};
-    double car_y[7] = {0};
-    double car_speed[7] = {0};
-    double car_angle[7] = {0};
-
-    // Obviamente arrays de referencias no son validas en C++
-    // Porque cuando C++ te hace la vida facil el planeta explotara.
-    SDL2pp::Texture* car_sprite[7];
+    std::list<Car> cars;
 
     // Metodos de actualizacion internos
     bool send_events();

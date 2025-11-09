@@ -10,20 +10,19 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
 
     // Coche 0: yo
     // Coche 1: simulado
-    for (size_t i = 1; i < 7; ++i) {
-        car_x[i] = 100 * i;
-        car_y[i] = 100 * i;
-        car_speed[i] = 3;
-        // car_angle[i] = 0;
-    }
+    for (size_t i = 0; i < 7; ++i) {
+        SDL2pp::Texture* texture;
 
-    car_sprite[0] = &assets.car1;
-    car_sprite[1] = &assets.car2;
-    car_sprite[2] = &assets.car3;
-    car_sprite[3] = &assets.car4;
-    car_sprite[4] = &assets.car5;
-    car_sprite[5] = &assets.car6;
-    car_sprite[6] = &assets.car7;
+        if (i == 0) texture = &assets.car1;
+        if (i == 1) texture = &assets.car2;
+        if (i == 2) texture = &assets.car3;
+        if (i == 3) texture = &assets.car4;
+        if (i == 4) texture = &assets.car5;
+        if (i == 5) texture = &assets.car6;
+        if (i == 6) texture = &assets.car7;
+
+        cars.push_back(Car(*this, 100 * i, 100 * i, 3, 0, *texture, i == 0));
+    }
 }
 
 //
@@ -50,6 +49,8 @@ void Game::render(const std::string& texto, int x, int y, bool in_world) {
 //
 
 bool Game::send_events() {
+    space_pressed = false;
+
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) return true;
@@ -64,14 +65,12 @@ bool Game::send_events() {
             if (tecla == SDLK_RIGHT)
                 right_held = true;  // EVENT: Enviar "iniciar giro derecha"
             if (tecla == SDLK_UP)
-                car_speed[0] -= 1;  // EVENT: Enviar "iniciar acelerar"
+                up_held = true;  // EVENT: Enviar "iniciar acelerar"
             if (tecla == SDLK_DOWN)
-                car_speed[0] += 1;  // EVENT: Enviar "iniciar desacelerar"
+                down_held = true;  // EVENT: Enviar "iniciar desacelerar"
 
-            // if (tecla == SDLK_SPACE) // EVENT: Enviar "activar nitro
-
-            // Pruebas de sonido, se removeran despues
-            if (tecla == SDLK_c) mixer.PlayChannel(-1, assets.sound_crash);
+            if (tecla == SDLK_SPACE)
+                space_pressed = true;  // EVENT: Enviar "activar nitro"
         }
 
         if (event.type == SDL_KEYUP) {
@@ -81,8 +80,10 @@ bool Game::send_events() {
                 left_held = false;  // EVENT: Enviar "detener giro izquierda"
             if (tecla == SDLK_RIGHT)
                 right_held = false;  // EVENT: Enviar "detener giro derecha"
-            // if (tecla == SDLK_UP) // EVENT: Enviar "detener acelerar"
-            // if (tecla == SDLK_DOWN) // EVENT: Enviar "detener desacelerar"
+            if (tecla == SDLK_UP)
+                up_held = false;  // EVENT: Enviar "detener acelerar"
+            if (tecla == SDLK_DOWN)
+                down_held = false;  // EVENT: Enviar "detener desacelerar"
         }
     }
 
@@ -96,34 +97,20 @@ void Game::get_state() {
     //        para tener algo para dibujar. Si es necesario borrar esto, despues
     //        lo vemos.
 
-    if (left_held) car_angle[0] -= 3;
-    if (right_held) car_angle[0] += 3;
-
-    for (size_t i = 1; i < 7; ++i) car_angle[i] += 3;
-
-    for (size_t i = 0; i < 7; ++i) {
-        if (car_angle[i] > 360) car_angle[i] -= 360;
-        if (car_angle[i] < 0) car_angle[i] += 360;
-        car_x[i] += sin(-car_angle[i] * 3.14 / 180) * car_speed[i];
-        car_y[i] += cos(-car_angle[i] * 3.14 / 180) * car_speed[i];
-    }
+    for (Car& car : cars) car.update();
 }
 
 void Game::draw_state() {
     renderer.Clear();
 
-    // Definir la camara alrededor del jugador.
-    cam_x =
-        car_x[0] + assets.car1.GetWidth() / 2 - renderer.GetOutputWidth() / 2;
-    cam_y =
-        car_y[0] + assets.car1.GetHeight() / 2 - renderer.GetOutputHeight() / 2;
-
     // Ciudad
     render(assets.city_liberty, 0, 0);
 
     // Coches
-    for (size_t i = 0; i < 7; ++i)
-        render(*car_sprite[i], car_x[i], car_y[i], car_angle[i]);
+    for (Car& car : cars) {
+        if (car.is_first()) car.set_camera();
+        car.draw();
+    }
 
     // HUD
     render("Hola, mundo!", 10, 10, false);

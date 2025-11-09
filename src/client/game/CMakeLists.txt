@@ -5,10 +5,12 @@ target_sources(taller_client
         input_handler.cpp
         sdl_app.cpp
         assets.cpp
+        car.cpp
         PUBLIC
         # .h files
         game.h
         input_handler.h
         sdl_app.h
         assets.h
+        car.h
 )
