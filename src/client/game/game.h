@@ -19,6 +19,8 @@ class Game final {
     SDL2pp::Mixer& mixer;
     Assets assets;
 
+    uint64_t frame = 0;
+
     // Componentes logicos
     // TODO(crook): Estado de teclas temporal, se tienen que enviar eventos
     bool left_held = false;
@@ -33,6 +35,7 @@ class Game final {
     bool send_events();
     void get_state();
     void draw_state();
+    void play_sounds();
     void wait_next_frame();
 
     // Auxiliar: dibujar una textura (o texto) en la ubicacion dada.
@@ -41,6 +44,8 @@ class Game final {
     // impactar el punto base usado.
     int cam_x = 0;
     int cam_y = 0;
+    double cam_world_x = 0;
+    double cam_world_y = 0;
 
     void render(SDL2pp::Texture& surface, int x, int y, double angle = 0,
                 bool in_world = true);

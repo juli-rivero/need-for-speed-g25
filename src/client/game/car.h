@@ -17,8 +17,7 @@ class Car final {
     double speed;
     double angle;
     SDL2pp::Texture& sprite;
-
-    bool first;
+    size_t id;
 
     // Constantes utiles
     const int WIDTH;
@@ -26,15 +25,15 @@ class Car final {
 
    public:
     Car(Game& game, double x, double y, double speed, double angle,
-        SDL2pp::Texture& sprite, bool first);
+        SDL2pp::Texture& sprite, size_t id);
 
     void update();  // TEMP
 
     void set_camera();
-    void play(SDL2pp::Chunk& sound);
+    void sound_crash();
     void draw();
 
-    bool is_first();
+    size_t get_id();
 
     // MAKE_FIXED(Car)
 };

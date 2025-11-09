@@ -21,7 +21,7 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
         if (i == 5) texture = &assets.car6;
         if (i == 6) texture = &assets.car7;
 
-        cars.push_back(Car(*this, 100 * i, 100 * i, 3, 0, *texture, i == 0));
+        cars.push_back(Car(*this, 100 * i, 100 * i, 3, 0, *texture, i));
     }
 }
 
@@ -108,7 +108,7 @@ void Game::draw_state() {
 
     // Coches
     for (Car& car : cars) {
-        if (car.is_first()) car.set_camera();
+        if (car.get_id() == 0) car.set_camera();
         car.draw();
     }
 
@@ -118,6 +118,12 @@ void Game::draw_state() {
     renderer.Present();
 }
 
+void Game::play_sounds() {
+    for (Car& car : cars) {
+        if (car.get_id() == 1) car.sound_crash();
+    }
+}
+
 void Game::wait_next_frame() {
     // TODO(crook): hacer 60 FPS verdaderos.
     SDL_Delay(1000 / 60);
@@ -125,9 +131,12 @@ void Game::wait_next_frame() {
 
 bool Game::start() {
     while (1) {
+        frame += 1;
+
         bool quit = send_events();
         get_state();
         draw_state();
+        play_sounds();
 
         if (quit) {
             return true;
