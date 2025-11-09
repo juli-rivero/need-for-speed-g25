@@ -47,7 +47,10 @@ void Car::set_camera() {
     game.cam_y = y + HEIGHT / 2 - game.renderer.GetOutputHeight() / 2;
 }
 
-void Car::draw() { game.render(sprite, x, y, angle); }
+void Car::draw() {
+    game.render(sprite, x, y, angle);
+    game.render(std::to_string(speed), x, y - 32, true);
+}
 
 void Car::play(SDL2pp::Chunk& sound) { game.mixer.PlayChannel(-1, sound); }
 
