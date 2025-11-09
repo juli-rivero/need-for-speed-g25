@@ -1,14 +1,11 @@
 #pragma once
 
 #include "client/connexion/receiver.h"
-#include "client/connexion/response_controller.h"
 #include "client/connexion/sender.h"
 
-class Connexion final : public ResponseController {
+class Connexion final {
     Protocol protocol;
     Receiver receiver;
-
-    friend class Requester;
     Sender sender;
 
    public:
@@ -16,28 +13,15 @@ class Connexion final : public ResponseController {
 
     MAKE_FIXED(Connexion)
 
-    ~Connexion() override;
+    Api& get_api();
 
-    using ResponseController::control;
-    using ResponseController::decontrol;
+    struct Responder : Receiver::Listener {
+        explicit Responder(Connexion& connexion)
+            : Listener(connexion.receiver) {}
+    };
+
+    ~Connexion();
 
    private:
     [[nodiscard]] bool is_alive() const;
-};
-
-class Requester {
-   protected:
-    Sender& sender;
-
-   public:
-    explicit Requester(Connexion& connexion) : sender(connexion.sender) {}
-};
-
-class MockRequester {
-   protected:
-    ResponseListener& response_listener;
-
-   public:
-    explicit MockRequester(Connexion& connexion)
-        : response_listener(connexion) {}
 };

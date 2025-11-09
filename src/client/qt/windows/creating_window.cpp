@@ -8,17 +8,15 @@
 #include "client/qt/theme_manager.h"
 
 CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), connexion(connexion) {
+    : QWidget(parent), Responder(connexion), api(connexion.get_api()) {
     setupUI();
 
     // Conectar al sistema de temas
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
-    connexion.control(*this);
 }
-
-CreatingWindow::~CreatingWindow() { connexion.decontrol(*this); }
+void CreatingWindow::on_create_response() { emit sessionCreated(); }
 
 void CreatingWindow::setupUI() {
     // Layout principal
@@ -127,7 +125,7 @@ void CreatingWindow::validateInput() {
     createButton->setEnabled(!name.isEmpty());
 }
 
-CreatingWindow::GameConfig CreatingWindow::getConfig() const {
+/*CreatingWindow::GameConfig CreatingWindow::getConfig() const {
     GameConfig config;
     config.name = nameEdit->text().trimmed();
     config.maxPlayers = playersSpin->value();
@@ -135,7 +133,7 @@ CreatingWindow::GameConfig CreatingWindow::getConfig() const {
     config.lapCount = lapsSpin->value();
     config.city = cityCombo->currentData().toString();
     return config;
-}
+}*/
 
 void CreatingWindow::reset() {
     nameEdit->clear();
@@ -146,9 +144,16 @@ void CreatingWindow::reset() {
     createButton->setEnabled(false);
 }
 
-void CreatingWindow::onSubmitClicked() { emit submitRequested(); }
+void CreatingWindow::onSubmitClicked() {
+    api.request_create_session({
+        .name = nameEdit->text().trimmed().toUtf8().constData(),
+        .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
+        .raceCount = static_cast<uint8_t>(racesSpin->value()),
+        .city = cityCombo->currentData().toString().toUtf8().constData(),
+    });
+}
 
-void CreatingWindow::onCancelClicked() { emit cancelRequested(); }
+void CreatingWindow::onCancelClicked() { emit createCanceled(); }
 
 void CreatingWindow::applyTheme() {
     ThemeManager& theme = ThemeManager::instance();

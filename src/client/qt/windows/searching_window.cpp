@@ -12,7 +12,10 @@
 #include "spdlog/spdlog.h"
 
 SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), connexion(connexion), api(connexion), currentGameId(-1) {
+    : QWidget(parent),
+      Responder(connexion),
+      api(connexion.get_api()),
+      currentGameId(-1) {
     spdlog::trace("creating lobby window");
     // lobbyClient = new MockLobbyClient();
     // spdlog::trace("created lobby client");
@@ -64,11 +67,15 @@ SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
     // Aplicar tema inicial
     applyTheme();
 
-    connexion.control(*this);
-    api.request_all_sessions();
+    api.request_search_all_sessions();
 }
 
-SearchingWindow::~SearchingWindow() { connexion.decontrol(*this); }
+void SearchingWindow::on_search_response(
+    const std::vector<SessionInfo>& session_infos) {
+    QMetaObject::invokeMethod(
+        this, [this, session_infos]() { updateGamesList(session_infos); },
+        Qt::QueuedConnection);
+}
 
 void SearchingWindow::updateGamesList(const std::vector<SessionInfo>& games) {
     currentGames = games;
@@ -118,6 +125,8 @@ void SearchingWindow::onJoinGameClicked() {
             return;
         }
 
+        api.request_join_session(gameId);
+
         statusLabel->setText("Uniéndose a la partida...");
         statusLabel->setStyleSheet("color: orange;");
     }
@@ -128,7 +137,7 @@ void SearchingWindow::onRefreshClicked() {
     statusLabel->setStyleSheet("color: orange;");
 
     // Solicitar lista actualizada al servidor
-    api.request_all_sessions();
+    api.request_search_all_sessions();
 }
 
 void SearchingWindow::onGameSelected(QListWidgetItem* item) {
@@ -159,6 +168,7 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
             return;
         }
     }
+    api.request_join_session(gameId);
 
     // Unirse directamente con doble click
     statusLabel->setText("Uniéndose a la partida...");
@@ -202,12 +212,14 @@ el widget statusLabel->setText("✅ Conectado al servidor");
     setWindowTitle("Need for Speed - Sala de Espera");
 }*/
 
-void SearchingWindow::onGameJoined(int gameId) {
+void SearchingWindow::on_join_response(const std::string&) {
     // Guardar el ID de la partida a la que nos unimos
-    joiningGameId = gameId;
+    // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
+    // request para pedirlo
 
     // Establecer modo: estamos UNIÉNDONOS a una partida
-    carSelectionMode = CarSelectionMode::Joining;
+    // carSelectionMode = CarSelectionMode::Joining; # TODO(nico): verificar si
+    // se puede borrar
 
     // Cuando te unes a una partida, ir a selección de auto
     // showCarSelectionPage();

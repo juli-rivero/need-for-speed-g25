@@ -1,34 +1,42 @@
 #pragma once
 
+#include <common/emitter.h>
+
+#include <string>
+#include <vector>
+
 #include "common/dto/dto.h"
 #include "common/dto/dto_search.h"
-#include "common/dto/dto_session.h"
 #include "common/macros.h"
 #include "common/protocol.h"
 #include "common/thread.h"
 
-struct ResponseListener {
-    virtual void recv(const dto::ErrorResponse&) = 0;
-    virtual void recv(const dto_search::JoinResponse&) = 0;
-    virtual void recv(const dto_search::SearchResponse&) = 0;
-    virtual void recv(const dto_session::LeaveResponse&) = 0;
-    virtual void recv(const dto_session::StartResponse&) = 0;
-    virtual ~ResponseListener() = default;
-};
+class Receiver;
 
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
-    ResponseListener& listener;
 
     friend class Connexion;
     void run() override;
     void stop() override;
 
    public:
-    Receiver(ProtocolReceiver& receiver, ResponseListener& listener);
+    explicit Receiver(ProtocolReceiver& receiver);
 
     MAKE_FIXED(Receiver)
 
+    struct Listener : common::Listener<Receiver::Listener> {
+        explicit Listener(Receiver& receiver);
+        virtual void on_error_response(const std::string&) {}
+        virtual void on_search_response(const std::vector<SessionInfo>&) {}
+        virtual void on_join_response(const std::string&) {}
+        virtual void on_create_response() {}
+        virtual void on_leave_response() {}
+        virtual void on_start_response() {}
+        ~Listener() override = default;
+    };
+
    private:
-    void delegate_response(const dto::ResponseType& request) const;
+    common::Emitter<Receiver::Listener> emitter;
+    void delegate_response(const dto::ResponseType& response);
 };

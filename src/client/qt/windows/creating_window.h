@@ -9,28 +9,20 @@
 
 #include "client/connexion/connexion.h"
 
-class CreatingWindow final : public QWidget {
+class CreatingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    Connexion& connexion;
+    Api& api;
 
    public:
-    struct GameConfig {
-        QString name;
-        int maxPlayers;
-        int raceCount;
-        int lapCount;
-        QString city;
-    };
-
     explicit CreatingWindow(QWidget* parent, Connexion&);
-    ~CreatingWindow() override;
 
-    GameConfig getConfig() const;
+    void on_create_response() override;
+
     void reset();
    signals:
-    void submitRequested();
-    void cancelRequested();
+    void sessionCreated();
+    void createCanceled();
 
    private slots:
     void validateInput();

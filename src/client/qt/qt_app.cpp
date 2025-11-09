@@ -16,8 +16,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
       waitingWindow(&stack, connexion) {
-    spdlog::trace("controllers controlled");
-
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -36,9 +34,9 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     connect(&searchingWindow, &SearchingWindow::joinGameClicked, this,
             &QtWindowManager::show_selecting_window);
 
-    connect(&creatingWindow, &CreatingWindow::submitRequested, this,
+    connect(&creatingWindow, &CreatingWindow::sessionCreated, this,
             &QtWindowManager::show_selecting_window);
-    connect(&creatingWindow, &CreatingWindow::cancelRequested, this,
+    connect(&creatingWindow, &CreatingWindow::createCanceled, this,
             &QtWindowManager::show_searching_window);
 
     connect(&selectingWindow, &SelectingWindow::confirmRequested, this,
@@ -60,8 +58,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     show();
 
     spdlog::trace("showing window");
-
-    spdlog::trace("exec finished");
 
     quit = false;  // TODO(juli): borrar
 }

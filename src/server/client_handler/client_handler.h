@@ -16,8 +16,8 @@ class ClientHandler final {
     std::shared_ptr<spdlog::logger> log;
     Protocol protocol;
     Sender sender;
-    Controller controller;
     Receiver receiver;
+    Controller controller;
 
    public:
     ClientHandler(int id, Socket&& socket, SessionsMonitor& sessions_monitor);
@@ -25,8 +25,6 @@ class ClientHandler final {
     MAKE_FIXED(ClientHandler)
 
     [[nodiscard]] bool is_alive() const;
-
-    void kill();
 
     ~ClientHandler();
 };

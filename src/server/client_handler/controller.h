@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+
 #include "common/dto/dto_search.h"
 #include "common/dto/dto_session.h"
 #include "controllers/game_controller.h"
@@ -7,39 +9,28 @@
 #include "controllers/session_controller.h"
 #include "server/client_handler/receiver.h"
 
-class Controller final : public RequestListener,
-                         ISearchEvents,
-                         ISessionEvents,
-                         IGameEvents {
+class Controller final : public ISearchEvents,
+                         public ISessionEvents,
+                         public IGameEvents {
     spdlog::logger* log;
     int id;
-    Sender& sender;
+    Api& api;
+    Receiver& receiver;
 
-    SearchController* search_controller;
-    SessionController* session_controller;
-    GameController* game_controller;
+    template <typename T>
+    using ptr = std::unique_ptr<T>;
 
-    std::mutex mtx;
+    ptr<SearchController> search_controller;
+    ptr<SessionController> session_controller;
+    ptr<GameController> game_controller;
 
    public:
-    explicit Controller(SessionsMonitor& monitor, int id, Sender& sender,
+    explicit Controller(SessionsMonitor& monitor, int id, Api&, Receiver&,
                         spdlog::logger*);
 
     MAKE_FIXED(Controller)
 
-    // BROWSER CONTROLLER //
-    void on(const dto_search::JoinRequest&) override;
-    void on(const dto_search::SearchRequest&) override;
-
-    // LOBBY CONTROLLER //
-    void on(const dto_session::LeaveRequest&) override;
-    void on(const dto_session::StartRequest&) override;
-
-    ~Controller() override;
-
    private:
-    void decontrol_all();
-
     // BROWSER EVENTS //
     void on_join_session(Session&) override;
 

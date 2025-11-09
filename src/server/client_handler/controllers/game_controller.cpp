@@ -1,14 +1,16 @@
 #include "server/client_handler/controllers/game_controller.h"
 
-GameController::GameController(Game& game, const int client_id, Sender& sender,
-                               IGameEvents& handler, spdlog::logger* log)
-    : GameListener(game),
+GameController::GameController(Game& game, const int client_id, Api& api,
+                               Receiver& receiver, IGameEvents& handler,
+                               spdlog::logger* log)
+    : Game::Listener(game),
+      Receiver::Listener(receiver),
       log(log),
       client_id(client_id),
-      sender(sender),
+      api(api),
       dispatcher(handler) {
     // TODO(juli): borrar, para que el lint no moleste
-    (void)this->sender;
+    (void)this->api;
     (void)this->client_id;
     (void)this->log;
     log->debug("controlling game");

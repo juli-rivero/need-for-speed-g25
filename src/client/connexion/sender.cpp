@@ -1,19 +1,30 @@
 #include "client/connexion/sender.h"
 
+#include <spdlog/spdlog.h>
+
 using dto::RequestType;
+using dto_search::CreateRequest;
+using dto_search::JoinRequest;
+using dto_search::SearchRequest;
+using dto_session::LeaveRequest;
+using dto_session::StartRequest;
 
 Sender::Sender(ProtocolSender& sender) : sender(sender) {}
 
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            sender << responses.pop() << ProtocolSender::send;
+            auto response = responses.pop();
+            spdlog::trace("sending type request: {}",
+                          static_cast<int>(response.type));
+            sender << response << ProtocolSender::send;
         } catch (ClosedQueue&) {
             return;
         } catch (ClosedProtocol&) {
             return;
         }
     }
+    spdlog::debug("sender ended");
 }
 
 void Sender::stop() {
@@ -22,18 +33,18 @@ void Sender::stop() {
     responses.close();
 }
 
-void Sender::send(const dto_search::SearchRequest& body) {
-    responses.try_push({RequestType::SearchRequest, body});
+void Sender::request_search_all_sessions() {
+    responses.try_push({RequestType::SearchRequest, SearchRequest{}});
 }
-
-void Sender::send(const dto_search::JoinRequest& body) {
-    responses.try_push({RequestType::JoinRequest, body});
+void Sender::request_join_session(const std::string& session) {
+    responses.try_push({RequestType::JoinRequest, JoinRequest{session}});
 }
-
-void Sender::send(const dto_session::LeaveRequest& body) {
-    responses.try_push({RequestType::LeaveRequest, body});
+void Sender::request_create_session(const SessionConfig& config) {
+    responses.try_push({RequestType::CreateRequest, CreateRequest{config}});
 }
-
-void Sender::send(const dto_session::StartRequest& body) {
-    responses.try_push({RequestType::StartRequest, body});
+void Sender::request_leave_current_session() {
+    responses.try_push({RequestType::LeaveRequest, LeaveRequest{}});
+}
+void Sender::request_start_session() {
+    responses.try_push({RequestType::StartRequest, StartRequest{}});
 }

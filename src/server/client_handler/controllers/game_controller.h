@@ -1,5 +1,6 @@
 #pragma once
 
+#include "server/client_handler/receiver.h"
 #include "server/client_handler/sender.h"
 #include "server/session/game.h"
 
@@ -8,14 +9,14 @@ struct IGameEvents {
     virtual ~IGameEvents() = default;
 };
 
-class GameController final : GameListener {
+class GameController final : Game::Listener, Receiver::Listener {
     spdlog::logger* log;
     const int client_id;
-    Sender& sender;
+    Api& api;
     IGameEvents& dispatcher;
 
    public:
-    GameController(Game&, int client_id, Sender&, IGameEvents& handler,
+    GameController(Game&, int client_id, Api&, Receiver&, IGameEvents& handler,
                    spdlog::logger*);
 
     MAKE_FIXED(GameController)

@@ -26,7 +26,7 @@ class SessionsMonitor {
 
     Session& get_session(int client_id);
 
-    void create_session(const std::string& id, int client_id);
+    void create_session(const SessionConfig&, int client_id);
 
     void leave_session(int client_id);
 

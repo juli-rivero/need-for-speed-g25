@@ -7,26 +7,26 @@ using dto_session::StartRequest;
 using dto_session::StartResponse;
 
 SessionController::SessionController(Session& session, const int client_id,
-                                     Sender& sender, ISessionEvents& handler,
+                                     Api& api, Receiver& receiver,
+                                     ISessionEvents& handler,
                                      spdlog::logger* log)
-    : SessionListener(session),
+    : Session::Listener(session),
+      Receiver::Listener(receiver),
       log(log),
       client_id(client_id),
-      sender(sender),
+      api(api),
       dispatcher(handler) {
     log->debug("controlling lobby");
 }
 
-void SessionController::on(const LeaveRequest&) const {}
-
-void SessionController::on(const StartRequest& start_request) {
+void SessionController::on_start_request(const bool ready) {
     try {
-        session.set_ready(client_id, start_request.ready);
-        log->trace(start_request.ready ? "ready" : "not ready");
+        session.set_ready(client_id, ready);
+        log->trace(ready ? "ready" : "not ready");
     } catch (std::runtime_error& e) {
-        log->trace("could not set {}: {}",
-                   start_request.ready ? "ready" : "not ready", e.what());
-        sender.send(dto::ErrorResponse{e.what()});
+        log->trace("could not set {}: {}", ready ? "ready" : "not ready",
+                   e.what());
+        api.reply_error(e.what());
     }
 }
 

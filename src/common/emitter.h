@@ -5,8 +5,10 @@
 #include <unordered_set>
 #include <utility>
 
+namespace common {
+
 template <typename T>
-class Emitter final {
+class Emitter {
     std::mutex mtx;
     std::condition_variable has_listeners;
     std::unordered_set<T*> listeners;
@@ -28,8 +30,8 @@ class Emitter final {
     }
 
    public:
-    template <typename F, typename... Args>
-    void emit(F func, Args&&... args) {
+    template <typename Method, typename... Args>
+    void dispatch(Method func, Args&&... args) {
         std::lock_guard lock(mtx);
         for (T* listener : listeners) {
             (listener->*func)(std::forward<Args>(args)...);
@@ -55,3 +57,4 @@ class Listener {
     }
     virtual ~Listener() { emitter.unsubscribe(static_cast<Parent*>(this)); }
 };
+}  // namespace common
