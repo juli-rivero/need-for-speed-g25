@@ -6,8 +6,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "common/macros.h"
-#include "server/session/session.h"
+#include "../common/macros.h"
+#include "session/session.h"
 #include "spdlog/spdlog.h"
 
 class SessionsMonitor {

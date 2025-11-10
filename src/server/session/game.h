@@ -2,8 +2,8 @@
 
 #include <unordered_map>
 
-#include "common/emitter.h"
-#include "common/macros.h"
+#include "../../common/emitter.h"
+#include "../../common/macros.h"
 #include "spdlog/spdlog.h"
 
 struct UserSetup {

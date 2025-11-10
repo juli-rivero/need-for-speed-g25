@@ -2,7 +2,7 @@
 
 #include <string>
 
-#include "common/macros.h"
+#include "../common/macros.h"
 #include "server/acceptor.h"
 
 class Server {

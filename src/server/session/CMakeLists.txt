@@ -6,3 +6,6 @@ target_sources(taller_server
         game.h
         session.h
 )
+add_subdirectory(logic)
+add_subdirectory(model)
+add_subdirectory(physics)

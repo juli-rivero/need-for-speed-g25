@@ -3,8 +3,8 @@
 #include <string>
 #include <vector>
 
-#include "common/protocol.h"
-#include "common/socket.h"
+#include "../common/protocol.h"
+#include "../common/socket.h"
 
 class ProtocolTest : public ::testing::Test {
    protected:

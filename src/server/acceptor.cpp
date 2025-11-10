@@ -6,7 +6,7 @@
 #include <string>
 #include <utility>
 
-#include "common/liberror.h"
+#include "../common/liberror.h"
 #include "spdlog/sinks/stdout_color_sinks-inl.h"
 #include "spdlog/spdlog.h"
 

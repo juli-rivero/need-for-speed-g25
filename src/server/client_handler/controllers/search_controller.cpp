@@ -44,8 +44,7 @@ void SearchController::on_search_request() {
         try {
             Session& session = sessions_monitor.get_session(sessions_ids[i]);
             sessions[i] = session.get_info();
-        } catch (const std::runtime_error&) {
-        }
+        } catch (const std::runtime_error&) {}
     }
     log->trace("found {} sessions", sessions.size());
     api.reply_search(sessions);

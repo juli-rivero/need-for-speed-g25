@@ -1,0 +1,22 @@
+map:
+  name: "Liberty City - Circuito 2"
+  gravity: [0.0, 0.0]
+  city: "LibertyCity"
+
+  walls:
+    - { id: 1, x: 0, y: 0, w: 120, h: 2 }
+    - { id: 2, x: 0, y: 60, w: 120, h: 2 }
+
+  checkpoints:
+    - { id: 110, x: 10, y: 10, w: 12, h: 2, order: 1 }
+    - { id: 111, x: 60, y: 30, w: 12, h: 2, order: 2 }
+    - { id: 112, x: 110, y: 10, w: 12, h: 2, order: 3 }
+
+
+  hints:
+    - { id: 210, x: 35, y: 20, angle: 0.0 }
+    - { id: 211, x: 85, y: 15, angle: 0.1 }
+
+  spawn_points:
+    - { x: 5, y: 5, angle: 0.0 }
+    - { x: 2, y: 5, angle: 0.0 }
