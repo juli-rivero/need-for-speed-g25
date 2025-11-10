@@ -12,11 +12,13 @@ Session::Listener::Listener(Session& session)
     session.log->trace("new listener added");
 }
 
-Session::Session(const SessionConfig& config, const int creator)
+Session::Session(const SessionConfig& config, const int creator,
+                 YamlGameConfig& yaml_config)
     : config(config),
       log(stdout_color_mt("Session " + config.name)),
       users_setup(1),
-      game(nullptr) {
+      game(nullptr),
+      yaml_config(yaml_config) {
     log->debug("Created");
     add_client(creator);
 }
@@ -54,6 +56,26 @@ void Session::remove_client(const int client_id) {
 
 bool Session::in_game() const { return game != nullptr; }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
+
+std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
+    const auto cars = yaml_config.getCarTypes();
+    std::vector<CarStaticInfo> types_of_static_cars;
+    for (const auto& car : cars) {
+        types_of_static_cars.push_back({
+            .type = YamlGameConfig::getCarSpriteType(car.name),
+            .name = car.name,
+            .description = car.description,
+            .height = car.height,
+            .width = car.width,
+            .maxSpeed = car.maxSpeed,
+            .acceleration = car.acceleration,
+            .mass = car.mass,
+            .control = car.control,
+            .health = car.health,
+        });
+    }
+    return types_of_static_cars;
+}
 
 void Session::set_ready(const int client_id, const bool ready) {
     log->debug("client {} set ready to {}", client_id, ready);

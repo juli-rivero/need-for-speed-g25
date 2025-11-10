@@ -6,8 +6,9 @@
 #include "spdlog/sinks/stdout_color_sinks-inl.h"
 #include "spdlog/spdlog.h"
 
-SessionsMonitor::SessionsMonitor()
-    : log(spdlog::stdout_color_mt("SessionsMonitor")) {}
+SessionsMonitor::SessionsMonitor(YamlGameConfig& yaml_config)
+    : log(spdlog::stdout_color_mt("SessionsMonitor")),
+      yaml_config(yaml_config) {}
 
 Session& SessionsMonitor::get_session(const std::string& id) {
     std::lock_guard lock(mtx);
@@ -26,7 +27,7 @@ void SessionsMonitor::create_session(const SessionConfig& config,
     std::lock_guard lock(mtx);
     sessions.emplace(std::piecewise_construct,
                      std::forward_as_tuple(config.name),
-                     std::forward_as_tuple(config, client_id));
+                     std::forward_as_tuple(config, client_id, yaml_config));
     searcher[client_id] = &sessions.at(config.name);
     log->trace("created session {} by {}", config.name, client_id);
 }

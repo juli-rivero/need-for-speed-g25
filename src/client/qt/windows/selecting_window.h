@@ -5,32 +5,10 @@
 #include <QLabel>
 #include <QProgressBar>
 #include <QVBoxLayout>
+#include <string>
 #include <vector>
 
 #include "client/connexion/connexion.h"
-
-// Estructura para representar un tipo de auto
-struct CarType {
-    QString name;
-    QString description;
-    float maxSpeed;
-    float acceleration;
-    float health;
-    float mass;
-    float controllability;
-    QString emoji;
-};
-
-// Estructura de configuración del auto seleccionado
-struct CarConfig {
-    QString carType;
-    QString carName;
-    float maxSpeed;
-    float acceleration;
-    float health;
-    float mass;
-    float controllability;
-};
 
 class SelectingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
@@ -40,9 +18,12 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
    public:
     explicit SelectingWindow(QWidget* parent, Connexion&);
 
-    CarConfig getSelectedCar() const;
+    // CarConfig getSelectedCar() const;
     int getSelectedCarType() const { return selectedCarIndex; }
     void reset();
+
+    void on_join_response(const SessionInfo&,
+                          const std::vector<CarStaticInfo>&) override;
 
    signals:
     void carSelected(int carType);
@@ -56,18 +37,20 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     void applyTheme();
 
    private:
-    void initCarTypes();
     void setupUI();
-    QWidget* createCarCard(const CarType& car, int index);
+    QWidget* createCarCard(const CarStaticInfo& car, int index);
     QProgressBar* createStatBar(float value);
     void updateCarDetails(int carIndex);
 
-    std::vector<CarType> carTypes;
+    std::string getCarEmoji(CarSpriteType carType) const;
+
+    std::vector<CarStaticInfo> carTypes;
     int selectedCarIndex;
 
     // UI Components
     QVBoxLayout* mainLayout;
     QWidget* carCardsContainer;
+    QVBoxLayout* cardsLayout;
     QButtonGroup* carButtonGroup;
 
     // Panel de detalles

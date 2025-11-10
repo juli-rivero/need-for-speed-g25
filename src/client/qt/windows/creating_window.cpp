@@ -16,7 +16,10 @@ CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
 }
-void CreatingWindow::on_create_response() { emit sessionCreated(); }
+void CreatingWindow::on_join_response(const SessionInfo&,
+                                      const std::vector<CarStaticInfo>&) {
+    emit sessionCreated();
+}
 
 void CreatingWindow::setupUI() {
     // Layout principal
@@ -145,7 +148,7 @@ void CreatingWindow::reset() {
 }
 
 void CreatingWindow::onSubmitClicked() {
-    api.request_create_session({
+    api.request_create_and_join_session({
         .name = nameEdit->text().trimmed().toUtf8().constData(),
         .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
         .raceCount = static_cast<uint8_t>(racesSpin->value()),

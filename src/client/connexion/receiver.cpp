@@ -37,19 +37,14 @@ void Receiver::delegate_response(const ResponseType& response) {
     switch (response) {
         case ResponseType::JoinResponse: {
             auto join_response = receiver.get<dto_search::JoinResponse>();
-            emitter.dispatch(&Listener::on_join_response,
-                             join_response.session);
+            emitter.dispatch(&Listener::on_join_response, join_response.session,
+                             join_response.carTypes);
             break;
         }
         case ResponseType::SearchResponse: {
             auto search_response = receiver.get<dto_search::SearchResponse>();
             emitter.dispatch(&Listener::on_search_response,
                              search_response.sessions);
-            break;
-        }
-        case ResponseType::CreateResponse: {
-            receiver.get<dto_search::CreateResponse>();
-            emitter.dispatch(&Listener::on_create_response);
             break;
         }
         case ResponseType::LeaveResponse: {

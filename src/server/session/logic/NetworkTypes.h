@@ -4,6 +4,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/structs.h"
 #include "server/session/logic/types.h"
 
 // ========= INPUTS ==========
@@ -24,13 +25,6 @@ struct RaceProgressSnapshot {
     float elapsedTime;
 };
 
-enum class CarSpriteType {
-    Speedster,
-    Muscle,
-    Offroad,
-    Truck
-    // y asi..
-};
 // estado individual del auto
 struct CarSnapshot {
     CarSpriteType type;
@@ -79,18 +73,6 @@ struct SpawnPointInfo {
     float angle;
 };
 
-struct CarStaticInfo {
-    int id;
-    std::string playerName;
-    std::string carType;
-    float width;
-    float height;
-    float maxSpeed;
-    float acceleration;
-    float control;
-    float friction;
-    float nitroMultiplier;
-};
 struct BridgeInfo {
     int id;
     float lowerX, lowerY;

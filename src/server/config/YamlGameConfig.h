@@ -6,6 +6,7 @@
 
 #include "../session/logic/types.h"
 #include "../session/model/CarType.h"
+#include "common/structs.h"
 #include "yaml-cpp/yaml.h"
 
 struct CityDefinition;
@@ -36,6 +37,7 @@ class YamlGameConfig {
     }
     const std::vector<CityDefinition>& getCities() const { return cities; }
     const std::vector<CarType>& getCarTypes() const { return carTypes; }
+    static CarSpriteType getCarSpriteType(const std::string& name);
 
     void printSummary() const;
 };

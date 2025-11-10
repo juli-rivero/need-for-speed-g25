@@ -8,12 +8,12 @@
 
 class ClientsManager {
     std::list<ClientHandler> client_handlers;
-    SessionsMonitor sessions_monitor;
+    SessionsMonitor& sessions;
     std::mutex mutex;
     int next_id = 0;
 
    public:
-    ClientsManager() = default;
+    explicit ClientsManager(SessionsMonitor&);
     MAKE_FIXED(ClientsManager)
 
     void manage_new_handler(Socket&& socket);

@@ -31,3 +31,29 @@ struct PlayerInfo {
     bool isReady;
     bool isHost;
 };
+
+enum class CarSpriteType {
+    Speedster,
+    Tank,
+    Drifter,
+    Rocket,
+    Classic,
+    Offroad,
+    Ghost
+};
+
+struct CarStaticInfo {
+    CarSpriteType type;
+
+    std::string name;
+    std::string description;
+
+    float height;
+    float width;
+
+    float maxSpeed;
+    float acceleration;
+    float mass;
+    float control;
+    mutable float health;
+};

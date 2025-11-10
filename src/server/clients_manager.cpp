@@ -4,10 +4,12 @@
 
 #include "spdlog/spdlog.h"
 
+ClientsManager::ClientsManager(SessionsMonitor& sessions)
+    : sessions(sessions) {}
+
 void ClientsManager::manage_new_handler(Socket&& socket) {
     std::lock_guard lock(mutex);
-    client_handlers.emplace_back(next_id++, std::move(socket),
-                                 sessions_monitor);
+    client_handlers.emplace_back(next_id++, std::move(socket), sessions);
 }
 
 void ClientsManager::reap_dead() {

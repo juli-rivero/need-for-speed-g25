@@ -25,7 +25,8 @@ int main(const int argc, const char* argv[]) {
 #if OFFLINE
         test();
 #else
-        const Server server(args_parser.get_port());
+        YamlGameConfig config("assets/config.yaml");
+        const Server server(args_parser.get_port(), config);
         while (std::cin.get() != 'q') {}
 #endif
         return SUCCESS;

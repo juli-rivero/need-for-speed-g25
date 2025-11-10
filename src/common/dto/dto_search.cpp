@@ -41,12 +41,28 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, JoinResponse& r) {
     p >> session.city >> session.maxPlayers >> session.name >>
         session.raceCount >> session.currentPlayers;
     session.status = static_cast<SessionStatus>(p.get<uint8_t>());
+
+    r.carTypes.resize(p.get<size_t>());
+    for (auto& car : r.carTypes) {
+        car.type = static_cast<CarSpriteType>(p.get<uint8_t>());
+        p >> car.name >> car.description >> car.height >> car.width >>
+            car.maxSpeed >> car.acceleration >> car.mass >> car.control >>
+            car.health;
+    }
     return p;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const JoinResponse& r) {
     const SessionInfo& session = r.session;
     p << session.city << session.maxPlayers << session.name << session.raceCount
       << session.currentPlayers << static_cast<uint8_t>(session.status);
+
+    p << r.carTypes.size();
+    for (const auto& car : r.carTypes) {
+        p << static_cast<uint8_t>(car.type);
+        p << car.name << car.description << car.height << car.width
+          << car.maxSpeed << car.acceleration << car.mass << car.control
+          << car.health;
+    }
     return p;
 }
 
@@ -61,11 +77,4 @@ ProtocolSender& operator<<(ProtocolSender& p, const CreateRequest& e) {
       << e.config.raceCount;
     return p;
 }
-
-// CreateResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, CreateResponse&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const CreateResponse&) {
-    return p;
-}
-
 }  // namespace dto_search

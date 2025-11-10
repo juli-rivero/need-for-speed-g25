@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "../common/macros.h"
+#include "config/YamlGameConfig.h"
 #include "session/session.h"
 #include "spdlog/spdlog.h"
 
@@ -17,8 +18,10 @@ class SessionsMonitor {
 
     std::mutex mtx;
 
+    YamlGameConfig& yaml_config;
+
    public:
-    SessionsMonitor();
+    explicit SessionsMonitor(YamlGameConfig&);
 
     MAKE_FIXED(SessionsMonitor)
 

@@ -9,6 +9,7 @@
 #include <thread>
 #include <vector>
 
+#include "common/structs.h"
 #include "config/MapLoader.h"
 #include "config/YamlGameConfig.h"
 #include "session/logic/GameSessionFacade.h"

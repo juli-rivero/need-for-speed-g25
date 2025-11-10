@@ -7,9 +7,11 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "../../common/emitter.h"
-#include "../session/game.h"
+#include "common/emitter.h"
+#include "server/config/YamlGameConfig.h"
+#include "server/session//game.h"
 #include "spdlog/spdlog.h"
 
 class Session;
@@ -24,6 +26,8 @@ class Session final {
 
     Game* game;
 
+    YamlGameConfig& yaml_config;
+
    public:
     struct Listener : common::Listener<Session::Listener> {
         Session& session;
@@ -33,7 +37,7 @@ class Session final {
         virtual void on_start_game(Game& game) = 0;
     };
 
-    explicit Session(const SessionConfig&, int creator);
+    Session(const SessionConfig&, int creator, YamlGameConfig&);
 
     MAKE_FIXED(Session)
 
@@ -44,6 +48,8 @@ class Session final {
 
     bool in_game() const;
     bool full() const;
+
+    std::vector<CarStaticInfo> get_types_of_static_cars() const;
 
     void set_ready(int client_id, bool ready);
 

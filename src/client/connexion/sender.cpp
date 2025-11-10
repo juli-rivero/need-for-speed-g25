@@ -39,7 +39,7 @@ void Sender::request_search_all_sessions() {
 void Sender::request_join_session(const std::string& session) {
     responses.try_push({RequestType::JoinRequest, JoinRequest{session}});
 }
-void Sender::request_create_session(const SessionConfig& config) {
+void Sender::request_create_and_join_session(const SessionConfig& config) {
     responses.try_push({RequestType::CreateRequest, CreateRequest{config}});
 }
 void Sender::request_leave_current_session() {

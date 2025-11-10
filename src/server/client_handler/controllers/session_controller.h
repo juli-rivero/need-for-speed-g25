@@ -21,6 +21,8 @@ class SessionController final : Session::Listener, Receiver::Listener {
     SessionController(Session&, int client_id, Api&, Receiver&,
                       ISessionEvents& handler, spdlog::logger*);
 
+    ~SessionController() override;
+
     MAKE_FIXED(SessionController)
 
     void on_start_game(Game& game) override;

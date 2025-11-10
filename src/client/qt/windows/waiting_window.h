@@ -7,6 +7,7 @@
 #include <vector>
 
 #include "client/connexion/connexion.h"
+#include "common/structs.h"
 
 class WaitingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
