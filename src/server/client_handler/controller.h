@@ -11,11 +11,14 @@
 
 class Controller final : public ISearchEvents,
                          public ISessionEvents,
-                         public IGameEvents {
+                         public IGameEvents,
+                         public Thread {
     spdlog::logger* log;
     int id;
     Api& api;
     Receiver& receiver;
+
+    Queue<std::function<void()>> events;
 
     template <typename T>
     using ptr = std::unique_ptr<T>;
@@ -30,7 +33,11 @@ class Controller final : public ISearchEvents,
 
     MAKE_FIXED(Controller)
 
+    void stop() override;
+
    private:
+    void run() override;
+
     // BROWSER EVENTS //
     void on_join_session(Session&) override;
 

@@ -38,7 +38,7 @@ void Receiver::delegate_response(const ResponseType& response) {
         case ResponseType::JoinResponse: {
             auto join_response = receiver.get<dto_search::JoinResponse>();
             emitter.dispatch(&Listener::on_join_response,
-                             join_response.session_id);
+                             join_response.session);
             break;
         }
         case ResponseType::SearchResponse: {

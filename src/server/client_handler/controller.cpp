@@ -11,17 +11,36 @@ Controller::Controller(SessionsMonitor& monitor, const int id, Api& api,
       session_controller(nullptr),
       game_controller(nullptr) {}
 
-void Controller::on_join_session(Session& s) {
-    session_controller =
-        std::make_unique<SessionController>(s, id, api, receiver, *this, log);
+void Controller::run() {
+    while (should_keep_running()) {
+        try {
+            events.pop()();
+        } catch (ClosedQueue&) {
+        }
+    }
+}
+void Controller::stop() {
+    Thread::stop();
+    events.close();
+}
+
+void Controller::on_join_session(Session& session) {
+    events.try_push([&session, this] {
+        session_controller = std::make_unique<SessionController>(
+            session, id, api, receiver, *this, log);
+    });
 }
 
 void Controller::on_start_game(Game& game) {
-    game_controller =
-        std::make_unique<GameController>(game, id, api, receiver, *this, log);
+    events.try_push([&game, this] {
+        game_controller = std::make_unique<GameController>(
+            game, id, api, receiver, *this, log);
+    });
 }
 
 void Controller::on_game_end() {
-    session_controller = nullptr;
-    game_controller = nullptr;
+    events.try_push([this] {
+        session_controller = nullptr;
+        game_controller = nullptr;
+    });
 }

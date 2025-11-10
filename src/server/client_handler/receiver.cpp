@@ -10,7 +10,9 @@ Receiver::Receiver(ProtocolReceiver& receiver, spdlog::logger* log)
     : receiver(receiver), log(log) {}
 
 Receiver::Listener::Listener(Receiver& receiver)
-    : common::Listener<Receiver::Listener>(receiver.emitter) {}
+    : common::Listener<Receiver::Listener>(receiver.emitter) {
+    receiver.log->trace("new listener added");
+}
 
 void Receiver::run() {
     while (should_keep_running()) {

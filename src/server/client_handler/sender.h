@@ -14,7 +14,7 @@
 
 struct Api {
     virtual void reply_search(const std::vector<SessionInfo>&) = 0;
-    virtual void reply_joined() = 0;
+    virtual void reply_joined(const SessionInfo& session) = 0;
     virtual void reply_created() = 0;
     virtual void reply_left() = 0;
     virtual void reply_started() = 0;
@@ -37,7 +37,7 @@ class Sender final : public Thread, public Api {
     MAKE_FIXED(Sender)
 
     void reply_search(const std::vector<SessionInfo>&) override;
-    void reply_joined() override;
+    void reply_joined(const SessionInfo& session) override;
     void reply_created() override;
     void reply_left() override;
     void reply_started() override;

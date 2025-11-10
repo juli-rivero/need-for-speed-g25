@@ -29,9 +29,10 @@ void SearchController::on_join_request(const std::string& session_id) {
     try {
         Session& session = sessions_monitor.get_session(session_id);
         session.add_client(client_id);
+        log->trace("added client to session");
         dispatcher.on_join_session(session);
         log->trace("joined session");
-        api.reply_joined();
+        api.reply_joined(session.get_info());
     } catch (const std::runtime_error& e) {
         log->trace("could not join session: {}", e.what());
         api.reply_error(e.what());

@@ -18,6 +18,7 @@ ClientHandler::ClientHandler(const int id, Socket&& socket,
     log->debug("Created");
     receiver.start();
     sender.start();
+    controller.start();
 }
 
 bool ClientHandler::is_alive() const {
@@ -25,6 +26,7 @@ bool ClientHandler::is_alive() const {
 }
 
 ClientHandler::~ClientHandler() {
+    controller.stop();
     if (sender.is_alive()) {
         sender.stop();
     }
