@@ -17,11 +17,11 @@ clean:
 	rm -Rf build/
 
 editor: build
-	./build/taller_editor
+	./build/taller_editor $(ARGS)
 client: build
-	./build/taller_client
+	./build/taller_client $(ARGS)
 server: build
-	./build/taller_server
+	./build/taller_server $(ARGS)
 
 
 .PHONY: hooks
@@ -39,5 +39,5 @@ else
 endif
 
 exec: build
-	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server; exec bash"
-	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client; exec bash"
+	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server $(ARGS); exec bash"
+	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client $(ARGS); exec bash"
