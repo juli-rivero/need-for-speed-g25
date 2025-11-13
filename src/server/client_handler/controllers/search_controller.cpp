@@ -29,8 +29,10 @@ void SearchController::on_join_request(const std::string& session_id) {
     try {
         Session& session = sessions_monitor.get_session(session_id);
         session.add_client(client_id);
-        log->trace("added client to session");
         dispatcher.on_join_session(session);
+        log->trace("added client to session");
+        api.reply_joined(session.get_info(),
+                         session.get_types_of_static_cars());
     } catch (const std::runtime_error& e) {
         log->trace("could not join session: {}", e.what());
         api.reply_error(e.what());
@@ -50,9 +52,8 @@ void SearchController::on_search_request() {
 }
 void SearchController::on_create_request(const SessionConfig& session_config) {
     sessions_monitor.create_session(session_config, client_id);
-    Session& session = sessions_monitor.get_session(client_id);
-    dispatcher.on_join_session(session);
     log->trace("created session");
+    on_join_request(session_config.name);
 }
 void SearchController::on_leave_request() {
     sessions_monitor.leave_session(client_id);

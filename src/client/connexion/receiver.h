@@ -32,6 +32,8 @@ class Receiver final : public Thread {
                                       const std::vector<CarStaticInfo>&) {}
         virtual void on_leave_response() {}
         virtual void on_start_response() {}
+        virtual void on_session_snapshot(const SessionConfig&,
+                                         const std::vector<PlayerInfo>&) {}
         ~Listener() override = default;
     };
 

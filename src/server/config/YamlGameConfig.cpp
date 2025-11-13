@@ -85,6 +85,14 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     }
 }
 
+const std::vector<RaceDefinition>& YamlGameConfig::getRaces(
+    const CityId& city) const {
+    for (const auto& c : cities) {
+        if (c.name == city) return c.races;
+    }
+    throw std::invalid_argument("City not found: " + city);
+}
+
 CarSpriteType YamlGameConfig::getCarSpriteType(const std::string& name) {
     if (name == "Speedster") return CarSpriteType::Speedster;
     if (name == "Tank") return CarSpriteType::Tank;

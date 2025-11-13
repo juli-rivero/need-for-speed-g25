@@ -23,15 +23,6 @@ struct SessionInfo {
     SessionStatus status;
 };
 
-// Estructura para representar un jugador en la sala de espera
-struct PlayerInfo {
-    int id;
-    std::string name;
-    int carType;
-    bool isReady;
-    bool isHost;
-};
-
 enum class CarSpriteType {
     Speedster,
     Tank,
@@ -40,6 +31,14 @@ enum class CarSpriteType {
     Classic,
     Offroad,
     Ghost
+};
+
+// Estructura para representar un jugador en la sala de espera
+struct PlayerInfo {
+    std::string name;
+    CarSpriteType carType;
+    bool isReady;
+    bool isHost;
 };
 
 struct CarStaticInfo {

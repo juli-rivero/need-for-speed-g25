@@ -5,6 +5,7 @@
 #include <QMessageBox>
 
 #include "client/qt/theme_manager.h"
+#include "client/qt/ui/CarSprite.h"
 
 WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
@@ -13,6 +14,12 @@ WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
+}
+void WaitingWindow::on_session_snapshot(
+    const SessionConfig&, const std::vector<PlayerInfo>& player_infos) {
+    QMetaObject::invokeMethod(
+        this, [this, player_infos]() { updatePlayersList(player_infos); },
+        Qt::QueuedConnection);
 }
 
 void WaitingWindow::setupUI() {
@@ -109,7 +116,8 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
         hlayout->setContentsMargins(15, 10, 15, 10);
 
         // Icono del auto
-        QLabel* carIcon = new QLabel(getCarEmoji(player.carType));
+        QLabel* carIcon =
+            new QLabel(CarSprite::getSprite(player.carType).c_str());
         carIcon->setStyleSheet(
             QString("font-size: 32px; border: none; color: %1;")
                 .arg(palette.textPrimary));
@@ -178,25 +186,6 @@ void WaitingWindow::updateStatusMessage() {
         statusLabel->setText(
             "⏳ Esperando que todos los jugadores estén listos...");
         statusLabel->setStyleSheet("color: #95a5a6; font-size: 12px;");
-    }
-}
-
-QString WaitingWindow::getCarEmoji(int carType) const {
-    switch (carType) {
-        case 0:
-            return "🏎️";  // Deportivo
-        case 1:
-            return "🚗";  // Sedán
-        case 2:
-            return "🚙";  // SUV
-        case 3:
-            return "🚚";  // Camión
-        case 4:
-            return "🚗";  // Muscle Car
-        case 5:
-            return "🚕";  // Compacto
-        default:
-            return "🚗";
     }
 }
 

@@ -6,6 +6,7 @@ using dto::RequestType;
 using dto_search::CreateRequest;
 using dto_search::JoinRequest;
 using dto_search::SearchRequest;
+using dto_session::ChooseCarRequest;
 using dto_session::LeaveRequest;
 using dto_session::StartRequest;
 
@@ -47,4 +48,8 @@ void Sender::request_leave_current_session() {
 }
 void Sender::request_start_session() {
     responses.try_push({RequestType::StartRequest, StartRequest{}});
+}
+void Sender::choose_car(const std::string& car_name) {
+    responses.try_push(
+        {RequestType::ChooseCarRequest, ChooseCarRequest{car_name}});
 }

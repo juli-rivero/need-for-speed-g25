@@ -17,6 +17,9 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
    public:
     explicit WaitingWindow(QWidget* parent, Connexion&);
 
+    void on_session_snapshot(const SessionConfig&,
+                             const std::vector<PlayerInfo>&) override;
+
     // Configurar la sala de espera
     void setGameInfo(int gameId, const std::vector<PlayerInfo>& players);
     void updatePlayersList(const std::vector<PlayerInfo>& players);
@@ -37,7 +40,6 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
    private:
     void setupUI();
     void updateStatusMessage();
-    QString getCarEmoji(int carType) const;
 
     // Widgets
     QLabel* titleLabel;

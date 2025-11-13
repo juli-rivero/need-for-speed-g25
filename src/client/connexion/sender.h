@@ -15,6 +15,7 @@ struct Api {
     virtual void request_create_and_join_session(const SessionConfig&) = 0;
     virtual void request_leave_current_session() = 0;
     virtual void request_start_session() = 0;
+    virtual void choose_car(const std::string& car_name) = 0;
     virtual ~Api() = default;
 };
 
@@ -36,4 +37,5 @@ class Sender final : public Thread, public Api {
     void request_create_and_join_session(const SessionConfig&) override;
     void request_leave_current_session() override;
     void request_start_session() override;
+    void choose_car(const std::string& car_name) override;
 };

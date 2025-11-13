@@ -8,6 +8,7 @@ using dto::ResponseType;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
 using dto_session::LeaveResponse;
+using dto_session::SessionSnapshot;
 using dto_session::StartResponse;
 
 using std::string;
@@ -67,4 +68,10 @@ void Sender::reply_started() {
 void Sender::reply_error(const string& message) {
     log->trace("sending error response");
     responses.try_push({ResponseType::ErrorResponse, ErrorResponse{message}});
+}
+void Sender::send_session_snapshot(const SessionConfig& config,
+                                   const std::vector<PlayerInfo>& players) {
+    log->trace("sending session snapshot");
+    responses.try_push(
+        {ResponseType::SessionSnapshot, SessionSnapshot{config, players}});
 }

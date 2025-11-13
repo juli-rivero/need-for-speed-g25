@@ -10,11 +10,19 @@
 #include <vector>
 
 #include "common/emitter.h"
+#include "common/macros.h"
+#include "logic/GameSessionFacade.h"
 #include "server/config/YamlGameConfig.h"
-#include "server/session//game.h"
 #include "spdlog/spdlog.h"
 
 class Session;
+
+struct UserSetup {
+    PlayerConfig game_config;
+    bool ready{false};
+
+    UserSetup(const std::string& name, int id);
+};
 
 class Session final {
     const SessionConfig config;
@@ -24,9 +32,11 @@ class Session final {
     std::unordered_map<int, UserSetup> users_setup;
     std::mutex mtx;
 
-    Game* game;
+    GameSessionFacade game;
 
     YamlGameConfig& yaml_config;
+
+    const int creator;
 
    public:
     struct Listener : common::Listener<Session::Listener> {
@@ -34,7 +44,9 @@ class Session final {
 
         explicit Listener(Session& session);
 
-        virtual void on_start_game(Game& game) = 0;
+        virtual void on_start_game(GameSessionFacade& game) = 0;
+        virtual void on_session_updated(
+            const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
     };
 
     Session(const SessionConfig&, int creator, YamlGameConfig&);
@@ -51,6 +63,8 @@ class Session final {
 
     std::vector<CarStaticInfo> get_types_of_static_cars() const;
 
+    void set_car(int client_id, const std::string& car_name);
+
     void set_ready(int client_id, bool ready);
 
     ~Session();
@@ -61,4 +75,6 @@ class Session final {
     void start_game();
 
     bool all_ready() const;
+
+    void notify_change();
 };

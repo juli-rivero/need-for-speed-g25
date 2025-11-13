@@ -21,7 +21,6 @@ SessionController::SessionController(Session& session, const int client_id,
       api(api),
       dispatcher(handler) {
     log->debug("controlling lobby");
-    api.reply_joined(session.get_info(), session.get_types_of_static_cars());
 }
 
 SessionController::~SessionController() {
@@ -39,7 +38,15 @@ void SessionController::on_start_request(const bool ready) {
         api.reply_error(e.what());
     }
 }
+void SessionController::on_choose_car(const std::string& car_name) {
+    session.set_car(client_id, car_name);
+}
 
-void SessionController::on_start_game(Game& game) {
+void SessionController::on_session_updated(
+    const SessionConfig& config, const std::vector<PlayerInfo>& players) {
+    api.send_session_snapshot(config, players);
+}
+
+void SessionController::on_start_game(GameSessionFacade& game) {
     dispatcher.on_start_game(game);
 }

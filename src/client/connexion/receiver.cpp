@@ -57,6 +57,12 @@ void Receiver::delegate_response(const ResponseType& response) {
             emitter.dispatch(&Listener::on_start_response);
             break;
         }
+        case ResponseType::SessionSnapshot: {
+            const auto snapshot = receiver.get<dto_session::SessionSnapshot>();
+            emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
+                             snapshot.players);
+            break;
+        }
         default:
             throw std::runtime_error("Unknown response type");
     }

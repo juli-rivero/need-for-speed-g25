@@ -36,8 +36,10 @@ class YamlGameConfig {
         return penalties;
     }
     const std::vector<CityDefinition>& getCities() const { return cities; }
+    const std::vector<RaceDefinition>& getRaces(const CityId& city) const;
     const std::vector<CarType>& getCarTypes() const { return carTypes; }
     static CarSpriteType getCarSpriteType(const std::string& name);
+    static constexpr auto DefaultCar = "Classic";
 
     void printSummary() const;
 };

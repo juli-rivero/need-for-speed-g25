@@ -6,6 +6,7 @@
 #include <QScrollArea>
 
 #include "client/qt/theme_manager.h"
+#include "client/qt/ui/CarSprite.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
@@ -191,7 +192,7 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     cardLayout->addWidget(radioBtn);
 
     // Emoji del auto
-    QLabel* emojiLabel = new QLabel(getCarEmoji(car.type).c_str());
+    QLabel* emojiLabel = new QLabel(CarSprite::getSprite(car.type).c_str());
     emojiLabel->setStyleSheet("font-size: 32px;");
     cardLayout->addWidget(emojiLabel);
 
@@ -245,10 +246,12 @@ QProgressBar* SelectingWindow::createStatBar(float value) {
 void SelectingWindow::onCarSelected(int carIndex) {
     selectedCarIndex = carIndex;
     updateCarDetails(carIndex);
-    emit carSelected(carIndex);
 }
 
-void SelectingWindow::onConfirmClicked() { emit confirmRequested(); }
+void SelectingWindow::onConfirmClicked() {
+    api.choose_car(carTypes[selectedCarIndex].name);
+    emit confirmRequested();
+}
 
 void SelectingWindow::onCancelClicked() { emit cancelRequested(); }
 
@@ -284,7 +287,8 @@ void SelectingWindow::updateCarDetails(int carIndex) {
 
     const CarStaticInfo& car = carTypes[carIndex];
 
-    carNameLabel->setText((getCarEmoji(car.type) + " " + car.name).c_str());
+    carNameLabel->setText(
+        (CarSprite::getSprite(car.type) + " " + car.name).c_str());
     carDescLabel->setText(car.description.c_str());
 
     speedBar->setValue(static_cast<int>(car.maxSpeed * 100));
@@ -300,25 +304,6 @@ void SelectingWindow::updateCarDetails(int carIndex) {
     healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
     massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
     controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
-}
-std::string SelectingWindow::getCarEmoji(CarSpriteType carType) const {
-    switch (carType) {
-        case CarSpriteType::Classic:
-            return "🚗";
-        case CarSpriteType::Drifter:
-            return "💨";
-        case CarSpriteType::Ghost:
-            return "👻";
-        case CarSpriteType::Offroad:
-            return "🚜";
-        case CarSpriteType::Rocket:
-            return "🚀";
-        case CarSpriteType::Speedster:
-            return "🏎️";
-        case CarSpriteType::Tank:
-            return "🛡️";
-    }
-    return "";
 }
 
 /*CarConfig SelectingWindow::getSelectedCar() const {

@@ -42,8 +42,6 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     QProgressBar* createStatBar(float value);
     void updateCarDetails(int carIndex);
 
-    std::string getCarEmoji(CarSpriteType carType) const;
-
     std::vector<CarStaticInfo> carTypes;
     int selectedCarIndex;
 

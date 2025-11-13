@@ -1,8 +1,8 @@
 #define DECLARE_SENDABLE(Type) \
-	friend ProtocolSender& operator<<(ProtocolSender& p, const Type& e);
+	friend ProtocolSender& operator<<(ProtocolSender& p, const Type&);
 
 #define DECLARE_RECEIVABLE(Type) \
-	friend ProtocolReceiver& operator>>(ProtocolReceiver& p, Type& e);
+	friend ProtocolReceiver& operator>>(ProtocolReceiver& p, Type&);
 
 #define DECLARE_SERIALIZABLE(Type) \
 	DECLARE_SENDABLE(Type)        \
