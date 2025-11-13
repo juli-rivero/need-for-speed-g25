@@ -12,25 +12,30 @@
 class CollisionManager {
    private:
     // Mapeo de cuerpo físico → puntero lógico (Car, Wall, Checkpoint, etc.)
-    std::unordered_map<b2BodyId, Entity*, b2BodyIdHasher, b2BodyIdEqual>
-        bodyToEntity;
+    std::unordered_map<b2ShapeId, Entity*, b2ShapeIdHasher, b2ShapeIdEqual>
+        shapeToEntity;
+    std::unordered_map<const Car*,PlayerId> carToPlayer;
     RaceSession* raceSession{nullptr};
 
     void handleHitEvents(const b2ContactEvents& events);
     void resolvePhysicalImpact(void* a, void* b, float impact);
-    void handleBeginTouch(const b2ContactEvents& events);
+    //void handleBeginTouch(const b2ContactEvents& events);
     // void handleEndTouch (const b2ContactEvents& events);
    public:
     CollisionManager() = default;
 
     template <typename T>
-    void registerEntity(b2BodyId bodyId, T* entity) {
+    void registerEntity(b2ShapeId shapeId, T* entity) {
         static_assert(std::is_base_of_v<Entity, T>, "T debe derivar de Entity");
-        bodyToEntity[bodyId] = entity;
+        shapeToEntity[shapeId] = entity;
+    }
+    void registerCar(const Car* car,PlayerId playerId) {
+        carToPlayer[car] = playerId;
     }
 
-    void unregisterEntity(b2BodyId bodyId) { bodyToEntity.erase(bodyId); }
+    void unregisterEntity(b2ShapeId shapeId) { shapeToEntity.erase(shapeId); }
     void setRaceSession(RaceSession* session) { raceSession = session; }
+    void processSensors(const b2SensorEvents& events);
 
     void process(const b2ContactEvents& events);
 };

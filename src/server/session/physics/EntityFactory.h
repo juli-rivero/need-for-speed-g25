@@ -4,7 +4,6 @@
 #include "../model/Bridge.h"
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
-#include "../model/Hint.h"
 #include "../model/Wall.h"
 #include "Box2DPhysicsWorld.h"
 
@@ -25,7 +24,6 @@ class EntityFactory {
     static std::unique_ptr<Checkpoint> createCheckpoint(
         Box2DPhysicsWorld& world, float x, float y, float w, float h,
         float angle, int order);
-    static std::unique_ptr<Hint> createHint(float x, float y, float angle);
     static std::unique_ptr<Bridge> createBridge(Box2DPhysicsWorld& world,
                                                 float x, float y, float w,
                                                 float h, bool driveable);

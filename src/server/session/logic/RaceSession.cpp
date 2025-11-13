@@ -8,32 +8,33 @@
 #include "../../config/MapLoader.h"
 
 RaceSession::RaceSession(
-    const YamlGameConfig& cfg, CityId city, std::vector<Checkpoint> checkpoints,
-    std::vector<Hint> hints,
+    const YamlGameConfig& cfg, CityId city, std::vector<std::unique_ptr<Checkpoint>> checkpoints,
     const std::vector<std::shared_ptr<Car>>& playersCars,
+    const std::vector<PlayerId>& playerIds,
     std::vector<SpawnPoint> spawn_points,
     std::unordered_map<PlayerId, float> initialPenaltiesForThisRace)
     : _cfg(cfg),
       _city(city),
       _checkpoints(std::move(checkpoints)),
-      _hints(std::move(hints)),
       _spawnPoints(std::move(spawn_points)) {
-    orderCheckpointsByOrder();
+
 
     _players.reserve(playersCars.size());
-    for (const auto& carPtr : playersCars) {
+    for (size_t i = 0; i < playersCars.size(); ++i) {
         PlayerRaceData prd;
-        prd.id = static_cast<PlayerId>(carPtr->getId());
-        prd.car = carPtr;
+        prd.id = playerIds[i];
+        prd.car = playersCars[i];
         prd.penaltyTime = initialPenaltiesForThisRace[prd.id];
         _players.push_back(std::move(prd));
     }
+    orderCheckpointsByOrder();
 }
 
 void RaceSession::orderCheckpointsByOrder() {
     std::sort(_checkpoints.begin(), _checkpoints.end(),
-              [](const Checkpoint& a, const Checkpoint& b) {
-                  return a.getOrder() < b.getOrder();
+              [](const std::unique_ptr<Checkpoint>& a,
+                 const std::unique_ptr<Checkpoint>& b) {
+                  return a->getOrder() < b->getOrder();
               });
 }
 
@@ -118,19 +119,12 @@ std::vector<PlayerResult> RaceSession::makeResults() const {
 }
 
 // Visibilidad: siguiente CP e hints asociados
-std::optional<Checkpoint> RaceSession::nextCheckpointFor(PlayerId p) const {
+std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(PlayerId p) const {
     auto it = std::find_if(_players.begin(), _players.end(),
                            [&](const auto& pr) { return pr.id == p; });
     if (it == _players.end()) return std::nullopt;
     if (it->nextCheckpoint >= _checkpoints.size()) return std::nullopt;
-    return _checkpoints[it->nextCheckpoint];
-}
-
-std::vector<Hint> RaceSession::hintsTowardsNextFor(PlayerId p) const {
-    // Todo(elvis): una estrategia simple para devolver todos los hints del mapa
-    // o filtrar por "sector".
-    (void)p;  // evita warning mientras no se usa
-    return _hints;
+    return _checkpoints[it->nextCheckpoint].get();
 }
 
 // IRaceEvents desde colisiones/sensores
@@ -140,29 +134,28 @@ void RaceSession::onCheckpointCrossed(PlayerId player, int checkpointOrder) {
     if (itP == _players.end() || itP->finished || itP->disqualified) return;
 
     if (itP->nextCheckpoint < _checkpoints.size() &&
-        _checkpoints[itP->nextCheckpoint].getOrder() == checkpointOrder) {
+        _checkpoints[itP->nextCheckpoint]->getOrder() == checkpointOrder) {
         ++(itP->nextCheckpoint);
     }
-}
-
-void RaceSession::onCarHighImpact(PlayerId player, float impactFactor) {
-    // ejemplo: daño y reducción de velocidad (TODO(elvis): delegar al Car)
-    auto itP = std::find_if(_players.begin(), _players.end(),
-                            [&](const auto& pr) { return pr.id == player; });
-    if (itP == _players.end() || itP->finished || itP->disqualified) return;
-
-    if (auto car = itP->car) {
-        // TODO(elvis) car->applyDamage(impactFactor * cfgFactor); // agrega a
-        // tu Car
-        //  si cae a 0 → destruir
-        //  if (car->health() <= 0) onCarDestroyed(player);
-        float dmg = impactFactor * 0.5f;
-        car->damage(dmg);
-        if (car->isDestroyed()) {
-            onCarDestroyed(player);
-        }
+    if (itP->nextCheckpoint >= _checkpoints.size()) {
+        itP->finished = true;
+        std::cout << " Player " << player << " completó la carrera!\n";
     }
 }
+RaceProgressSnapshot RaceSession::getProgressForPlayer(PlayerId id) const {
+    RaceProgressSnapshot rp{};
+    auto it = std::find_if(_players.begin(), _players.end(),
+                           [&](const auto& p){ return p.id == id; });
+    if (it != _players.end()) {
+        rp.playerId = it->id;
+        rp.nextCheckpoint = it->nextCheckpoint;
+        rp.finished = it->finished;
+        rp.disqualified = it->disqualified;
+        rp.elapsedTime = it->elapsed;
+    }
+    return rp;
+}
+
 
 void RaceSession::onCarDestroyed(PlayerId player) {
     auto itP = std::find_if(_players.begin(), _players.end(),

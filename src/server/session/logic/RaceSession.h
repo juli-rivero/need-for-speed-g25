@@ -4,18 +4,16 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
-
+#include "NetworkTypes.h"
 #include "../../config/YamlGameConfig.h"
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
-#include "../model/Hint.h"
 #include "server/session/logic/types.h"
 
 struct SpawnPoint;
 struct PlayerRaceData {
     PlayerId id{};
-    std::shared_ptr<Car>
-        car;  // modelo lógico del auto (compartido con GameWorld)
+    std::shared_ptr<Car> car;  // modelo lógico del auto (compartido con GameWorld)
     std::size_t nextCheckpoint{0};
     bool finished{false};
     bool disqualified{false};
@@ -29,8 +27,9 @@ class RaceSession {
 
     RaceSession(
         const YamlGameConfig& cfg, CityId city,
-        std::vector<Checkpoint> checkpoints, std::vector<Hint> hints,
+        std::vector<std::unique_ptr<Checkpoint>> checkpoints,
         const std::vector<std::shared_ptr<Car>>& playersCars,
+        const std::vector<PlayerId>& playerIds,
         std::vector<SpawnPoint> spawn_points,
         std::unordered_map<PlayerId, float> initialPenaltiesForThisRace);
 
@@ -44,24 +43,22 @@ class RaceSession {
     std::vector<PlayerResult> makeResults() const;
 
     // visibilidad de UI: próximo CP e hints (para "mostrar en orden")
-    std::optional<Checkpoint> nextCheckpointFor(PlayerId p) const;
-    std::vector<Hint> hintsTowardsNextFor(PlayerId p) const;
+    std::optional<const Checkpoint*> nextCheckpointFor(PlayerId p) const;
 
     // IRaceEvents (llamados por colisiones / sensores)
     void onCheckpointCrossed(PlayerId player, int checkpointOrder);
-    void onCarHighImpact(PlayerId player, float impactFactor);
     void onCarDestroyed(PlayerId player);
 
     // util
     State state() const { return _state; }
     float elapsedRaceTime() const { return _raceClock; }
-    const std::vector<Checkpoint>& getCheckpoints() const {
+    const std::vector<std::unique_ptr<Checkpoint>>& getCheckpoints() const {
         return _checkpoints;
     }
-    const std::vector<Hint>& getHints() const { return _hints; }
     const std::vector<PlayerRaceData>& getPlayerStates() const {
         return _players;
     }
+    RaceProgressSnapshot getProgressForPlayer(PlayerId id) const;
     const std::vector<std::shared_ptr<Car>>& getCars() const {
         static std::vector<std::shared_ptr<Car>> carsCache;
         carsCache.clear();
@@ -83,8 +80,7 @@ class RaceSession {
     float _raceClock{0.0f};      // reloj global de la carrera
     float _countdownTime{3.0f};  // opcional: 3s antes de largar
 
-    std::vector<Checkpoint> _checkpoints;  // ordenados por "order"
-    std::vector<Hint> _hints;
+    std::vector<std::unique_ptr<Checkpoint>> _checkpoints;  // ordenados por "order"
     std::vector<PlayerRaceData> _players;
     std::vector<SpawnPoint> _spawnPoints;
 

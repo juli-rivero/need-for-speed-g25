@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "../session/model/Checkpoint.h"
-#include "../session/model/Hint.h"
 #include "../session/physics/Box2DPhysicsWorld.h"
 #include "server/session/model/Bridge.h"
 #include "server/session/model/Wall.h"
@@ -23,7 +22,6 @@ class MapLoader {
                                 Box2DPhysicsWorld& world,
                                 std::vector<std::unique_ptr<Wall>>& walls,
                                 std::vector<std::unique_ptr<Bridge>>& bridges,
-                                std::vector<Checkpoint>& checkpoints,
-                                std::vector<Hint>& hints,
+                                std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
                                 std::vector<SpawnPoint>& spawnPoints);
 };

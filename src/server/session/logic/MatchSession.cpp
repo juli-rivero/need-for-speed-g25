@@ -33,12 +33,11 @@ void MatchSession::startRace(std::size_t raceIndex) {
 
     std::vector<std::unique_ptr<Wall>> walls;
     std::vector<std::unique_ptr<Bridge>> bridges;
-    std::vector<Checkpoint> checkpoints;
-    std::vector<Hint> hints;
+    std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
-
+    std::vector<PlayerId> playerIds;
     MapLoader::loadFromYAML(_races[raceIndex].mapFile, _world, walls, bridges,
-                            checkpoints, hints, spawnPoints);
+                            checkpoints, spawnPoints);
 
     // Si es la primera carrera, guardá muros/puentes
     if (_walls.empty()) _walls = std::move(walls);
@@ -67,8 +66,10 @@ void MatchSession::startRace(std::size_t raceIndex) {
         }
 
         auto car = EntityFactory::createCar(_world, *chosenType, sp.x, sp.y);
+        _world.getCollisionManager().registerCar(car.get(),p.id);
         auto player = std::make_unique<Player>(p.id, p.name, std::move(car));
         cars.push_back(player->getCar());
+        playerIds.push_back(p.id);
         _players[p.id] = std::move(player);
 
         std::cout << " Jugador " << p.name << " usa auto tipo '"
@@ -77,8 +78,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
     }
 
     _race = std::make_unique<RaceSession>(
-        _cfg, _races[raceIndex].city, std::move(checkpoints), std::move(hints),
-        std::move(cars), std::move(spawnPoints), _penaltiesForNextRace);
+        _cfg, _races[raceIndex].city, std::move(checkpoints),
+        std::move(cars), playerIds,std::move(spawnPoints), _penaltiesForNextRace);
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
     _penaltiesForNextRace.clear();
@@ -112,15 +113,6 @@ CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     return cs;
 }
 
-RaceProgressSnapshot MatchSession::makeRaceProgress(const PlayerRaceData& p) {
-    RaceProgressSnapshot rp;
-    rp.playerId = p.id;
-    rp.nextCheckpoint = p.nextCheckpoint;
-    rp.finished = p.finished;
-    rp.disqualified = p.disqualified;
-    rp.elapsedTime = p.elapsed;
-    return rp;
-}
 
 WorldSnapshot MatchSession::getSnapshot() {
     WorldSnapshot snap;
@@ -139,7 +131,9 @@ WorldSnapshot MatchSession::getSnapshot() {
         ps.id = id;
         ps.name = player->getName();
         ps.car = makeCarSnapshot(player->getCar());
-        ps.raceProgress = player->snapshot();
+        ps.raceProgress = _race->getProgressForPlayer(id);
+        std::cout << "[SnapshotDBG] Player " << id
+             << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
         snap.players.push_back(std::move(ps));
     }
 
@@ -175,21 +169,13 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
     }
     for (const auto& cp : _race->getCheckpoints()) {
         CheckpointInfo ci;
-        ci.id = cp.getId();
-        ci.order = cp.getOrder();
-        ci.x = cp.getPosition().x;
-        ci.y = cp.getPosition().y;
-        ci.w = cp.getWidth();
-        ci.h = cp.getHeight();
+        ci.id = cp->getId();
+        ci.order = cp->getOrder();
+        ci.x = cp->getPosition().x;
+        ci.y = cp->getPosition().y;
+        ci.w = cp->getWidth();
+        ci.h = cp->getHeight();
         s.checkpoints.push_back(ci);
-    }
-
-    for (const auto& h : _race->getHints()) {
-        HintInfo hi;
-        hi.id = h.getId();
-        hi.x = h.getPosition().x;
-        hi.y = h.getPosition().y;
-        s.hints.push_back(hi);
     }
 
     for (size_t i = 0; i < _race->getSpawnPoints().size(); ++i) {

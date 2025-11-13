@@ -19,11 +19,10 @@ void GameSessionFacade::start(const std::vector<RaceDefinition>& races,
 void GameSessionFacade::update(float dt) {
     if (!running || !match) return;
 
-    world.step(dt);
-    // 🔹 Aplicar los estados de input actuales a cada jugador
     for (auto& [id, st] : inputStates) {
         match->applyInput(id, st);
     }
+    world.step(dt);
     match->update(dt);
 
     if (match->state() == State::Finished) {

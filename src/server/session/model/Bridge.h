@@ -24,7 +24,7 @@ class Bridge : public Entity {
           height(h),
           driveable(driveable) {}
 
-    int getId() const { return id; }
+    int getId() const override{ return id; }
     Vec2 getLowerPosition() const { return lowerBody->getPosition(); }
     Vec2 getUpperPosition() const { return upperBody->getPosition(); }
     float getWidth() const { return width; }

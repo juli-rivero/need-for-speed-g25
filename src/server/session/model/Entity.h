@@ -11,4 +11,5 @@ class Entity {
     Entity(int id, EntityType type) : id(id), type(type) {}
     virtual ~Entity() = default;
     EntityType getEntityType() const { return type; }
+    virtual int getId() const { return id; }
 };

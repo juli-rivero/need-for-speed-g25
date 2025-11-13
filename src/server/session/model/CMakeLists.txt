@@ -3,7 +3,6 @@ target_sources(taller_server
         Bridge.h
         Car.h
         Checkpoint.h
-        Hint.h
         Player.h
         Wall.h
         CarType.h

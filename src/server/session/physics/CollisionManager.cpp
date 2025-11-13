@@ -4,22 +4,20 @@
 
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
-#include "../model/Hint.h"
 #include "../model/Wall.h"
-class Hint;
 
 void CollisionManager::handleHitEvents(const b2ContactEvents& events) {
     std::cout << "[CollisionManager] hitCount = " << events.hitCount
               << std::endl;
     for (int i = 0; i < events.hitCount; ++i) {
         const b2ContactHitEvent& ev = events.hitEvents[i];
-        b2BodyId bodyA = b2Shape_GetBody(ev.shapeIdA);
-        b2BodyId bodyB = b2Shape_GetBody(ev.shapeIdB);
+        b2ShapeId shapeA = ev.shapeIdA;
+        b2ShapeId shapeB = ev.shapeIdB;
         float impact = ev.approachSpeed;
 
-        auto itA = bodyToEntity.find(bodyA);
-        auto itB = bodyToEntity.find(bodyB);
-        if (itA == bodyToEntity.end() || itB == bodyToEntity.end()) continue;
+        auto itA = shapeToEntity.find(shapeA); // Buscar en shapeToEntity
+        auto itB = shapeToEntity.find(shapeB); // Buscar en shapeToEntity
+        if (itA == shapeToEntity.end() || itB == shapeToEntity.end()) continue;
 
         void* entA = itA->second;
         void* entB = itB->second;
@@ -30,26 +28,31 @@ void CollisionManager::handleHitEvents(const b2ContactEvents& events) {
 void CollisionManager::resolvePhysicalImpact(void* a, void* b, float impact) {
     auto* entA = static_cast<Entity*>(a);
     auto* entB = static_cast<Entity*>(b);
-
     if (!entA || !entB) return;
 
-    // 🚗💥 Muro - Auto
+    std::cout << "  [Impact] A=" << (int)entA->getEntityType()
+              << " B=" << (int)entB->getEntityType()
+              << " impact=" << impact << std::endl;
+
     if (entA->getEntityType() == EntityType::Car &&
         entB->getEntityType() == EntityType::Wall) {
         auto* car = static_cast<Car*>(entA);
         car->damage(impact * 0.5f);
+        std::cout << "    💥 Car<" << car->getId()
+                  << "> golpeó un muro, daño=" << (impact * 0.5f)
+                  << " vida=" << car->getHealth() << std::endl;
         return;
-    }
-
-    // caso inverso (mismo efecto) Box2D no garantiza el orden de los cuerpos
-    // A/B en cada contacto.Por eso siempre hay que manejar ambos sentidos.
+        }
 
     if (entA->getEntityType() == EntityType::Wall &&
         entB->getEntityType() == EntityType::Car) {
         auto* car = static_cast<Car*>(entB);
         car->damage(impact * 0.5f);
+        std::cout << "    💥 Car<" << car->getId()
+                  << "> golpeó un muro (inv), daño=" << (impact * 0.5f)
+                  << " vida=" << car->getHealth() << std::endl;
         return;
-    }
+        }
 
     if (entA->getEntityType() == EntityType::Car &&
         entB->getEntityType() == EntityType::Car) {
@@ -57,63 +60,106 @@ void CollisionManager::resolvePhysicalImpact(void* a, void* b, float impact) {
         auto* car2 = static_cast<Car*>(entB);
         car1->damage(impact * 0.5f);
         car2->damage(impact * 0.5f);
-    }
+        std::cout << "    🚗💥🚗 Car<" << car1->getId()
+                  << "> vs Car<" << car2->getId()
+                  << "> daño=" << (impact * 0.5f)
+                  << " vidaA=" << car1->getHealth()
+                  << " vidaB=" << car2->getHealth() << std::endl;
+        }
 }
-void CollisionManager::handleBeginTouch(const b2ContactEvents& events) {
-    for (int i = 0; i < events.beginCount; ++i) {
-        const b2ContactBeginTouchEvent& ev = events.beginEvents[i];
-        b2BodyId bodyA = b2Shape_GetBody(ev.shapeIdA);
-        b2BodyId bodyB = b2Shape_GetBody(ev.shapeIdB);
-
-        auto itA = bodyToEntity.find(bodyA);
-        auto itB = bodyToEntity.find(bodyB);
-        if (itA == bodyToEntity.end() || itB == bodyToEntity.end()) continue;
-
-        const Car* car = nullptr;
-        const Checkpoint* cp = nullptr;
-        const Hint* hint = nullptr;
-
-        // reconoce tipos
-        if (auto c = dynamic_cast<Car*>(itA->second)) {
-            car = c;
-        }
-        if (auto c = dynamic_cast<Car*>(itB->second)) {
-            car = c;
-        }
-        if (auto ch = dynamic_cast<Checkpoint*>(itA->second)) {
-            cp = ch;
-        }
-        if (auto ch = dynamic_cast<Checkpoint*>(itB->second)) {
-            cp = ch;
-        }
-
-        if (auto h = dynamic_cast<Hint*>(itA->second)) {
-            hint = h;
-        }
-        if (auto h = dynamic_cast<Hint*>(itB->second)) {
-            hint = h;
-        }
-
-        if (car && cp) {
-            std::cout << " Car<" << car->getId() << "> reached checkpoint "
-                      << cp->getOrder() << std::endl;
-        }
-
-        if (car && hint) {
-            std::cout << " Car<" << car->getId() << "> passed hint"
-                      << std::endl;
-        }
-    }
-}
+// void CollisionManager::handleBeginTouch(const b2ContactEvents& events) {
+//     std::cout << "[CollisionManager] beginTouchCount = " << events.beginCount<<std::endl;
+//     for (int i = 0; i < events.beginCount; ++i) {
+//         const b2ContactBeginTouchEvent& ev = events.beginEvents[i];
+//         b2BodyId bodyA = b2Shape_GetBody(ev.shapeIdA);
+//         b2BodyId bodyB = b2Shape_GetBody(ev.shapeIdB);
+//
+//         auto itA = bodyToEntity.find(bodyA);
+//         auto itB = bodyToEntity.find(bodyB);
+//         if (itA == bodyToEntity.end() || itB == bodyToEntity.end()) continue;
+//
+//         const Car* car = nullptr;
+//         const Checkpoint* cp = nullptr;
+//         const Hint* hint = nullptr;
+//
+//         // reconoce tipos
+//         if (auto c = dynamic_cast<Car*>(itA->second)) {
+//             car = c;
+//         }
+//         if (auto c = dynamic_cast<Car*>(itB->second)) {
+//             car = c;
+//         }
+//         if (auto ch = dynamic_cast<Checkpoint*>(itA->second)) {
+//             cp = ch;
+//         }
+//         if (auto ch = dynamic_cast<Checkpoint*>(itB->second)) {
+//             cp = ch;
+//         }
+//
+//         if (auto h = dynamic_cast<Hint*>(itA->second)) {
+//             hint = h;
+//         }
+//         if (auto h = dynamic_cast<Hint*>(itB->second)) {
+//             hint = h;
+//         }
+//
+//         if (car && cp && raceSession) {
+//             raceSession->onCheckpointCrossed(car->getId(), cp->getOrder());
+//             std::cout << "Car<" << car->getId()
+//                       << "> pasó checkpoint #" << cp->getOrder() << std::endl;
+//         }
+//
+//         if (car && hint) {
+//             std::cout << " Car<" << car->getId() << "> passed hint"
+//                       << std::endl;
+//         }
+//     }
+// }
 /*void CollisionManager::handleEndTouch(const b2ContactEvents& events) {
     for (int i = 0; i < events.endCount; ++i) {
         const b2ContactEndTouchEvent& ev = events.endEvents[i];
         // similar a begin, pero para salida
     }
 }*/
+void CollisionManager::processSensors(const b2SensorEvents& events) {
+
+    for (int i = 0; i < events.beginCount; ++i) {
+        const b2SensorBeginTouchEvent& ev = events.beginEvents[i];
+        b2ShapeId sA = ev.sensorShapeId;
+        b2ShapeId sB = ev.visitorShapeId;
+
+        auto itA = shapeToEntity.find(sA);
+        auto itB = shapeToEntity.find(sB);
+        if (itA == shapeToEntity.end() || itB == shapeToEntity.end()) continue;
+
+        Entity* eA = itA->second;
+        Entity* eB = itB->second;
+
+        if (eA->getEntityType() == EntityType::Checkpoint &&
+            eB->getEntityType() == EntityType::Car) {
+            auto* car = static_cast<Car*>(eB);
+            auto* cp  = static_cast<Checkpoint*>(eA);
+            auto itOwner = carToPlayer.find(car);
+            if ( raceSession && itOwner != carToPlayer.end()) {
+                PlayerId pid= itOwner->second;
+                raceSession->onCheckpointCrossed(pid, cp->getOrder());
+                }
+        }
+        else if (eA->getEntityType() == EntityType::Car &&
+                 eB->getEntityType() == EntityType::Checkpoint) {
+            auto* car = static_cast<Car*>(eA);
+            auto* cp  = static_cast<Checkpoint*>(eB);
+            auto itOwner = carToPlayer.find(car);
+            if ( raceSession && itOwner != carToPlayer.end()) {
+                PlayerId pid= itOwner->second;
+                raceSession->onCheckpointCrossed(pid, cp->getOrder());
+            }
+        }
+    }
+}
+
 void CollisionManager::process(const b2ContactEvents& events) {
-    std::cout << "[CollisionManager] Procesando colisiones..." << std::endl;
     handleHitEvents(events);
-    // handleBeginTouch(events); TODO(elvis)
+    //handleBeginTouch(events);
     // handleEndTouch(events);
 }
