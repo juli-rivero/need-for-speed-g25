@@ -276,6 +276,7 @@ void SelectingWindow::on_join_response(
                 QWidget* card = createCarCard(carTypes[i], i);
                 cardsLayout->addWidget(card);
             }
+            reset();
         },
         Qt::QueuedConnection);
 }
