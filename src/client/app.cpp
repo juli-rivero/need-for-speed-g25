@@ -5,7 +5,7 @@
 #include "spdlog/spdlog.h"
 
 App::App(const std::string& host, const std::string& port)
-    : connexion_controller(Protocol(host.c_str(), port.c_str())) {
+    : connexion(Protocol(host.c_str(), port.c_str())) {
     spdlog::trace("app created");
 }
 
@@ -14,10 +14,10 @@ App::~App() { spdlog::trace("app destroyed"); }
 void App::run() {
     bool quit = false;
     while (true) {
-        QtApp(connexion_controller, quit);
+        QtApp(connexion, quit);
         if (quit) return;
         spdlog::trace("qt app closed");
-        SdlApp(connexion_controller, quit);
+        SdlApp(connexion, quit);
         if (quit) return;
         spdlog::trace("sdl app closed");
     }

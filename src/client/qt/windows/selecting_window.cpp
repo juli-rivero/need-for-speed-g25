@@ -7,10 +7,10 @@
 
 #include "client/qt/theme_manager.h"
 
-SelectingWindow::SelectingWindow(QWidget* parent,
-                                 IConnexionController& connexionController)
+SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
-      connexionController(connexionController),
+      Responder(connexion),
+      api(connexion.get_api()),
       selectedCarIndex(0) {
     initCarTypes();
     setupUI();
@@ -26,9 +26,7 @@ SelectingWindow::SelectingWindow(QWidget* parent,
     if (!carTypes.empty()) {
         updateCarDetails(0);
     }
-    connexionController.control(*this);
 }
-SelectingWindow::~SelectingWindow() { connexionController.decontrol(*this); }
 
 void SelectingWindow::initCarTypes() {
     // Inicializar tipos de autos con sus características

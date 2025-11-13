@@ -13,11 +13,12 @@ ClientHandler::ClientHandler(const int id, Socket&& socket,
     : log(stdout_color_mt("Client " + to_string(id))),
       protocol(std::move(socket)),
       sender(this->protocol, log.get()),
-      controller(sessions_monitor, id, this->sender, log.get()),
-      receiver(this->protocol, this->controller, log.get()) {
+      receiver(this->protocol, log.get()),
+      controller(sessions_monitor, id, sender, receiver, log.get()) {
     log->debug("Created");
     receiver.start();
     sender.start();
+    controller.start();
 }
 
 bool ClientHandler::is_alive() const {
@@ -25,6 +26,7 @@ bool ClientHandler::is_alive() const {
 }
 
 ClientHandler::~ClientHandler() {
+    controller.stop();
     if (sender.is_alive()) {
         sender.stop();
     }

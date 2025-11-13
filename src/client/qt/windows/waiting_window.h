@@ -6,16 +6,15 @@
 #include <QWidget>
 #include <vector>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 
-class WaitingWindow final : public QWidget {
+class WaitingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    IConnexionController& connexionController;
+    Api& api;
 
    public:
-    explicit WaitingWindow(QWidget* parent, IConnexionController&);
-    ~WaitingWindow() override;
+    explicit WaitingWindow(QWidget* parent, Connexion&);
 
     // Configurar la sala de espera
     void setGameInfo(int gameId, const std::vector<PlayerInfo>& players);

@@ -1,34 +1,40 @@
 #pragma once
 
-#include "../../common/dto/dto.h"
-#include "../../common/macros.h"
-#include "../../common/protocol.h"
-#include "../../common/thread.h"
+#include <string>
+
+#include "common/dto/dto.h"
+#include "common/emitter.h"
+#include "common/macros.h"
+#include "common/protocol.h"
+#include "common/thread.h"
 #include "spdlog/spdlog.h"
-
-struct RequestListener {
-    virtual void on(const dto_session::LeaveRequest&) = 0;
-    virtual void on(const dto_session::JoinRequest&) = 0;
-    virtual void on(const dto_session::SearchRequest&) = 0;
-    virtual void on(const dto_lobby::StartRequest&) = 0;
-
-    virtual ~RequestListener() = default;
-};
 
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
-    RequestListener& listener;
     spdlog::logger* log;
 
+    friend class ClientHandler;
+    void run() override;
+    void stop() override;
+
    public:
-    Receiver(ProtocolReceiver&, RequestListener&, spdlog::logger*);
+    Receiver(ProtocolReceiver&, spdlog::logger*);
 
     MAKE_FIXED(Receiver)
 
-    void run() override;
+    struct Listener : common::Listener<Receiver::Listener> {
+        explicit Listener(Receiver& receiver);
+        virtual void on_join_request(const std::string&) {}
+        virtual void on_search_request() {}
+        virtual void on_create_request(const SessionConfig&) {}
+        virtual void on_leave_request() {}
+        virtual void on_start_request(bool) {}
 
-    void stop() override;
+        ~Listener() override = default;
+    };
 
    private:
-    void switch_and_dispatch_request(const dto::RequestType& request) const;
+    common::Emitter<Receiver::Listener> emitter;
+
+    void switch_and_dispatch_request(const dto::RequestType& request);
 };

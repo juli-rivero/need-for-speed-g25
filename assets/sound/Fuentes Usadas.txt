@@ -1,0 +1,16 @@
+Sonidos descargados de freesound.org
+Todos los sonidos mencionados se encuentran licenciados bajo Creative Commons Attribution (y derivados mas permisivos como Creative Commons 0)
+
+A continuacion, la fuente de todos los sonidos utilizados:
+
+crash.ogg
+	crash.wav - por moxobna
+	https://freesound.org/people/moxobna/sounds/40158/
+
+finish.ogg
+	success.wav - por grunz
+	https://freesound.org/people/grunz/sounds/109662/
+
+brake.ogg
+	Car Breaking Skid 01.wav - por Medartimus
+	https://freesound.org/people/Medartimus/sounds/217542/

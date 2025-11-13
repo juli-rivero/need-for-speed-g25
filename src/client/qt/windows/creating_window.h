@@ -7,30 +7,22 @@
 #include <QString>
 #include <QWidget>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 
-class CreatingWindow final : public QWidget {
+class CreatingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    IConnexionController& connexionController;
+    Api& api;
 
    public:
-    struct GameConfig {
-        QString name;
-        int maxPlayers;
-        int raceCount;
-        int lapCount;
-        QString city;
-    };
+    explicit CreatingWindow(QWidget* parent, Connexion&);
 
-    explicit CreatingWindow(QWidget* parent, IConnexionController&);
-    ~CreatingWindow() override;
+    void on_create_response() override;
 
-    GameConfig getConfig() const;
     void reset();
    signals:
-    void submitRequested();
-    void cancelRequested();
+    void sessionCreated();
+    void createCanceled();
 
    private slots:
     void validateInput();

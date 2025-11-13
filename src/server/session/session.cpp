@@ -7,27 +7,39 @@
 
 using spdlog::stdout_color_mt;
 
-SessionListener::SessionListener(Session& session)
-    : Listener(session.emitter), session(session) {}
+Session::Listener::Listener(Session& session)
+    : common::Listener<Session::Listener>(session.emitter), session(session) {
+    session.log->trace("new listener added");
+}
 
-Session::Session(const std::string& session_id, const int creator)
-    : log(stdout_color_mt("Session " + session_id)),
+Session::Session(const SessionConfig& config, const int creator)
+    : config(config),
+      log(stdout_color_mt("Session " + config.name)),
       users_setup(1),
       game(nullptr) {
     log->debug("Created");
     add_client(creator);
 }
 
-uint16_t Session::get_users_count() {
+SessionInfo Session::get_info() {
     std::lock_guard lock(mtx);
-    log->trace("get_users_count: {}", users_setup.size());
-    return users_setup.size();
+    auto status = SessionStatus::Waiting;
+    if (full()) status = SessionStatus::Full;
+    if (in_game()) status = SessionStatus::Playing;
+    return {
+        .name = config.name,
+        .maxPlayers = config.maxPlayers,
+        .raceCount = config.raceCount,
+        .city = config.city,
+        .currentPlayers = static_cast<uint8_t>(users_setup.size()),
+        .status = status,
+    };
 }
 
 void Session::add_client(const int client_id) {
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
-    if (users_setup.size() >= MAX_USERS) {
+    if (full()) {
         throw std::runtime_error("Session is full");
     }
     users_setup[client_id] = {};
@@ -41,6 +53,7 @@ void Session::remove_client(const int client_id) {
 }
 
 bool Session::in_game() const { return game != nullptr; }
+bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 
 void Session::set_ready(const int client_id, const bool ready) {
     log->debug("client {} set ready to {}", client_id, ready);
@@ -59,7 +72,7 @@ Session::~Session() {
 void Session::start_game() {
     std::lock_guard lock(mtx);
     game = new Game(users_setup, log.get());
-    emitter.emit(&SessionListener::on_start_game, *game);
+    emitter.dispatch(&Listener::on_start_game, *game);
 }
 
 bool Session::all_ready() const {

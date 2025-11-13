@@ -21,13 +21,14 @@ Session& SessionsMonitor::get_session(const int client_id) {
     return *searcher.at(client_id);
 }
 
-void SessionsMonitor::create_session(const std::string& id,
+void SessionsMonitor::create_session(const SessionConfig& config,
                                      const int client_id) {
     std::lock_guard lock(mtx);
-    sessions.emplace(std::piecewise_construct, std::forward_as_tuple(id),
-                     std::forward_as_tuple(id, client_id));
-    searcher[client_id] = &sessions.at(id);
-    log->trace("created session {} by {}", id, client_id);
+    sessions.emplace(std::piecewise_construct,
+                     std::forward_as_tuple(config.name),
+                     std::forward_as_tuple(config, client_id));
+    searcher[client_id] = &sessions.at(config.name);
+    log->trace("created session {} by {}", config.name, client_id);
 }
 
 void SessionsMonitor::leave_session(const int client_id) {

@@ -1,60 +1,46 @@
 #include "server/client_handler/controller.h"
 
-Controller::Controller(SessionsMonitor& monitor, const int id, Sender& sender,
-                       spdlog::logger* log)
+Controller::Controller(SessionsMonitor& monitor, const int id, Api& api,
+                       Receiver& receiver, spdlog::logger* log)
     : log(log),
       id(id),
-      sender(sender),
-      browser_controller(
-          new BrowserController(monitor, id, sender, *this, log)),
-      lobby_controller(nullptr),
+      api(api),
+      receiver(receiver),
+      search_controller(std::make_unique<SearchController>(
+          monitor, id, api, receiver, *this, log)),
+      session_controller(nullptr),
       game_controller(nullptr) {}
 
-void Controller::on(const dto_session::LeaveRequest& r) {
-    std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
+void Controller::run() {
+    while (should_keep_running()) {
+        try {
+            events.pop()();
+        } catch (ClosedQueue&) {
+        }
+    }
+}
+void Controller::stop() {
+    Thread::stop();
+    events.close();
 }
 
-void Controller::on(const dto_session::JoinRequest& r) {
-    std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
-}
-
-void Controller::on(const dto_session::SearchRequest& r) {
-    std::lock_guard lock(mtx);
-    if (browser_controller) browser_controller->on(r);
-}
-
-void Controller::on(const dto_lobby::StartRequest& r) {
-    std::lock_guard lock(mtx);
-    if (lobby_controller) lobby_controller->on(r);
-}
-
-Controller::~Controller() { decontrol_all(); }
-
-void Controller::decontrol_all() {
-    std::lock_guard lock(mtx);
-    delete browser_controller;
-    delete lobby_controller;
-    delete game_controller;
-}
-
-void Controller::on_join_session(Session& s) {
-    std::lock_guard lock(mtx);
-    if (lobby_controller) delete lobby_controller;
-    lobby_controller = new LobbyController(s, id, sender, *this, log);
+void Controller::on_join_session(Session& session) {
+    events.try_push([&session, this] {
+        session_controller = std::make_unique<SessionController>(
+            session, id, api, receiver, *this, log);
+    });
 }
 
 void Controller::on_start_game(Game& game) {
-    std::lock_guard lock(mtx);
-    if (game_controller) delete game_controller;
-    game_controller = new GameController(game, id, sender, *this, log);
+    events.try_push([&game, this] {
+        game_controller = std::make_unique<GameController>(
+            game, id, api, receiver, *this, log);
+    });
 }
 
 void Controller::on_game_end() {
-    std::lock_guard lock(mtx);
-    if (lobby_controller) delete lobby_controller;
-    lobby_controller = nullptr;
-    if (game_controller) delete game_controller;
-    game_controller = nullptr;
+    events.try_push([this] {
+        session_controller = nullptr;
+        game_controller = nullptr;
+    });
 }

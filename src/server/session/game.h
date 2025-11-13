@@ -12,29 +12,29 @@ struct UserSetup {
 
 class Game;
 
-struct GameListener : Listener<GameListener> {
-    Game& game;
-
-    explicit GameListener(Game& game);
-
-    virtual void on_end_game() = 0;
-
-    virtual void on_snapshot() = 0;
-
-    ~GameListener() override = default;
-};
-
 class Game final {
     spdlog::logger* log;
 
     const std::unordered_map<int, UserSetup>& users_setup;
-
-    friend struct GameListener;
-    Emitter<GameListener> emitter;
 
    public:
     Game(const std::unordered_map<int, UserSetup>& users_setup,
          spdlog::logger*);
 
     MAKE_FIXED(Game)
+
+    struct Listener : common::Listener<Game::Listener> {
+        Game& game;
+
+        explicit Listener(Game& game);
+
+        virtual void on_end_game() = 0;
+
+        virtual void on_snapshot() = 0;
+
+        ~Listener() override = default;
+    };
+
+   private:
+    common::Emitter<Game::Listener> emitter;
 };

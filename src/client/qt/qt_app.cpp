@@ -2,26 +2,20 @@
 
 #include <QApplication>
 
-#include "client/connexion/mock_connexion_controller.h"
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-QtWindowManager::QtWindowManager(IConnexionController& connexion_controller,
-                                 bool& quit)
+QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     : stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
           setMinimumSize(1000, 700);
           spdlog::trace("window configurated");
           return this;
       })()),
-      searchingWindow(&stack, connexion_controller),
-      creatingWindow(&stack, connexion_controller),
-      selectingWindow(&stack, connexion_controller),
-      waitingWindow(&stack, connexion_controller) {
-    spdlog::trace("controllers controlled");
-
-    auto mock = MockConnexionController();
-
+      searchingWindow(&stack, connexion),
+      creatingWindow(&stack, connexion),
+      selectingWindow(&stack, connexion),
+      waitingWindow(&stack, connexion) {
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -40,9 +34,9 @@ QtWindowManager::QtWindowManager(IConnexionController& connexion_controller,
     connect(&searchingWindow, &SearchingWindow::joinGameClicked, this,
             &QtWindowManager::show_selecting_window);
 
-    connect(&creatingWindow, &CreatingWindow::submitRequested, this,
+    connect(&creatingWindow, &CreatingWindow::sessionCreated, this,
             &QtWindowManager::show_selecting_window);
-    connect(&creatingWindow, &CreatingWindow::cancelRequested, this,
+    connect(&creatingWindow, &CreatingWindow::createCanceled, this,
             &QtWindowManager::show_searching_window);
 
     connect(&selectingWindow, &SelectingWindow::confirmRequested, this,
@@ -64,8 +58,6 @@ QtWindowManager::QtWindowManager(IConnexionController& connexion_controller,
     show();
 
     spdlog::trace("showing window");
-
-    spdlog::trace("exec finished");
 
     quit = false;  // TODO(juli): borrar
 }
@@ -98,15 +90,13 @@ void QtWindowManager::applyTheme() {
                             .arg(palette.cardBackgroundHover));
 }
 
-QtApp::QtApp(IConnexionController&, bool& quit) {
+QtApp::QtApp(Connexion& connexion, bool& quit) {
     int argc = 0;
 
-    MockConnexionController mock_connexion_controller;
-
-    spdlog::trace("creando qpp");
+    spdlog::trace("creando qt app");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-    QtWindowManager main(mock_connexion_controller, quit);
+    QtWindowManager main(connexion, quit);
     spdlog::trace("exec");
     app.exec();
 }

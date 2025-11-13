@@ -4,7 +4,7 @@
 #include <QMainWindow>
 #include <QStackedWidget>
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 #include "client/qt/windows/creating_window.h"
 #include "client/qt/windows/searching_window.h"
 #include "client/qt/windows/selecting_window.h"
@@ -22,7 +22,7 @@ class QtWindowManager final : public QMainWindow {
     WaitingWindow waitingWindow;
 
    public:
-    QtWindowManager(IConnexionController& connexion_controller, bool& quit);
+    QtWindowManager(Connexion& connexion, bool& quit);
 
     MAKE_FIXED(QtWindowManager)
 
@@ -39,5 +39,5 @@ class QtWindowManager final : public QMainWindow {
 
 class QtApp final {
    public:
-    QtApp(IConnexionController& connexion_controller, bool& quit);
+    QtApp(Connexion& connexion, bool& quit);
 };

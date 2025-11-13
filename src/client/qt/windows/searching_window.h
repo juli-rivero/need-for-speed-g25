@@ -1,26 +1,28 @@
 #pragma once
 
+#include <client/connexion/connexion.h>
+
 #include <QComboBox>
 #include <QListWidget>
 #include <QPushButton>
 #include <QWidget>
+#include <string>
 #include <vector>
 
-#include "client/connexion/connexion_controller.h"
 #include "client/qt/game_card_widget.h"
 #include "common/structs.h"
 
-class SearchingWindow final : public QWidget {
+class SearchingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
-    IConnexionController &connexionController;
+    Api &api;
 
    public:
-    explicit SearchingWindow(QWidget *parent, IConnexionController &);
-    ~SearchingWindow() override;
+    explicit SearchingWindow(QWidget *parent, Connexion &);
 
-    // methods to use for controller
-    void updateGamesList(const std::vector<SessionInfo> &games);
+    // Connexion overrides
+    void on_search_response(const std::vector<SessionInfo> &) override;
+    void on_join_response(const SessionInfo &) override;
 
    signals:
     void createGameClicked();
@@ -39,13 +41,13 @@ class SearchingWindow final : public QWidget {
     // void onConnected();
 
     // void onGameCreated(int gameId); Se va a hacer en create_game_dialog
-    void onGameJoined(int gameId);
     // void onPlayersListUpdated(std::vector<PlayerInfo> players); se va a hacer
     // en waiting_room_widget void onGameStarting(); se va a hacer en
     // waiting_room_widget
     void onError(QString message);
 
    private:
+    void updateGamesList(const std::vector<SessionInfo> &games);
     QString getCarEmoji(const QString &carType) const;
 
     // Métodos para crear cada página

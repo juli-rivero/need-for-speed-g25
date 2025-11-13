@@ -2,15 +2,27 @@
 
 #include <spdlog/spdlog.h>
 
-#include "../../common/dto/dto.h"
-#include "../../common/dto/dto_lobby.h"
-#include "../../common/dto/dto_session.h"
-#include "../../common/macros.h"
-#include "../../common/protocol.h"
-#include "../../common/queue.h"
-#include "../../common/thread.h"
+#include <string>
+#include <vector>
 
-class Sender final : public Thread {
+#include "common/dto/dto.h"
+#include "common/macros.h"
+#include "common/protocol.h"
+#include "common/queue.h"
+#include "common/structs.h"
+#include "common/thread.h"
+
+struct Api {
+    virtual void reply_search(const std::vector<SessionInfo>&) = 0;
+    virtual void reply_joined(const SessionInfo& session) = 0;
+    virtual void reply_created() = 0;
+    virtual void reply_left() = 0;
+    virtual void reply_started() = 0;
+    virtual void reply_error(const std::string&) = 0;
+    virtual ~Api() = default;
+};
+
+class Sender final : public Thread, public Api {
     Queue<dto::Response> responses;
     ProtocolSender& sender;
     spdlog::logger* log;
@@ -24,9 +36,10 @@ class Sender final : public Thread {
 
     MAKE_FIXED(Sender)
 
-    void send(const dto_session::SearchResponse&);
-    void send(const dto_session::JoinResponse&);
-    void send(const dto_session::LeaveResponse&);
-    void send(const dto_lobby::StartResponse&);
-    void send(const dto::ErrorResponse&);
+    void reply_search(const std::vector<SessionInfo>&) override;
+    void reply_joined(const SessionInfo& session) override;
+    void reply_created() override;
+    void reply_left() override;
+    void reply_started() override;
+    void reply_error(const std::string&) override;
 };

@@ -17,25 +17,27 @@ clean:
 	rm -Rf build/
 
 editor: build
-	./build/taller_editor
+	./build/taller_editor $(ARGS)
 client: build
-	./build/taller_client
+	./build/taller_client $(ARGS)
 server: build
-	./build/taller_server
+	./build/taller_server $(ARGS)
 
 
 .PHONY: hooks
 
 hooks:
 ifeq ($(MODE),fast)
-	pre-commit run clang-format --all-files
-	pre-commit run cppcheck --all-files
-	pre-commit run cpplint --all-files
+	pre-commit run trailing-whitespace --all-files ; \
+	pre-commit run end-of-file-fixer --all-files ; \
+	pre-commit run check-yaml --all-files ; \
+	pre-commit run clang-format --all-files ; \
+	pre-commit run cppcheck --all-files ; \
+	pre-commit run cpplint --all-files ;
 else
 	pre-commit run --all-files
 endif
 
-
 exec: build
-	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server; exec bash"
-	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client; exec bash"
+	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server $(ARGS); exec bash"
+	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client $(ARGS); exec bash"

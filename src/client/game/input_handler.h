@@ -1,12 +1,12 @@
 #pragma once
 
-#include "client/connexion/connexion_controller.h"
+#include "client/connexion/connexion.h"
 
 class InputHandler {
-    ConnexionController& connexion_controller;
+    Connexion& connexion;
 
    public:
-    explicit InputHandler(ConnexionController& connexion_controller);
+    explicit InputHandler(Connexion& connexion);
 
     MAKE_FIXED(InputHandler)
 };

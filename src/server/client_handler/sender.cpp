@@ -1,8 +1,9 @@
 #include "server/client_handler/sender.h"
 
-#include "spdlog/spdlog.h"
-
 using dto::ResponseType;
+
+using std::string;
+using std::vector;
 
 Sender::Sender(ProtocolSender& sender, spdlog::logger* log)
     : sender(sender), log(log) {}
@@ -10,12 +11,15 @@ Sender::Sender(ProtocolSender& sender, spdlog::logger* log)
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            sender << responses.pop() << ProtocolSender::send;
+            auto response = responses.pop();
+            log->trace("sending type response: {}",
+                       static_cast<int>(response.type));
+            sender << response << ProtocolSender::send;
         } catch (ClosedQueue&) {
-            log->trace("Sender stopped by closed queue");
+            log->debug("Sender stopped by closed queue");
             return;
         } catch (ClosedProtocol&) {
-            log->trace("Sender stopped by closed protocol");
+            log->debug("Sender stopped by closed protocol");
             return;
         }
     }
@@ -27,30 +31,41 @@ void Sender::stop() {
         sender.close_stream_send();
     }
     responses.close();
-    log->trace("Sender stopped");
+    log->debug("Sender stopped");
 }
 
-void Sender::send(const dto_session::SearchResponse& body) {
+void Sender::reply_search(const vector<SessionInfo>& info) {
     log->trace("sending search response");
-    responses.try_push({ResponseType::SearchResponse, body});
+    responses.try_push(
+        {ResponseType::SearchResponse, dto_search::SearchResponse{info}});
 }
 
-void Sender::send(const dto_session::JoinResponse& body) {
+void Sender::reply_joined(const SessionInfo& session) {
     log->trace("sending join response");
-    responses.try_push({ResponseType::JoinResponse, body});
+    responses.try_push(
+        {ResponseType::JoinResponse, dto_search::JoinResponse{session}});
 }
 
-void Sender::send(const dto_session::LeaveResponse& body) {
+void Sender::reply_created() {
+    log->trace("sending create response");
+    responses.try_push(
+        {ResponseType::CreateResponse, dto_search::CreateResponse{}});
+}
+
+void Sender::reply_left() {
     log->trace("sending leave response");
-    responses.try_push({ResponseType::LeaveResponse, body});
+    responses.try_push(
+        {ResponseType::LeaveResponse, dto_session::LeaveResponse{}});
 }
 
-void Sender::send(const dto_lobby::StartResponse& body) {
+void Sender::reply_started() {
     log->trace("sending start response");
-    responses.try_push({ResponseType::StartResponse, body});
+    responses.try_push(
+        {ResponseType::StartResponse, dto_session::StartResponse{}});
 }
 
-void Sender::send(const dto::ErrorResponse& body) {
+void Sender::reply_error(const string& message) {
     log->trace("sending error response");
-    responses.try_push({ResponseType::ErrorResponse, body});
+    responses.try_push(
+        {ResponseType::ErrorResponse, dto::ErrorResponse{message}});
 }

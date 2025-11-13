@@ -1,44 +1,42 @@
 #pragma once
 
-#include "../../common/dto/dto_lobby.h"
-#include "../../common/dto/dto_session.h"
-#include "server/client_handler/browser_controller.h"
-#include "server/client_handler/game_controller.h"
-#include "server/client_handler/lobby_controller.h"
+#include <memory>
+
+#include "common/dto/dto_search.h"
+#include "common/dto/dto_session.h"
+#include "controllers/game_controller.h"
+#include "controllers/search_controller.h"
+#include "controllers/session_controller.h"
 #include "server/client_handler/receiver.h"
 
-class Controller final : public RequestListener,
-                         IBrowserEvents,
-                         ILobbyEvents,
-                         IGameEvents {
+class Controller final : public ISearchEvents,
+                         public ISessionEvents,
+                         public IGameEvents,
+                         public Thread {
     spdlog::logger* log;
     int id;
-    Sender& sender;
+    Api& api;
+    Receiver& receiver;
 
-    BrowserController* browser_controller;
-    LobbyController* lobby_controller;
-    GameController* game_controller;
+    Queue<std::function<void()>> events;
 
-    std::mutex mtx;
+    template <typename T>
+    using ptr = std::unique_ptr<T>;
+
+    ptr<SearchController> search_controller;
+    ptr<SessionController> session_controller;
+    ptr<GameController> game_controller;
 
    public:
-    explicit Controller(SessionsMonitor& monitor, int id, Sender& sender,
+    explicit Controller(SessionsMonitor& monitor, int id, Api&, Receiver&,
                         spdlog::logger*);
 
     MAKE_FIXED(Controller)
 
-    // BROWSER CONTROLLER //
-    void on(const dto_session::LeaveRequest&) override;
-    void on(const dto_session::JoinRequest&) override;
-    void on(const dto_session::SearchRequest&) override;
-
-    // LOBBY CONTROLLER //
-    void on(const dto_lobby::StartRequest&) override;
-
-    ~Controller() override;
+    void stop() override;
 
    private:
-    void decontrol_all();
+    void run() override;
 
     // BROWSER EVENTS //
     void on_join_session(Session&) override;

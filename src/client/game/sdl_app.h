@@ -1,16 +1,14 @@
 #pragma once
 
-#include "client/connexion/connexion_controller.h"
-#include "client/game/game.h"
+#include "client/connexion/connexion.h"
 #include "client/game/input_handler.h"
 
 class SdlApp {
-    Game game;
-    ConnexionController& connexion_controller;
+    Connexion& connexion;
     InputHandler input_handler;
 
    public:
-    explicit SdlApp(ConnexionController& connexion_controller, bool& quit);
+    explicit SdlApp(Connexion& connexion, bool& quit);
     ~SdlApp();
 
     MAKE_FIXED(SdlApp)
