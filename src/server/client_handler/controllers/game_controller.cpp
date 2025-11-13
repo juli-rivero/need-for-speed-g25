@@ -2,7 +2,7 @@
 
 #include "server/session/logic/GameSessionFacade.h"
 
-GameController::GameController(GameSessionFacade&, const int client_id,
+GameController::GameController(GameSessionFacade&, const PlayerId client_id,
                                Api& api, Receiver& receiver,
                                IGameEvents& handler, spdlog::logger* log)
     : Receiver::Listener(receiver),

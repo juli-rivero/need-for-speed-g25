@@ -21,7 +21,8 @@ class ClientHandler final {
     Controller controller;
 
    public:
-    ClientHandler(int id, Socket&& socket, SessionsMonitor& sessions_monitor);
+    ClientHandler(PlayerId id, Socket&& socket,
+                  SessionsMonitor& sessions_monitor);
 
     MAKE_FIXED(ClientHandler)
 

@@ -54,13 +54,18 @@ void Receiver::delegate_response(const ResponseType& response) {
         }
         case ResponseType::StartResponse: {
             receiver.get<dto_session::StartResponse>();
-            emitter.dispatch(&Listener::on_start_response);
+            emitter.dispatch(&Listener::on_start_game);
             break;
         }
         case ResponseType::SessionSnapshot: {
             const auto snapshot = receiver.get<dto_session::SessionSnapshot>();
             emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
                              snapshot.players);
+            break;
+        }
+        case ResponseType::ErrorResponse: {
+            const auto error = receiver.get<dto::ErrorResponse>();
+            emitter.dispatch(&Listener::on_error_response, error.message);
             break;
         }
         default:

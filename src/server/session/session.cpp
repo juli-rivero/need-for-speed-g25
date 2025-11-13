@@ -8,7 +8,7 @@
 
 using spdlog::stdout_color_mt;
 
-UserSetup::UserSetup(const std::string& name, const int id)
+UserSetup::UserSetup(const std::string& name, const PlayerId id)
     : game_config(static_cast<PlayerId>(id), name, YamlGameConfig::DefaultCar) {
 }
 
@@ -17,7 +17,7 @@ Session::Listener::Listener(Session& session)
     session.log->trace("new listener added");
 }
 
-Session::Session(const SessionConfig& config, const int creator,
+Session::Session(const SessionConfig& config, const PlayerId creator,
                  YamlGameConfig& yaml_config)
     : config(config),
       log(stdout_color_mt("Session " + config.name)),
@@ -44,7 +44,7 @@ SessionInfo Session::get_info() {
     };
 }
 
-void Session::add_client(const int client_id) {
+void Session::add_client(const PlayerId client_id) {
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
     if (full()) {
@@ -58,7 +58,7 @@ void Session::add_client(const int client_id) {
     notify_change();
 }
 
-void Session::remove_client(const int client_id) {
+void Session::remove_client(const PlayerId client_id) {
     std::lock_guard lock(mtx);
     if (not in_game()) users_setup.erase(client_id);
     log->debug("client {} left", client_id);
@@ -88,7 +88,7 @@ std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
     return types_of_static_cars;
 }
 
-void Session::set_car(const int client_id, const std::string& car_name) {
+void Session::set_car(const PlayerId client_id, const std::string& car_name) {
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
     if (not users_setup.contains(client_id))
@@ -97,7 +97,7 @@ void Session::set_car(const int client_id, const std::string& car_name) {
     notify_change();
 }
 
-void Session::set_ready(const int client_id, const bool ready) {
+void Session::set_ready(const PlayerId client_id, const bool ready) {
     log->debug("client {} set ready to {}", client_id, ready);
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
@@ -111,7 +111,7 @@ void Session::set_ready(const int client_id, const bool ready) {
 Session::~Session() { log->debug("Destroyed"); }
 
 void Session::start_game() {
-    std::lock_guard lock(mtx);
+    log->debug("starting game");
 
     std::vector<PlayerConfig> players;
     players.reserve(users_setup.size());
@@ -141,6 +141,7 @@ void Session::notify_change() {
     players.reserve(users_setup.size());
     for (const auto& [id, player] : users_setup) {
         players.push_back({
+            .id = id,
             .name = player.game_config.name,
             .carType = YamlGameConfig::getCarSpriteType(
                 player.game_config.carTypeName),
@@ -148,5 +149,9 @@ void Session::notify_change() {
             .isHost = id == creator,
         });
     }
+    log->trace("sending update");
+    for (const auto& player : players)
+        log->trace("\t player is ready: {}", player.isReady);
+
     emitter.dispatch(&Listener::on_session_updated, config, players);
 }

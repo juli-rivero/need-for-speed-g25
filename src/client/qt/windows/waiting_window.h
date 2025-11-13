@@ -13,12 +13,14 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
     Q_OBJECT
 
     Api& api;
+    PlayerId id;
 
    public:
     explicit WaitingWindow(QWidget* parent, Connexion&);
 
     void on_session_snapshot(const SessionConfig&,
                              const std::vector<PlayerInfo>&) override;
+    void on_start_game() override;
 
     // Configurar la sala de espera
     void setGameInfo(int gameId, const std::vector<PlayerInfo>& players);
@@ -30,7 +32,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
 
    signals:
     void leaveGameRequested();
-    void readyStateChanged(bool ready);
+    // void readyStateChanged(bool ready);
     void startGameRequested();
 
    private slots:
@@ -40,6 +42,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
    private:
     void setupUI();
     void updateStatusMessage();
+    void updateReadyButton(bool checked);
 
     // Widgets
     QLabel* titleLabel;

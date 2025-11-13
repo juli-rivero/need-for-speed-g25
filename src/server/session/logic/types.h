@@ -6,8 +6,6 @@
 
 #include "common/structs.h"
 
-using PlayerId = std::uint32_t;
-
 using CityId = std::string;
 
 struct SpawnPoint {

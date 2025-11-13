@@ -23,6 +23,8 @@ struct SessionInfo {
     SessionStatus status;
 };
 
+using PlayerId = std::uint32_t;
+
 enum class CarSpriteType {
     Speedster,
     Tank,
@@ -35,6 +37,7 @@ enum class CarSpriteType {
 
 // Estructura para representar un jugador en la sala de espera
 struct PlayerInfo {
+    PlayerId id;
     std::string name;
     CarSpriteType carType;
     bool isReady;

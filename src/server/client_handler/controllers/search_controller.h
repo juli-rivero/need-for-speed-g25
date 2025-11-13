@@ -14,12 +14,12 @@ struct ISearchEvents {
 class SearchController final : Receiver::Listener {
     spdlog::logger* log;
     SessionsMonitor& sessions_monitor;
-    const int client_id;
+    const PlayerId client_id;
     Api& api;
     ISearchEvents& dispatcher;
 
    public:
-    SearchController(SessionsMonitor&, int client_id, Api&, Receiver&,
+    SearchController(SessionsMonitor&, PlayerId client_id, Api&, Receiver&,
                      ISearchEvents& handler, spdlog::logger*);
 
     MAKE_FIXED(SearchController)

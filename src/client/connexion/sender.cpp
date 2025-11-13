@@ -46,8 +46,8 @@ void Sender::request_create_and_join_session(const SessionConfig& config) {
 void Sender::request_leave_current_session() {
     responses.try_push({RequestType::LeaveRequest, LeaveRequest{}});
 }
-void Sender::request_start_session() {
-    responses.try_push({RequestType::StartRequest, StartRequest{}});
+void Sender::set_ready(const bool ready) {
+    responses.try_push({RequestType::StartRequest, StartRequest{ready}});
 }
 void Sender::choose_car(const std::string& car_name) {
     responses.try_push(

@@ -60,11 +60,6 @@ void Sender::reply_left() {
     responses.try_push({ResponseType::LeaveResponse, LeaveResponse{}});
 }
 
-void Sender::reply_started() {
-    log->trace("sending start response");
-    responses.try_push({ResponseType::StartResponse, StartResponse{}});
-}
-
 void Sender::reply_error(const string& message) {
     log->trace("sending error response");
     responses.try_push({ResponseType::ErrorResponse, ErrorResponse{message}});
@@ -74,4 +69,8 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(
         {ResponseType::SessionSnapshot, SessionSnapshot{config, players}});
+}
+void Sender::notify_game_started() {
+    log->trace("sending start response");
+    responses.try_push({ResponseType::StartResponse, StartResponse{}});
 }

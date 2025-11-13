@@ -7,7 +7,8 @@
 Connexion::Connexion(Protocol&& protocol)
     : protocol(std::move(protocol)),
       receiver(this->protocol),
-      sender(this->protocol) {
+      sender(this->protocol),
+      unique_id(this->protocol.get<PlayerId>()) {
     receiver.start();
     sender.start();
 }

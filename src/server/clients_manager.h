@@ -10,7 +10,7 @@ class ClientsManager {
     std::list<ClientHandler> client_handlers;
     SessionsMonitor& sessions;
     std::mutex mutex;
-    int next_id = 0;
+    PlayerId next_id = 0;
 
    public:
     explicit ClientsManager(SessionsMonitor&);

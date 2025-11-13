@@ -1,6 +1,6 @@
 #include "server/client_handler/controller.h"
 
-Controller::Controller(SessionsMonitor& monitor, const int id, Api& api,
+Controller::Controller(SessionsMonitor& monitor, const PlayerId id, Api& api,
                        Receiver& receiver, spdlog::logger* log)
     : log(log),
       id(id),

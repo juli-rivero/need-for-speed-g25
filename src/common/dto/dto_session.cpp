@@ -47,7 +47,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, SessionSnapshot& r) {
     players.resize(p.get<size_t>());
     for (auto& player : players) {
         player.carType = static_cast<CarSpriteType>(p.get<uint8_t>());
-        p >> player.name >> player.isHost >> player.isReady;
+        p >> player.id >> player.name >> player.isHost >> player.isReady;
     }
     return p;
 }
@@ -60,7 +60,7 @@ ProtocolSender& operator<<(ProtocolSender& p, const SessionSnapshot& r) {
     p << players.size();
     for (const auto& player : players) {
         p << static_cast<uint8_t>(player.carType);
-        p << player.name << player.isHost << player.isReady;
+        p << player.id << player.name << player.isHost << player.isReady;
     }
     return p;
 }

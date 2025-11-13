@@ -11,6 +11,7 @@ WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
       Responder(connexion),
       api(connexion.get_api()),
+      id(connexion.unique_id),
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
@@ -18,8 +19,21 @@ WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
 void WaitingWindow::on_session_snapshot(
     const SessionConfig&, const std::vector<PlayerInfo>& player_infos) {
     QMetaObject::invokeMethod(
-        this, [this, player_infos]() { updatePlayersList(player_infos); },
+        this,
+        [this, player_infos]() {
+            updatePlayersList(player_infos);
+            for (const auto& player : player_infos) {
+                if (player.id == id) {
+                    updateReadyButton(player.isReady);
+                    break;
+                }
+            }
+        },
         Qt::QueuedConnection);
+}
+void WaitingWindow::on_start_game() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit startGameRequested(); }, Qt::QueuedConnection);
 }
 
 void WaitingWindow::setupUI() {
@@ -147,8 +161,7 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
         hlayout->addStretch();
 
         // Estado ready
-        QLabel* statusLabel =
-            new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
+        statusLabel = new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
         statusLabel->setStyleSheet(
             QString("font-size: 14px; font-weight: bold; color: %1; "
                     "border: none; padding: 5px 15px;")
@@ -181,11 +194,24 @@ void WaitingWindow::updateStatusMessage() {
             "color: #27ae60; font-size: 14px; font-weight: bold;");
 
         // Emitir señal para que el padre inicie el juego
-        emit startGameRequested();
+        // emit startGameRequested();
     } else {
         statusLabel->setText(
             "⏳ Esperando que todos los jugadores estén listos...");
         statusLabel->setStyleSheet("color: #95a5a6; font-size: 12px;");
+    }
+}
+void WaitingWindow::updateReadyButton(bool checked) {
+    playerIsReady = checked;
+
+    if (checked) {
+        readyButton->setText("❌ Cancelar");
+        readyButton->setStyleSheet(
+            "background-color: #e74c3c; color: white; font-weight: bold;");
+    } else {
+        readyButton->setText("✅ Listo");
+        readyButton->setStyleSheet(
+            "background-color: #27ae60; color: white; font-weight: bold;");
     }
 }
 
@@ -201,17 +227,6 @@ void WaitingWindow::onLeaveClicked() {
 }
 
 void WaitingWindow::onReadyToggled(bool checked) {
-    playerIsReady = checked;
-
-    if (checked) {
-        readyButton->setText("❌ Cancelar");
-        readyButton->setStyleSheet(
-            "background-color: #e74c3c; color: white; font-weight: bold;");
-    } else {
-        readyButton->setText("✅ Listo");
-        readyButton->setStyleSheet(
-            "background-color: #27ae60; color: white; font-weight: bold;");
-    }
-
-    emit readyStateChanged(checked);
+    // emit readyStateChanged(checked);
+    api.set_ready(checked);
 }

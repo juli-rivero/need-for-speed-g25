@@ -44,7 +44,7 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     connect(&selectingWindow, &SelectingWindow::cancelRequested, this,
             &QtWindowManager::show_searching_window);
 
-    connect(&waitingWindow, &WaitingWindow::readyStateChanged, this,
+    connect(&waitingWindow, &WaitingWindow::startGameRequested, this,
             &QtWindowManager::continue_game);
     connect(&waitingWindow, &WaitingWindow::leaveGameRequested, this,
             &QtWindowManager::show_searching_window);

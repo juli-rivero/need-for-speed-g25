@@ -11,12 +11,12 @@ struct IGameEvents {
 
 class GameController final : Receiver::Listener {
     spdlog::logger* log;
-    const int client_id;
+    const PlayerId client_id;
     Api& api;
     IGameEvents& dispatcher;
 
    public:
-    GameController(GameSessionFacade&, int client_id, Api&, Receiver&,
+    GameController(GameSessionFacade&, PlayerId client_id, Api&, Receiver&,
                    IGameEvents& handler, spdlog::logger*);
 
     MAKE_FIXED(GameController)

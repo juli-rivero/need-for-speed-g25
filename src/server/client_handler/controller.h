@@ -14,7 +14,7 @@ class Controller final : public ISearchEvents,
                          public IGameEvents,
                          public Thread {
     spdlog::logger* log;
-    int id;
+    PlayerId id;
     Api& api;
     Receiver& receiver;
 
@@ -28,7 +28,7 @@ class Controller final : public ISearchEvents,
     ptr<GameController> game_controller;
 
    public:
-    explicit Controller(SessionsMonitor& monitor, int id, Api&, Receiver&,
+    explicit Controller(SessionsMonitor& monitor, PlayerId id, Api&, Receiver&,
                         spdlog::logger*);
 
     MAKE_FIXED(Controller)

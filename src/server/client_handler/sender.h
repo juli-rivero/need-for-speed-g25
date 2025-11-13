@@ -17,11 +17,11 @@ struct Api {
     virtual void reply_joined(const SessionInfo& session,
                               const std::vector<CarStaticInfo>& carTypes) = 0;
     virtual void reply_left() = 0;
-    virtual void reply_started() = 0;
     virtual void reply_error(const std::string&) = 0;
 
     virtual void send_session_snapshot(
         const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
+    virtual void notify_game_started() = 0;
 
     virtual ~Api() = default;
 };
@@ -44,9 +44,9 @@ class Sender final : public Thread, public Api {
     void reply_joined(const SessionInfo& session,
                       const std::vector<CarStaticInfo>& carTypes) override;
     void reply_left() override;
-    void reply_started() override;
     void reply_error(const std::string&) override;
 
     void send_session_snapshot(const SessionConfig&,
                                const std::vector<PlayerInfo>& players) override;
+    void notify_game_started() override;
 };

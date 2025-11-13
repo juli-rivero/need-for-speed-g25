@@ -14,12 +14,12 @@ struct ISessionEvents {
 
 class SessionController final : Session::Listener, Receiver::Listener {
     spdlog::logger* log;
-    const int client_id;
+    const PlayerId client_id;
     Api& api;
     ISessionEvents& dispatcher;
 
    public:
-    SessionController(Session&, int client_id, Api&, Receiver&,
+    SessionController(Session&, PlayerId client_id, Api&, Receiver&,
                       ISessionEvents& handler, spdlog::logger*);
 
     ~SessionController() override;

@@ -13,7 +13,7 @@ using std::string;
 using std::vector;
 
 SearchController::SearchController(SessionsMonitor& sessions_monitor,
-                                   const int client_id, Api& api,
+                                   const PlayerId client_id, Api& api,
                                    Receiver& receiver, ISearchEvents& handler,
                                    spdlog::logger* log)
     : Listener(receiver),
@@ -33,28 +33,45 @@ void SearchController::on_join_request(const std::string& session_id) {
         log->trace("added client to session");
         api.reply_joined(session.get_info(),
                          session.get_types_of_static_cars());
-    } catch (const std::runtime_error& e) {
+    } catch (const std::exception& e) {
         log->trace("could not join session: {}", e.what());
         api.reply_error(e.what());
     }
 }
 void SearchController::on_search_request() {
-    const auto sessions_ids = sessions_monitor.get_sessions_ids();
-    vector<SessionInfo> sessions(sessions_ids.size());
-    for (size_t i = 0; i < sessions_ids.size(); ++i) {
-        try {
-            Session& session = sessions_monitor.get_session(sessions_ids[i]);
-            sessions[i] = session.get_info();
-        } catch (const std::runtime_error&) {}
+    try {
+        const auto sessions_ids = sessions_monitor.get_sessions_ids();
+        vector<SessionInfo> sessions;
+        sessions.reserve(sessions_ids.size());
+        for (const auto& session_id : sessions_ids) {
+            try {
+                Session& session = sessions_monitor.get_session(session_id);
+                sessions.push_back(session.get_info());
+            } catch (const std::exception&) {}
+        }
+        log->trace("found {} sessions", sessions.size());
+        api.reply_search(sessions);
+    } catch (std::exception& e) {
+        log->warn("could not search sessions: {}", e.what());
+        api.reply_error(e.what());
     }
-    log->trace("found {} sessions", sessions.size());
-    api.reply_search(sessions);
 }
 void SearchController::on_create_request(const SessionConfig& session_config) {
-    sessions_monitor.create_session(session_config, client_id);
-    log->trace("created session");
-    on_join_request(session_config.name);
+    try {
+        log->trace("creating session");
+        sessions_monitor.create_session(session_config, client_id);
+        log->trace("created session");
+        on_join_request(session_config.name);
+    } catch (std::exception& e) {
+        log->warn("could not create session: {}", e.what());
+        api.reply_error(e.what());
+    }
 }
 void SearchController::on_leave_request() {
-    sessions_monitor.leave_session(client_id);
+    try {
+        sessions_monitor.leave_session(client_id);
+    } catch (std::exception& e) {
+        log->warn("could not leave session: {}", e.what());
+        api.reply_error(e.what());
+    }
 }
