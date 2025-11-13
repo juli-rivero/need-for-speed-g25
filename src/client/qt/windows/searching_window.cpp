@@ -66,8 +66,6 @@ SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
     createThis();
     // Aplicar tema inicial
     applyTheme();
-
-    api.request_search_all_sessions();
 }
 
 void SearchingWindow::on_search_response(
@@ -248,6 +246,10 @@ QString SearchingWindow::getCarEmoji(const QString& carType) const {
     if (carType == "Muscle Car") return "🚗";
     if (carType == "Compacto") return "🚕";
     return "🚗";
+}
+void SearchingWindow::showEvent(QShowEvent* event) {
+    api.request_search_all_sessions();
+    QWidget::showEvent(event);
 }
 
 // GESTIÓN DE TEMAS DINÁMICOS

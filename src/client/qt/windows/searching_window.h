@@ -51,6 +51,8 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
     void updateGamesList(const std::vector<SessionInfo> &games);
     QString getCarEmoji(const QString &carType) const;
 
+    void showEvent(QShowEvent *event) override;
+
     // Métodos para crear cada página
     void createThis();
 
