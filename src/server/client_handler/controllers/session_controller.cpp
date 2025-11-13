@@ -21,6 +21,7 @@ SessionController::SessionController(Session& session, const PlayerId client_id,
       api(api),
       dispatcher(handler) {
     log->debug("controlling lobby");
+    api.reply_joined(session.get_info(), session.get_types_of_static_cars());
 }
 
 SessionController::~SessionController() {
@@ -43,6 +44,15 @@ void SessionController::on_choose_car(const std::string& car_name) {
         session.set_car(client_id, car_name);
     } catch (std::exception& e) {
         log->warn("could not set car: {}", e.what());
+        api.reply_error(e.what());
+    }
+}
+void SessionController::on_leave_request() {
+    try {
+        session.remove_client(client_id);
+        dispatcher.on_leave_session();
+    } catch (std::exception& e) {
+        log->warn("could not send session snapshot: {}", e.what());
         api.reply_error(e.what());
     }
 }

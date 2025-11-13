@@ -36,6 +36,9 @@ void Controller::on_start_game(GameSessionFacade& game) {
             game, id, api, receiver, *this, log);
     });
 }
+void Controller::on_leave_session() {
+    events.try_push([this] { session_controller = nullptr; });
+}
 
 void Controller::on_game_end() {
     events.try_push([this] {

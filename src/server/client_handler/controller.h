@@ -43,6 +43,7 @@ class Controller final : public ISearchEvents,
 
     // LOBBY EVENTS //
     void on_start_game(GameSessionFacade& game) override;
+    void on_leave_session() override;
 
     // GAME EVENTS //
     void on_game_end() override;

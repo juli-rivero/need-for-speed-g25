@@ -37,4 +37,5 @@ ClientHandler::~ClientHandler() {
     sender.join();
     receiver.join();
     log->debug("Destroyed");
+    spdlog::drop(log->name());
 }

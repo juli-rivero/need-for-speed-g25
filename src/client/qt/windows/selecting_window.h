@@ -24,6 +24,7 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
     void on_join_response(const SessionInfo&,
                           const std::vector<CarStaticInfo>&) override;
+    void on_leave_response() override;
 
    signals:
     void carSelected(int carType);

@@ -17,9 +17,9 @@ struct ErrorResponse {
 enum class RequestType : uint8_t {
     SearchRequest,
     JoinRequest,
-    CreateRequest,
     LeaveRequest,
     StartRequest,
+    CreateRequest,
     ChooseCarRequest,
 };
 MAKE_ENUM_SERIALIZABLE(RequestType, uint8_t)

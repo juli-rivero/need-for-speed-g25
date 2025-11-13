@@ -21,6 +21,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
     void on_session_snapshot(const SessionConfig&,
                              const std::vector<PlayerInfo>&) override;
     void on_start_game() override;
+    void on_leave_response() override;
 
     // Configurar la sala de espera
     void setGameInfo(int gameId, const std::vector<PlayerInfo>& players);

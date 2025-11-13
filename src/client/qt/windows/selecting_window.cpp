@@ -253,7 +253,7 @@ void SelectingWindow::onConfirmClicked() {
     emit confirmRequested();
 }
 
-void SelectingWindow::onCancelClicked() { emit cancelRequested(); }
+void SelectingWindow::onCancelClicked() { api.request_leave_current_session(); }
 
 void SelectingWindow::reset() {
     // Seleccionar el primer auto
@@ -279,6 +279,10 @@ void SelectingWindow::on_join_response(
             reset();
         },
         Qt::QueuedConnection);
+}
+void SelectingWindow::on_leave_response() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit cancelRequested(); }, Qt::QueuedConnection);
 }
 
 void SelectingWindow::updateCarDetails(int carIndex) {

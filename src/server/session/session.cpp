@@ -67,6 +67,7 @@ void Session::remove_client(const PlayerId client_id) {
 
 bool Session::in_game() const { return game.isRunning(); }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
+bool Session::empty() const { return users_setup.empty(); }
 
 std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
     const auto cars = yaml_config.getCarTypes();
@@ -108,7 +109,11 @@ void Session::set_ready(const PlayerId client_id, const bool ready) {
     if (all_ready()) start_game();
 }
 
-Session::~Session() { log->debug("Destroyed"); }
+Session::~Session() {
+    if (game.isRunning()) game.stop();
+    log->debug("Destroyed");
+    spdlog::drop(log->name());
+}
 
 void Session::start_game() {
     log->debug("starting game");

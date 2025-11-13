@@ -36,6 +36,11 @@ void WaitingWindow::on_start_game() {
         this, [this]() { emit startGameRequested(); }, Qt::QueuedConnection);
 }
 
+void WaitingWindow::on_leave_response() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit leaveGameRequested(); }, Qt::QueuedConnection);
+}
+
 void WaitingWindow::setupUI() {
     QVBoxLayout* layout = new QVBoxLayout(this);
     layout->setContentsMargins(50, 30, 50, 30);
@@ -222,7 +227,7 @@ void WaitingWindow::onLeaveClicked() {
                               QMessageBox::Yes | QMessageBox::No);
 
     if (reply == QMessageBox::Yes) {
-        emit leaveGameRequested();
+        api.request_leave_current_session();
     }
 }
 

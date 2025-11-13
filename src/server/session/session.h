@@ -60,6 +60,7 @@ class Session final {
 
     bool in_game() const;
     bool full() const;
+    bool empty() const;
 
     std::vector<CarStaticInfo> get_types_of_static_cars() const;
 
