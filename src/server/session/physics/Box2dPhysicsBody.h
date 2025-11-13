@@ -1,6 +1,7 @@
 #pragma once
 
 #include <box2d/box2d.h>
+
 #include <iostream>
 // WRAPPER DE UN CUERPO FISICO
 class Box2dPhysicsBody {
@@ -16,7 +17,7 @@ class Box2dPhysicsBody {
 
     b2BodyId getId() const { return body; }
     void setShapeId(b2ShapeId id) { shape = id; }
-    b2ShapeId getShapeId() const {return shape;}
+    b2ShapeId getShapeId() const { return shape; }
     void setTransform(float x, float y, float angle) {
         b2Body_SetTransform(body, {x, y}, b2MakeRot(angle));
     }

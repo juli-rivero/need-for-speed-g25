@@ -8,9 +8,8 @@
 
 struct b2ShapeIdHasher {
     std::size_t operator()(const b2ShapeId id) const noexcept {
-        return std::hash<uint64_t>()(
-            (static_cast<uintptr_t>(id.world0) << 32) ^ id.index1
-        );
+        return std::hash<uint64_t>()((static_cast<uintptr_t>(id.world0) << 32) ^
+                                     id.index1);
     }
 };
 

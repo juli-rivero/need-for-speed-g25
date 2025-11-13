@@ -19,7 +19,6 @@ class Wall : public Entity {
           height(h),
           body(std::move(body)) {}
 
-    int getId() const override{ return id; }
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }
     float getWidth() const { return width; }

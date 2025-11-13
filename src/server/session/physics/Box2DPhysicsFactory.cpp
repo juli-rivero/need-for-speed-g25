@@ -6,8 +6,7 @@
 
 // --- Auto ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
-    b2WorldId world, float x, float y, const CarType& type)
-{
+    b2WorldId world, float x, float y, const CarType& type) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_dynamicBody;
     def.position = {x, y};
@@ -32,8 +31,7 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
 
 // --- MURO ESTÁTICO ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(
-    b2WorldId world, float x, float y, float w, float h)
-{
+    b2WorldId world, float x, float y, float w, float h) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};
@@ -53,8 +51,7 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(
 // --- Checkpoint  ---
 // --- CHECKPOINT (sensor) ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCheckpoint(
-    b2WorldId world, float x, float y, float w, float h)
-{
+    b2WorldId world, float x, float y, float w, float h) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};
@@ -70,11 +67,9 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCheckpoint(
     return body;
 }
 
-
 // --- PUENTE (doble cuerpo, arriba/abajo) ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridge(
-    b2WorldId world, float x, float y, float w, float h, bool driveable)
-{
+    b2WorldId world, float x, float y, float w, float h, bool driveable) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};

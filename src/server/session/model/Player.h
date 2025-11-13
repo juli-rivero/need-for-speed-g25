@@ -13,7 +13,6 @@ class Player {
     std::string name;
     std::shared_ptr<Car> car;  // su auto actual
 
-
    public:
     Player(PlayerId id, const std::string& name, std::shared_ptr<Car> car)
         : id(id), name(name), car(std::move(car)) {}
@@ -22,5 +21,4 @@ class Player {
     PlayerId getId() const { return id; }
     const std::string& getName() const { return name; }
     std::shared_ptr<Car> getCar() const { return car; }
-
 };

@@ -13,10 +13,8 @@ void Box2DPhysicsWorld::step(float dt) {
     b2World_Step(world, dt, 4);
     _timeAccumulator += dt;
 
-
     b2ContactEvents contactEvents = b2World_GetContactEvents(world);
     collisionManager->process(contactEvents);
-
 
     b2SensorEvents sensorEvents = b2World_GetSensorEvents(world);
     collisionManager->processSensors(sensorEvents);

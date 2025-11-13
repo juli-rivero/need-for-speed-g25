@@ -8,7 +8,8 @@
 #include "../../config/MapLoader.h"
 
 RaceSession::RaceSession(
-    const YamlGameConfig& cfg, CityId city, std::vector<std::unique_ptr<Checkpoint>> checkpoints,
+    const YamlGameConfig& cfg, CityId city,
+    std::vector<std::unique_ptr<Checkpoint>> checkpoints,
     const std::vector<std::shared_ptr<Car>>& playersCars,
     const std::vector<PlayerId>& playerIds,
     std::vector<SpawnPoint> spawn_points,
@@ -17,8 +18,6 @@ RaceSession::RaceSession(
       _city(city),
       _checkpoints(std::move(checkpoints)),
       _spawnPoints(std::move(spawn_points)) {
-
-
     _players.reserve(playersCars.size());
     for (size_t i = 0; i < playersCars.size(); ++i) {
         PlayerRaceData prd;
@@ -119,7 +118,8 @@ std::vector<PlayerResult> RaceSession::makeResults() const {
 }
 
 // Visibilidad: siguiente CP e hints asociados
-std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(PlayerId p) const {
+std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(
+    PlayerId p) const {
     auto it = std::find_if(_players.begin(), _players.end(),
                            [&](const auto& pr) { return pr.id == p; });
     if (it == _players.end()) return std::nullopt;
@@ -145,7 +145,7 @@ void RaceSession::onCheckpointCrossed(PlayerId player, int checkpointOrder) {
 RaceProgressSnapshot RaceSession::getProgressForPlayer(PlayerId id) const {
     RaceProgressSnapshot rp{};
     auto it = std::find_if(_players.begin(), _players.end(),
-                           [&](const auto& p){ return p.id == id; });
+                           [&](const auto& p) { return p.id == id; });
     if (it != _players.end()) {
         rp.playerId = it->id;
         rp.nextCheckpoint = it->nextCheckpoint;
@@ -155,7 +155,6 @@ RaceProgressSnapshot RaceSession::getProgressForPlayer(PlayerId id) const {
     }
     return rp;
 }
-
 
 void RaceSession::onCarDestroyed(PlayerId player) {
     auto itP = std::find_if(_players.begin(), _players.end(),

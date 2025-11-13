@@ -1,7 +1,9 @@
+#include <box2d/box2d.h>
+
 #include <exception>
 #include <fstream>
-#include <box2d/box2d.h>
 #include <iostream>
+
 #include "client/args_parser.h"
 #include "server/server.h"
 #include "server/test_simulador.h"

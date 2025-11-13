@@ -3,6 +3,7 @@
 #include <cmath>
 #include <memory>
 #include <utility>
+
 #include "../physics/IPhysicalBody.h"
 #include "Entity.h"
 
@@ -24,7 +25,6 @@ class Checkpoint : public Entity {
           angle(angle),
           body(std::move(body)) {}
 
-    int getId() const override{ return id; }
     int getOrder() const { return order; }
 
     Vec2 getPosition() const { return body->getPosition(); }

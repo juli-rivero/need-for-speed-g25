@@ -14,13 +14,13 @@ class CollisionManager {
     // Mapeo de cuerpo físico → puntero lógico (Car, Wall, Checkpoint, etc.)
     std::unordered_map<b2ShapeId, Entity*, b2ShapeIdHasher, b2ShapeIdEqual>
         shapeToEntity;
-    std::unordered_map<const Car*,PlayerId> carToPlayer;
+    std::unordered_map<const Car*, PlayerId> carToPlayer;
     RaceSession* raceSession{nullptr};
 
     void handleHitEvents(const b2ContactEvents& events);
     void resolvePhysicalImpact(void* a, void* b, float impact);
-    //void handleBeginTouch(const b2ContactEvents& events);
-    // void handleEndTouch (const b2ContactEvents& events);
+    // void handleBeginTouch(const b2ContactEvents& events);
+    //  void handleEndTouch (const b2ContactEvents& events);
    public:
     CollisionManager() = default;
 
@@ -29,7 +29,7 @@ class CollisionManager {
         static_assert(std::is_base_of_v<Entity, T>, "T debe derivar de Entity");
         shapeToEntity[shapeId] = entity;
     }
-    void registerCar(const Car* car,PlayerId playerId) {
+    void registerCar(const Car* car, PlayerId playerId) {
         carToPlayer[car] = playerId;
     }
 

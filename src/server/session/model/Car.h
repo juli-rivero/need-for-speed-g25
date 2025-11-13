@@ -23,7 +23,6 @@ class Car : public Entity {
     float health;
     std::shared_ptr<IPhysicalBody> body;
 
-
    public:
     Car(int id, const std::string& name, const CarType& type,
         std::shared_ptr<IPhysicalBody> body)
@@ -33,7 +32,6 @@ class Car : public Entity {
           health(type.health),
           body(std::move(body)) {}
 
-    int getId() const override{ return id; }
     const CarType& getType() const { return carType; }  // acceso seguro
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }

@@ -18,10 +18,10 @@ class MapLoader {
         b2Vec2 gravity;
     };
 
-    static MapInfo loadFromYAML(const std::string& yamlPath,
-                                Box2DPhysicsWorld& world,
-                                std::vector<std::unique_ptr<Wall>>& walls,
-                                std::vector<std::unique_ptr<Bridge>>& bridges,
-                                std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
-                                std::vector<SpawnPoint>& spawnPoints);
+    static MapInfo loadFromYAML(
+        const std::string& yamlPath, Box2DPhysicsWorld& world,
+        std::vector<std::unique_ptr<Wall>>& walls,
+        std::vector<std::unique_ptr<Bridge>>& bridges,
+        std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
+        std::vector<SpawnPoint>& spawnPoints);
 };

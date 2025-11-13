@@ -66,7 +66,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
         }
 
         auto car = EntityFactory::createCar(_world, *chosenType, sp.x, sp.y);
-        _world.getCollisionManager().registerCar(car.get(),p.id);
+        _world.getCollisionManager().registerCar(car.get(), p.id);
         auto player = std::make_unique<Player>(p.id, p.name, std::move(car));
         cars.push_back(player->getCar());
         playerIds.push_back(p.id);
@@ -78,8 +78,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
     }
 
     _race = std::make_unique<RaceSession>(
-        _cfg, _races[raceIndex].city, std::move(checkpoints),
-        std::move(cars), playerIds,std::move(spawnPoints), _penaltiesForNextRace);
+        _cfg, _races[raceIndex].city, std::move(checkpoints), std::move(cars),
+        playerIds, std::move(spawnPoints), _penaltiesForNextRace);
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
     _penaltiesForNextRace.clear();
@@ -113,7 +113,6 @@ CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     return cs;
 }
 
-
 WorldSnapshot MatchSession::getSnapshot() {
     WorldSnapshot snap;
 
@@ -133,7 +132,7 @@ WorldSnapshot MatchSession::getSnapshot() {
         ps.car = makeCarSnapshot(player->getCar());
         ps.raceProgress = _race->getProgressForPlayer(id);
         std::cout << "[SnapshotDBG] Player " << id
-             << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
+                  << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
         snap.players.push_back(std::move(ps));
     }
 

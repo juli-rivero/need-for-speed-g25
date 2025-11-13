@@ -4,16 +4,18 @@
 #include <optional>
 #include <unordered_map>
 #include <vector>
-#include "NetworkTypes.h"
+
 #include "../../config/YamlGameConfig.h"
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
+#include "NetworkTypes.h"
 #include "server/session/logic/types.h"
 
 struct SpawnPoint;
 struct PlayerRaceData {
     PlayerId id{};
-    std::shared_ptr<Car> car;  // modelo lógico del auto (compartido con GameWorld)
+    std::shared_ptr<Car>
+        car;  // modelo lógico del auto (compartido con GameWorld)
     std::size_t nextCheckpoint{0};
     bool finished{false};
     bool disqualified{false};
@@ -80,7 +82,8 @@ class RaceSession {
     float _raceClock{0.0f};      // reloj global de la carrera
     float _countdownTime{3.0f};  // opcional: 3s antes de largar
 
-    std::vector<std::unique_ptr<Checkpoint>> _checkpoints;  // ordenados por "order"
+    std::vector<std::unique_ptr<Checkpoint>>
+        _checkpoints;  // ordenados por "order"
     std::vector<PlayerRaceData> _players;
     std::vector<SpawnPoint> _spawnPoints;
 
