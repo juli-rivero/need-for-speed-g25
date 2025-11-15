@@ -5,6 +5,7 @@
 #include <iostream>
 #include <memory>
 #include <unordered_map>
+#include <vector>
 
 #include "../logic/RaceSession.h"
 #include "Box2DHash.h"
@@ -15,10 +16,11 @@ class CollisionManager {
     std::unordered_map<b2ShapeId, Entity*, b2ShapeIdHasher, b2ShapeIdEqual>
         shapeToEntity;
     std::unordered_map<const Car*, PlayerId> carToPlayer;
+    std::vector<CollisionEvent> collisionEvents;
     RaceSession* raceSession{nullptr};
 
     void handleHitEvents(const b2ContactEvents& events);
-    void resolvePhysicalImpact(void* a, void* b, float impact);
+    void resolvePhysicalImpact(Entity* a, Entity* b, float impact);
     // void handleBeginTouch(const b2ContactEvents& events);
     //  void handleEndTouch (const b2ContactEvents& events);
    public:
@@ -32,10 +34,15 @@ class CollisionManager {
     void registerCar(const Car* car, PlayerId playerId) {
         carToPlayer[car] = playerId;
     }
+    std::vector<CollisionEvent> consumeEvents() {
+        auto out = collisionEvents;
+        collisionEvents.clear();
+        return out;
+    }
 
     void unregisterEntity(b2ShapeId shapeId) { shapeToEntity.erase(shapeId); }
     void setRaceSession(RaceSession* session) { raceSession = session; }
     void processSensors(const b2SensorEvents& events);
-
+    void generateCollisionEvent(Entity* entA, Entity* entB, float impact);
     void process(const b2ContactEvents& events);
 };

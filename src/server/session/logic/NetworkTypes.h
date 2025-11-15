@@ -17,6 +17,15 @@ struct PlayerInput {
     bool rightPressed{false};
     TurnDirection turn{TurnDirection::None};
 };
+// ========= Events ==========
+enum class CollisionType { CarToCar, CarToWall };
+static constexpr PlayerId INVALID_PLAYER = UINT32_MAX;
+struct CollisionEvent {
+    CollisionType type;
+    PlayerId carA;
+    PlayerId carB;
+    float intensity;
+};
 
 // ========= SNAPSHOTS ==========
 
@@ -48,7 +57,7 @@ struct CarSnapshot {
     bool accelerating;  // si está acelerando
 };
 struct PlayerSnapshot {
-    int id;            // ID del jugador
+    PlayerId id;       // ID del jugador
     std::string name;  // nombre del jugador
     CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
@@ -57,6 +66,7 @@ struct WorldSnapshot {
     float time{0.0f};          // tiempo global simulado
     float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
     std::vector<PlayerSnapshot> players;
+    std::vector<CollisionEvent> collisions;
 };
 struct WallInfo {
     int id;
@@ -84,7 +94,7 @@ struct SpawnPointInfo {
 };
 
 struct CarStaticInfo {
-    int id;
+    PlayerId id;  // seria el id del jugador que tiene dicho auto
     std::string playerName;
     std::string carType;
     float width;

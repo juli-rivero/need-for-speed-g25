@@ -96,7 +96,7 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
     if (players.empty()) return;
 
     // Suponemos jugador local (id=1)
-    int localId = 1;
+    PlayerId localId = 1;
     auto it =
         std::find_if(players.begin(), players.end(),
                      [&](const PlayerSnapshot& p) { return p.id == localId; });
@@ -273,7 +273,7 @@ int test() {
             if (dyn.players.empty()) continue;
 
             // jugador local
-            int localPlayerId = 1;
+            PlayerId localPlayerId = 1;
             auto itLocal = std::find_if(
                 dyn.players.begin(), dyn.players.end(),
                 [&](const PlayerSnapshot& p) { return p.id == localPlayerId; });
