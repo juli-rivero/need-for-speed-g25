@@ -25,7 +25,7 @@ struct PlayerRaceData {
 
 class RaceSession {
    public:
-    enum class State { Countdown, Running, Finished };
+
 
     RaceSession(
         const YamlGameConfig& cfg, CityId city,
@@ -41,7 +41,7 @@ class RaceSession {
                             // llegada total
 
     // resultados
-    bool isFinished() const { return _state == State::Finished; }
+    bool isFinished() const { return _state == RaceState::Finished; }
     std::vector<PlayerResult> makeResults() const;
 
     // visibilidad de UI: próximo CP e hints (para "mostrar en orden")
@@ -52,7 +52,7 @@ class RaceSession {
     void onCarDestroyed(PlayerId player);
 
     // util
-    State state() const { return _state; }
+    RaceState state() const { return _state; }
     float elapsedRaceTime() const { return _raceClock; }
     const std::vector<std::unique_ptr<Checkpoint>>& getCheckpoints() const {
         return _checkpoints;
@@ -74,13 +74,16 @@ class RaceSession {
     const std::vector<SpawnPoint>& getSpawnPoints() const {
         return _spawnPoints;
     }
-
+    float countdownRemaining() const {
+        if (_state != RaceState::Countdown) return 0.f;
+        return std::max(0.f, _countdownTime - _raceClock);
+    }
    private:
     const YamlGameConfig& _cfg;
     CityId _city;
-    State _state{State::Countdown};
+    RaceState _state{RaceState::Countdown};
     float _raceClock{0.0f};      // reloj global de la carrera
-    float _countdownTime{3.0f};  // opcional: 3s antes de largar
+    float _countdownTime{8.0f};  // opcional: 3s antes de largar
 
     std::vector<std::unique_ptr<Checkpoint>>
         _checkpoints;  // ordenados por "order"

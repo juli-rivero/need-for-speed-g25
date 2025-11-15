@@ -21,10 +21,10 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
 
 void MatchSession::start() {
     if (_races.empty()) {
-        _state = State::Finished;
+        _state = MatchState::Finished;
         return;
     }
-    _state = State::Racing;
+    _state = MatchState::Racing;
     startRace(0);
 }
 
@@ -50,6 +50,9 @@ void MatchSession::startRace(std::size_t raceIndex) {
     for (size_t i = 0; i < _playerConfigs.size(); ++i) {
         const auto& p = _playerConfigs[i];
         if (i >= spawnPoints.size()) break;
+        if (permanentlyDisqualified.count(p.id)) {
+            continue;
+        }
         const auto& sp = spawnPoints[i];
 
         // Buscar tipo de auto
@@ -122,6 +125,14 @@ WorldSnapshot MatchSession::getSnapshot() {
     }
 
     snap.time = _world.getTime();
+    const auto& rd = _races[_currentRace];
+    snap.raceCity = rd.city;
+    snap.raceMapFile = rd.mapFile;
+    snap.matchState = _state;
+    snap.currentRaceIndex = _currentRace;
+    snap.raceState = _race->state();
+    snap.raceElapsed = _race->elapsedRaceTime();
+    snap.raceCountdown = _race->countdownRemaining();
     snap.raceTimeLeft =
         std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
 
@@ -136,6 +147,7 @@ WorldSnapshot MatchSession::getSnapshot() {
         snap.players.push_back(std::move(ps));
     }
     snap.collisions = _world.getCollisionManager().consumeEvents();
+    snap.permanentlyDQ.assign(permanentlyDisqualified.begin(), permanentlyDisqualified.end());
     return snap;
 }
 StaticSnapshot MatchSession::getStaticSnapshot() {
@@ -209,12 +221,17 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
 }
 void MatchSession::update(float dt) {
     switch (_state) {
-        case State::Starting:
+        case MatchState::Starting:
             // TODO(elvis)
-        case State::Racing:
+        case MatchState::Racing:
             // Actualizar cada coche según su input persistente
             for (auto& [id, player] : _players) {
-                player->getCar()->update();
+                auto car = player->getCar();
+                car->update();
+                if (car->isDestroyed()) {
+                    _race->onCarDestroyed(id);
+                    permanentlyDisqualified.insert(id);
+                }
             }
             _race->update(dt);
             if (_race->isFinished()) {
@@ -222,13 +239,13 @@ void MatchSession::update(float dt) {
                 startIntermission();
             }
             break;
-        case State::Intermission:
+        case MatchState::Intermission:
             _intermissionClock += dt;
             if (_intermissionClock >= _cfg.getIntermissionSec()) {
                 endIntermissionAndPrepareNextRace();
             }
             break;
-        case State::Finished:
+        case MatchState::Finished:
             break;
     }
 }
@@ -236,8 +253,11 @@ void MatchSession::update(float dt) {
 void MatchSession::applyInput(PlayerId id, const PlayerInput& input) {
     auto it = _players.find(id);
     if (it == _players.end()) return;
-    it->second->getCar()->setInput(input.accelerate, input.brake, input.turn,
-                                   input.nitro);
+    if (_race && _race->state() != RaceState::Countdown) {
+        it->second->getCar()->setInput(input.accelerate, input.brake, input.turn,
+                                  input.nitro);
+    }
+
 }
 void MatchSession::finishRaceAndComputeTotals() {
     _lastResults = _race->makeResults();
@@ -249,7 +269,7 @@ void MatchSession::finishRaceAndComputeTotals() {
 }
 
 void MatchSession::startIntermission() {
-    _state = State::Intermission;
+    _state = MatchState::Intermission;
     _intermissionClock = 0.0f;
 }
 
@@ -268,9 +288,9 @@ void MatchSession::endIntermissionAndPrepareNextRace() {
     _queuedUpgrades.clear();
 
     if (_currentRace + 1 < _races.size()) {
-        _state = State::Racing;
+        _state = MatchState::Racing;
         startRace(_currentRace + 1);
     } else {
-        _state = State::Finished;
+        _state = MatchState::Finished;
     }
 }

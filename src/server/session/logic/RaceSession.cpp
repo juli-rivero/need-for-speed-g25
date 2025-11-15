@@ -38,7 +38,7 @@ void RaceSession::orderCheckpointsByOrder() {
 }
 
 void RaceSession::start() {
-    _state = State::Countdown;
+    _state = RaceState::Countdown;
     _raceClock = 0.0f;
 }
 
@@ -57,18 +57,18 @@ void RaceSession::applyTimeLimitIfNeeded() {
                 p.disqualified = true;  // DNF por timeout
             }
         }
-        _state = State::Finished;
+        _state = RaceState::Finished;
     }
 }
 
 void RaceSession::update(float dt) {
-    if (_state == State::Finished) return;
+    if (_state == RaceState::Finished) return;
 
     _raceClock += dt;
 
-    if (_state == State::Countdown) {
+    if (_state == RaceState::Countdown) {
         if (_raceClock >= _countdownTime) {
-            _state = State::Running;
+            _state = RaceState::Running;
             // reinicia reloj de carrera efectiva
             _raceClock = 0.0f;
         }
@@ -87,7 +87,7 @@ void RaceSession::update(float dt) {
     }
 
     if (everyoneDoneOrDQ()) {
-        _state = State::Finished;
+        _state = RaceState::Finished;
         return;
     }
 

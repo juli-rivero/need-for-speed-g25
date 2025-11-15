@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #include "../../config/YamlGameConfig.h"
@@ -14,7 +15,7 @@
 #include "server/session/model/Bridge.h"
 #include "server/session/model/Wall.h"
 
-enum class State { Starting, Racing, Intermission, Finished };
+
 
 class MatchSession {
    private:
@@ -24,7 +25,7 @@ class MatchSession {
     std::vector<std::unique_ptr<Bridge>> _bridges;
     std::vector<PlayerConfig> _playerConfigs;
     std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
-    State _state{State::Starting};
+    MatchState _state{MatchState::Starting};
     std::vector<RaceDefinition> _races;  // N carreras planificadas
     std::size_t _currentRace{0};
 
@@ -34,8 +35,10 @@ class MatchSession {
     std::unordered_map<PlayerId, float> _totalTime;  // acumulado por jugador
     std::unordered_map<PlayerId, std::vector<UpgradeChoice>> _queuedUpgrades;
     std::unordered_map<PlayerId, float> _penaltiesForNextRace;
+    std::unordered_set<PlayerId> permanentlyDisqualified;
 
     std::vector<PlayerResult> _lastResults;
+
 
     UpgradeSystem _upgradeSystem;
 
@@ -61,7 +64,7 @@ class MatchSession {
     const std::unordered_map<PlayerId, float>& totals() const {
         return _totalTime;
     }
-    State state() const { return _state; }
+    MatchState state() const { return _state; }
 
     static CarSnapshot makeCarSnapshot(const std::shared_ptr<Car>& car);
     // acceso a resultados de la última carrera

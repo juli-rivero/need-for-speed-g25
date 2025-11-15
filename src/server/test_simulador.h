@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL2/SDL.h>
-
+#include <SDL_ttf.h>
 #include <chrono>
 #include <cmath>
 #include <iostream>
@@ -27,6 +27,47 @@ static const int WIN_H = 700;
 static const float PPM = 20.0f;  // pixels per meter
 static const float DT = 1.0f / 60.0f;
 
+static const char* toString(MatchState s) {
+    switch (s) {
+        case MatchState::Starting:     return "Starting";
+        case MatchState::Racing:       return "Racing";
+        case MatchState::Intermission: return "Intermission";
+        case MatchState::Finished:     return "Finished";
+    }
+    return "Unknown";
+}
+
+static const char* toString(RaceState s) {
+    switch (s) {
+        case RaceState::Countdown: return "Countdown";
+        case RaceState::Running:   return "Running";
+        case RaceState::Finished:  return "Finished";
+    }
+    return "Unknown";
+}
+
+static void drawText(SDL_Renderer* renderer, TTF_Font* font,
+                     int x, int y, const std::string& text,
+                     SDL_Color color = {255,255,255,255})
+{
+    SDL_Surface* surf = TTF_RenderText_Blended(font, text.c_str(), color);
+    if (!surf) return;
+
+    SDL_Texture* tex = SDL_CreateTextureFromSurface(renderer, surf);
+    SDL_FreeSurface(surf);
+    if (!tex) return;
+
+    SDL_Rect dst;
+    dst.x = x;
+    dst.y = y;
+    SDL_QueryTexture(tex, nullptr, nullptr, &dst.w, &dst.h);
+    SDL_RenderCopy(renderer, tex, nullptr, &dst);
+
+    SDL_DestroyTexture(tex);
+}
+
+
+
 static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
                                   SDL_FPoint* center, SDL_RendererFlip flip) {
     // Obtiene el color actual del renderer
@@ -46,6 +87,41 @@ static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
     // Copiamos la textura rotada al renderer principal
     SDL_RenderCopyExF(r, tex, nullptr, rect, angle, center, flip);
     SDL_DestroyTexture(tex);
+}
+static void renderMiniHUD(SDL_Renderer* r, TTF_Font* font,
+                          const WorldSnapshot& snap)
+{
+    int x = 20;
+    int y = WIN_H - 150;
+
+    // Fondo oscuro
+    SDL_SetRenderDrawColor(r, 20, 20, 20, 180);
+    SDL_Rect bg = {x - 10, y - 10, 350, 140};
+    SDL_RenderFillRect(r, &bg);
+
+    SDL_Color white{255,255,255,255};
+    SDL_Color yellow{255,220,0,255};
+
+    drawText(r, font, x, y,
+         std::string("Match State: ") + toString(snap.matchState), white);
+
+    drawText(r, font, x, y + 20,
+         std::string("Race State:  ") + toString(snap.raceState), white);
+
+    drawText(r, font, x, y + 40,
+        "Countdown:   " + std::to_string((int)snap.raceCountdown), yellow);
+
+    drawText(r, font, x, y + 60,
+        "Race Time:   " + std::to_string((int)snap.raceElapsed), yellow);
+
+    drawText(r, font, x, y + 80,
+        "Time Left:   " + std::to_string((int)snap.raceTimeLeft), yellow);
+
+    drawText(r, font, x, y + 100,
+        "Race Index:  " + std::to_string(snap.currentRaceIndex), white);
+
+    drawText(r, font, x, y + 120,
+        "Players:     " + std::to_string(snap.players.size()), white);
 }
 
 // ============================================================
@@ -179,7 +255,10 @@ int test() {
             std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
             return 1;
         }
-
+        if (TTF_Init() != 0) {
+            std::cerr << "TTF_Init error: " << TTF_GetError() << "\n";
+            return 1;
+        }
         SDL_Window* window = SDL_CreateWindow(
             "Box2D Car Test", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
             WIN_W, WIN_H, SDL_WINDOW_SHOWN);
@@ -206,6 +285,11 @@ int test() {
         float nitroTime = 0.0f;
         bool nitroActive = false;
 
+        TTF_Font* font = TTF_OpenFont("assets/fonts/OpenSans-Regular.ttf", 16);
+        if (!font) {
+            std::cerr << "No pude abrir fuente: " << TTF_GetError() << "\n";
+            return 1;
+        }
         SDL_Event e;
         while (running) {
             while (SDL_PollEvent(&e)) {
@@ -271,6 +355,24 @@ int test() {
             // game.update(DT);
             auto dyn = game.getSnapshot();
             if (dyn.players.empty()) continue;
+            if (!dyn.collisions.empty()) {
+                std::cout << "---- COLISIONES DETECTADAS ("
+                          << dyn.collisions.size() << ") ----\n";
+
+                for (const auto& c : dyn.collisions) {
+
+                    if (c.type == CollisionType::CarToCar) {
+                        std::cout << "CarToCar: A=" << c.carA
+                                  << " B=" << c.carB
+                                  << " intensity=" << c.intensity << "\n";
+                    }
+                    else if (c.type == CollisionType::CarToWall) {
+                        std::cout << "CarToWall: Car=" << c.carA
+                                  << " intensity=" << c.intensity << "\n";
+                    }
+                }
+                std::cout << "----------------------------------------\n";
+            }
 
             // jugador local
             PlayerId localPlayerId = 1;
@@ -419,14 +521,15 @@ int test() {
             if (itStatLocal != stat.cars.end()) {
                 renderUI(renderer, local.car, *itStatLocal);
             }
-
+            renderMiniHUD(renderer, font, dyn);
             SDL_RenderPresent(renderer);
             SDL_Delay(static_cast<int>((DT * 1000)));
         }
-
+        TTF_CloseFont(font);
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
+        TTF_Quit();
         game.stop();
         return 0;
     } catch (const std::exception& e) {
