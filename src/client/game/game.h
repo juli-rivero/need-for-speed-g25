@@ -2,10 +2,12 @@
 
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
+#include <map>
 #include <string>
 
 #include "client/game/assets.h"
 #include "client/game/car.h"
+#include "client/game/mock_api.h"
 #include "common/macros.h"
 
 class Car;
@@ -21,15 +23,10 @@ class Game final {
 
     uint64_t frame = 0;
 
-    // Componentes logicos
-    // TODO(crook): Estado de teclas temporal, se tienen que enviar eventos
-    bool left_held = false;
-    bool right_held = false;
-    bool up_held = false;
-    bool down_held = false;
-    bool space_pressed = true;
+    MockApi api;
 
     std::list<Car> cars;
+    std::map<int, Car*> cars_by_id;
 
     // Metodos de actualizacion internos
     bool send_events();

@@ -2,44 +2,20 @@
 
 #define MAX_SPEED 5
 
-Car::Car(Game& game, double x, double y, double speed, double angle,
-         SDL2pp::Texture& sprite, size_t id)
+Car::Car(Game& game, SDL2pp::Texture& sprite, size_t id)
     : game(game),
-      x(x),
-      y(y),
-      speed(speed),
-      angle(angle),
+      x(0),
+      y(0),
+      angle(0),
       sprite(sprite),
       id(id),
       WIDTH(sprite.GetWidth()),
       HEIGHT(sprite.GetHeight()) {}
 
-void Car::update() {
-    if (id == 0) {
-        if (game.left_held) angle -= 3;
-        if (game.right_held) angle += 3;
-        if (game.down_held) speed -= 0.1;
-
-        if (game.up_held) {
-            speed += 0.1;
-        } else {
-            if (speed > 0) {
-                speed -= 0.1;
-            } else {
-                speed += 0.1;
-            }
-        }
-    } else {
-        angle += 3;
-    }
-
-    if (angle > 360) angle -= 360;
-    if (angle < 0) angle += 360;
-    if (speed > MAX_SPEED) speed = MAX_SPEED;
-    if (speed < -MAX_SPEED) speed = -MAX_SPEED;
-
-    x += sin(-angle * 3.14 / 180) * (-speed);
-    y += cos(-angle * 3.14 / 180) * (-speed);
+void Car::update(const CarSnapshot& snapshot) {
+    x = snapshot.x;
+    y = snapshot.y;
+    angle = snapshot.angle;
 }
 
 void Car::set_camera() {

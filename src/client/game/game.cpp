@@ -21,7 +21,8 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
         if (i == 5) texture = &assets.car6;
         if (i == 6) texture = &assets.car7;
 
-        cars.push_back(Car(*this, 100 * i, 100 * i, 3, 0, *texture, i));
+        cars.emplace_back(*this, *texture, i);
+        cars_by_id.emplace(i, &cars.back());
     }
 }
 
@@ -49,8 +50,6 @@ void Game::render(const std::string& texto, int x, int y, bool in_world) {
 //
 
 bool Game::send_events() {
-    space_pressed = false;
-
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
         if (event.type == SDL_QUIT) return true;
@@ -60,30 +59,21 @@ bool Game::send_events() {
 
             if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
 
-            if (tecla == SDLK_LEFT)
-                left_held = true;  // EVENT: Enviar "iniciar giro izquierda"
-            if (tecla == SDLK_RIGHT)
-                right_held = true;  // EVENT: Enviar "iniciar giro derecha"
-            if (tecla == SDLK_UP)
-                up_held = true;  // EVENT: Enviar "iniciar acelerar"
-            if (tecla == SDLK_DOWN)
-                down_held = true;  // EVENT: Enviar "iniciar desacelerar"
+            if (tecla == SDLK_LEFT) api.start_turning(TurnDirection::Left);
+            if (tecla == SDLK_RIGHT) api.start_turning(TurnDirection::Right);
+            if (tecla == SDLK_UP) api.start_accelerating();
+            if (tecla == SDLK_DOWN) api.start_breaking();
 
-            if (tecla == SDLK_SPACE)
-                space_pressed = true;  // EVENT: Enviar "activar nitro"
+            if (tecla == SDLK_SPACE) api.start_using_nitro();
         }
 
         if (event.type == SDL_KEYUP) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_LEFT)
-                left_held = false;  // EVENT: Enviar "detener giro izquierda"
-            if (tecla == SDLK_RIGHT)
-                right_held = false;  // EVENT: Enviar "detener giro derecha"
-            if (tecla == SDLK_UP)
-                up_held = false;  // EVENT: Enviar "detener acelerar"
-            if (tecla == SDLK_DOWN)
-                down_held = false;  // EVENT: Enviar "detener desacelerar"
+            if (tecla == SDLK_LEFT) api.stop_turning(TurnDirection::Left);
+            if (tecla == SDLK_RIGHT) api.stop_turning(TurnDirection::Right);
+            if (tecla == SDLK_UP) api.stop_accelerating();
+            if (tecla == SDLK_DOWN) api.stop_breaking();
         }
     }
 
@@ -96,8 +86,8 @@ void Game::get_state() {
     //        por ahora calculo todo localmente, como una clase de "simulacion",
     //        para tener algo para dibujar. Si es necesario borrar esto, despues
     //        lo vemos.
-
-    for (Car& car : cars) car.update();
+    for (auto& car_snapshot : api.get_snapshot().cars)
+        cars_by_id[car_snapshot.id]->update(car_snapshot);
 }
 
 void Game::draw_state() {

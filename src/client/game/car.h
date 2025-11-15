@@ -3,6 +3,7 @@
 #include <SDL2pp/SDL2pp.hh>
 
 #include "client/game/game.h"
+#include "client/game/mock_api.h"
 #include "common/macros.h"
 
 class Game;  // friend class Car;
@@ -12,10 +13,9 @@ class Car final {
     Game& game;
 
     // Parametros mutables
-    double x;
-    double y;
-    double speed;
-    double angle;
+    float x;
+    float y;
+    float angle;
     SDL2pp::Texture& sprite;
     size_t id;
 
@@ -24,10 +24,9 @@ class Car final {
     const int HEIGHT;
 
    public:
-    Car(Game& game, double x, double y, double speed, double angle,
-        SDL2pp::Texture& sprite, size_t id);
+    Car(Game& game, SDL2pp::Texture& sprite, size_t id);
 
-    void update();  // TEMP
+    void update(const CarSnapshot&);  // TEMP
 
     void set_camera();
     void sound_crash();

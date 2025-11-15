@@ -6,6 +6,7 @@ target_sources(taller_client
         sdl_app.cpp
         assets.cpp
         car.cpp
+        mock_api.cpp
         PUBLIC
         # .h files
         game.h
@@ -13,4 +14,5 @@ target_sources(taller_client
         sdl_app.h
         assets.h
         car.h
+        mock_api.h
 )
