@@ -15,8 +15,7 @@ void Controller::run() {
     while (should_keep_running()) {
         try {
             events.pop()();
-        } catch (ClosedQueue&) {
-        }
+        } catch (ClosedQueue&) {}
     }
 }
 void Controller::stop() {

@@ -7,11 +7,15 @@
 #include "server/session/logic/types.h"
 
 // ========= INPUTS ==========
+enum class TurnDirection { None, Left, Right };
+
 struct PlayerInput {
     bool accelerate{false};
     bool brake{false};
     bool nitro{false};
-    std::string turn;  // "left", "right", "none"
+    bool leftPressed{false};
+    bool rightPressed{false};
+    TurnDirection turn{TurnDirection::None};
 };
 
 // ========= SNAPSHOTS ==========

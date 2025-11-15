@@ -9,6 +9,7 @@
 
 #include "../physics/IPhysicalBody.h"
 #include "Entity.h"
+#include "server/session/logic/NetworkTypes.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/CarType.h"
 
@@ -17,7 +18,7 @@ class Car : public Entity {
     std::string name;
     bool accelerating{false};
     bool braking{false};
-    std::string turning{false};
+    TurnDirection turning{TurnDirection::None};
     bool nitroActive{false};
     const CarType& carType;
     float health;
@@ -36,7 +37,7 @@ class Car : public Entity {
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
-    void setInput(bool accel, bool brake, const std::string& turn, bool nitro) {
+    void setInput(bool accel, bool brake, TurnDirection turn, bool nitro) {
         accelerating = accel;
         braking = brake;
         turning = turn;
@@ -51,7 +52,6 @@ class Car : public Entity {
         Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
         body->applyForce(dir.x * force, dir.y * force);
 
-        // Limitar la velocidad máxima
         Vec2 vel = body->getLinearVelocity();
         float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
         if (speed > carType.maxSpeed) {
@@ -78,10 +78,16 @@ class Car : public Entity {
     void update() {
         if (accelerating) accelerate();
         if (braking) brake();
-        if (turning == "left") {
-            turnLeft();
-        } else if (turning == "right") {
-            turnRight();
+
+        switch (turning) {
+            case TurnDirection::Left:
+                turnLeft();
+                break;
+            case TurnDirection::Right:
+                turnRight();
+                break;
+            default:
+                break;
         }
     }
 };

@@ -1,5 +1,7 @@
 #include "server/session/game.h"
 
+#include "common/thread.h"
+#include "logic/GameSessionFacade.h"
 #include "spdlog/logger.h"
 
 Game::Game(const std::unordered_map<int, UserSetup>& users_setup,

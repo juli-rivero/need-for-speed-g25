@@ -207,7 +207,7 @@ int test() {
         bool nitroActive = false;
 
         SDL_Event e;
-        while (running && game.isRunning()) {
+        while (running) {
             while (SDL_PollEvent(&e)) {
                 if (e.type == SDL_QUIT) running = false;
 
@@ -268,8 +268,7 @@ int test() {
                 }
             }
 
-            // --- Actualiza lógica ---
-            game.update(DT);
+            // game.update(DT);
             auto dyn = game.getSnapshot();
             if (dyn.players.empty()) continue;
 
@@ -425,10 +424,10 @@ int test() {
             SDL_Delay(static_cast<int>((DT * 1000)));
         }
 
-        game.stop();
         SDL_DestroyRenderer(renderer);
         SDL_DestroyWindow(window);
         SDL_Quit();
+        game.stop();
         return 0;
     } catch (const std::exception& e) {
         std::cerr << " Error durante las pruebas: " << e.what() << std::endl;
