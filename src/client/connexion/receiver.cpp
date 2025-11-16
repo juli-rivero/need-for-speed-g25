@@ -37,19 +37,14 @@ void Receiver::delegate_response(const ResponseType& response) {
     switch (response) {
         case ResponseType::JoinResponse: {
             auto join_response = receiver.get<dto_search::JoinResponse>();
-            emitter.dispatch(&Listener::on_join_response,
-                             join_response.session);
+            emitter.dispatch(&Listener::on_join_response, join_response.session,
+                             join_response.carTypes);
             break;
         }
         case ResponseType::SearchResponse: {
             auto search_response = receiver.get<dto_search::SearchResponse>();
             emitter.dispatch(&Listener::on_search_response,
                              search_response.sessions);
-            break;
-        }
-        case ResponseType::CreateResponse: {
-            receiver.get<dto_search::CreateResponse>();
-            emitter.dispatch(&Listener::on_create_response);
             break;
         }
         case ResponseType::LeaveResponse: {
@@ -59,7 +54,18 @@ void Receiver::delegate_response(const ResponseType& response) {
         }
         case ResponseType::StartResponse: {
             receiver.get<dto_session::StartResponse>();
-            emitter.dispatch(&Listener::on_start_response);
+            emitter.dispatch(&Listener::on_start_game);
+            break;
+        }
+        case ResponseType::SessionSnapshot: {
+            const auto snapshot = receiver.get<dto_session::SessionSnapshot>();
+            emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
+                             snapshot.players);
+            break;
+        }
+        case ResponseType::ErrorResponse: {
+            const auto error = receiver.get<dto::ErrorResponse>();
+            emitter.dispatch(&Listener::on_error_response, error.message);
             break;
         }
         default:

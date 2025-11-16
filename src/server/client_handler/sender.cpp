@@ -1,6 +1,15 @@
 #include "server/client_handler/sender.h"
 
+#include "common/dto/dto_search.h"
+#include "common/dto/dto_session.h"
+
+using dto::ErrorResponse;
 using dto::ResponseType;
+using dto_search::JoinResponse;
+using dto_search::SearchResponse;
+using dto_session::LeaveResponse;
+using dto_session::SessionSnapshot;
+using dto_session::StartResponse;
 
 using std::string;
 using std::vector;
@@ -36,36 +45,32 @@ void Sender::stop() {
 
 void Sender::reply_search(const vector<SessionInfo>& info) {
     log->trace("sending search response");
-    responses.try_push(
-        {ResponseType::SearchResponse, dto_search::SearchResponse{info}});
+    responses.try_push({ResponseType::SearchResponse, SearchResponse{info}});
 }
 
-void Sender::reply_joined(const SessionInfo& session) {
+void Sender::reply_joined(const SessionInfo& session,
+                          const vector<CarStaticInfo>& carTypes) {
     log->trace("sending join response");
     responses.try_push(
-        {ResponseType::JoinResponse, dto_search::JoinResponse{session}});
-}
-
-void Sender::reply_created() {
-    log->trace("sending create response");
-    responses.try_push(
-        {ResponseType::CreateResponse, dto_search::CreateResponse{}});
+        {ResponseType::JoinResponse, JoinResponse{session, carTypes}});
 }
 
 void Sender::reply_left() {
     log->trace("sending leave response");
-    responses.try_push(
-        {ResponseType::LeaveResponse, dto_session::LeaveResponse{}});
-}
-
-void Sender::reply_started() {
-    log->trace("sending start response");
-    responses.try_push(
-        {ResponseType::StartResponse, dto_session::StartResponse{}});
+    responses.try_push({ResponseType::LeaveResponse, LeaveResponse{}});
 }
 
 void Sender::reply_error(const string& message) {
     log->trace("sending error response");
+    responses.try_push({ResponseType::ErrorResponse, ErrorResponse{message}});
+}
+void Sender::send_session_snapshot(const SessionConfig& config,
+                                   const std::vector<PlayerInfo>& players) {
+    log->trace("sending session snapshot");
     responses.try_push(
-        {ResponseType::ErrorResponse, dto::ErrorResponse{message}});
+        {ResponseType::SessionSnapshot, SessionSnapshot{config, players}});
+}
+void Sender::notify_game_started() {
+    log->trace("sending start response");
+    responses.try_push({ResponseType::StartResponse, StartResponse{}});
 }

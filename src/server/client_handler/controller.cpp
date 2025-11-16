@@ -1,6 +1,6 @@
 #include "server/client_handler/controller.h"
 
-Controller::Controller(SessionsMonitor& monitor, const int id, Api& api,
+Controller::Controller(SessionsMonitor& monitor, const PlayerId id, Api& api,
                        Receiver& receiver, spdlog::logger* log)
     : log(log),
       id(id),
@@ -30,11 +30,14 @@ void Controller::on_join_session(Session& session) {
     });
 }
 
-void Controller::on_start_game(Game& game) {
+void Controller::on_start_game(GameSessionFacade& game) {
     events.try_push([&game, this] {
         game_controller = std::make_unique<GameController>(
             game, id, api, receiver, *this, log);
     });
+}
+void Controller::on_leave_session() {
+    events.try_push([this] { session_controller = nullptr; });
 }
 
 void Controller::on_game_end() {

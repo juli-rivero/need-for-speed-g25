@@ -4,22 +4,12 @@
 #include <unordered_map>
 #include <vector>
 
+#include "common/structs.h"
 #include "server/session/logic/types.h"
 
-enum class MatchState {
-    Starting,
-    Racing,
-    Intermission,
-    Finished
-};
+enum class MatchState { Starting, Racing, Intermission, Finished };
 
-enum class RaceState {
-    Countdown,
-    Running,
-    Finished
-};
-
-
+enum class RaceState { Countdown, Running, Finished };
 
 // ========= INPUTS ==========
 enum class TurnDirection { None, Left, Right };
@@ -28,8 +18,6 @@ struct PlayerInput {
     bool accelerate{false};
     bool brake{false};
     bool nitro{false};
-    bool leftPressed{false};
-    bool rightPressed{false};
     TurnDirection turn{TurnDirection::None};
 };
 // ========= Events ==========
@@ -52,13 +40,6 @@ struct RaceProgressSnapshot {
     float elapsedTime;
 };
 
-enum class CarSpriteType {
-    Speedster,
-    Muscle,
-    Offroad,
-    Truck
-    // y asi..
-};
 // estado individual del auto
 struct CarSnapshot {
     CarSpriteType type;
@@ -78,7 +59,7 @@ struct PlayerSnapshot {
     RaceProgressSnapshot raceProgress;
 };
 struct WorldSnapshot {
-    float time{0.0f};          // tiempo global simulado
+    float time{0.0f};  // tiempo global simulado
     std::string raceCity;
     std::string raceMapFile;
 
@@ -96,7 +77,6 @@ struct WorldSnapshot {
     std::vector<CollisionEvent> collisions;
     std::vector<PlayerId> permanentlyDQ;
 };
-
 struct WallInfo {
     int id;
     float x, y;
@@ -122,18 +102,6 @@ struct SpawnPointInfo {
     float angle;
 };
 
-struct CarStaticInfo {
-    PlayerId id;  // seria el id del jugador que tiene dicho auto
-    std::string playerName;
-    std::string carType;
-    float width;
-    float height;
-    float maxSpeed;
-    float acceleration;
-    float control;
-    float friction;
-    float nitroMultiplier;
-};
 struct BridgeInfo {
     int id;
     float lowerX, lowerY;

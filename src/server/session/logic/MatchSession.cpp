@@ -91,17 +91,10 @@ void MatchSession::startRace(std::size_t raceIndex) {
               << _races[raceIndex].city << std::endl;
 }
 
-static CarSpriteType toCarSpriteType(const std::string& name) {
-    if (name == "Speedster") return CarSpriteType::Speedster;
-    if (name == "Muscle") return CarSpriteType::Muscle;
-    if (name == "Offroad") return CarSpriteType::Offroad;
-    return CarSpriteType::Truck;  // valor por defecto
-}
-
 CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     CarSnapshot cs;
 
-    cs.type = toCarSpriteType(car->getType().name);
+    cs.type = YamlGameConfig::getCarSpriteType(car->getType().name);
     cs.x = car->getPosition().x;
     cs.y = car->getPosition().y;
     cs.vx = car->getVelocity().x;
@@ -147,7 +140,8 @@ WorldSnapshot MatchSession::getSnapshot() {
         snap.players.push_back(std::move(ps));
     }
     snap.collisions = _world.getCollisionManager().consumeEvents();
-    snap.permanentlyDQ.assign(permanentlyDisqualified.begin(), permanentlyDisqualified.end());
+    snap.permanentlyDQ.assign(permanentlyDisqualified.begin(),
+                              permanentlyDisqualified.end());
     return snap;
 }
 StaticSnapshot MatchSession::getStaticSnapshot() {
@@ -203,8 +197,22 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         const auto& car = player->getCar();
         const auto& type = car->getType();
 
-        CarStaticInfo ci;
-        ci.id = playerId;
+        // TODO(juli): revisar con elvis, pensé en usar el CarStaticInfo para
+        // mandar info inicial para la seleccion de los autos y luego me tope
+        // con esto, pero si lo comento no sucede nada
+        CarStaticInfo ci = {
+            .type = YamlGameConfig::getCarSpriteType(type.name),
+            .name = type.name,
+            .description = type.description,
+            .height = type.height,
+            .width = type.width,
+            .maxSpeed = type.maxSpeed,
+            .acceleration = type.acceleration,
+            .mass = type.mass,
+            .control = type.control,
+            .health = type.health,
+        };
+        /*ci.id = playerId;
         ci.playerName = player->getName();
         ci.carType = type.name;
         ci.width = type.width;
@@ -213,7 +221,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         ci.acceleration = type.acceleration;
         ci.control = type.control;
         ci.friction = type.friction;
-        ci.nitroMultiplier = type.nitroMultiplier;
+        ci.nitroMultiplier = type.nitroMultiplier;*/
         s.cars.push_back(ci);
     }
 
@@ -254,10 +262,9 @@ void MatchSession::applyInput(PlayerId id, const PlayerInput& input) {
     auto it = _players.find(id);
     if (it == _players.end()) return;
     if (_race && _race->state() != RaceState::Countdown) {
-        it->second->getCar()->setInput(input.accelerate, input.brake, input.turn,
-                                  input.nitro);
+        it->second->getCar()->setInput(input.accelerate, input.brake,
+                                       input.turn, input.nitro);
     }
-
 }
 void MatchSession::finishRaceAndComputeTotals() {
     _lastResults = _race->makeResults();

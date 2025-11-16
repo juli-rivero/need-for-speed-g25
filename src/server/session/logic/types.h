@@ -1,14 +1,10 @@
 #pragma once
 
-#include <cstdint>
 #include <memory>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
-#include "../../config/YamlGameConfig.h"
-
-using PlayerId = std::uint32_t;
+#include "common/structs.h"
 
 using CityId = std::string;
 

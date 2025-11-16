@@ -16,7 +16,10 @@ CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
 }
-void CreatingWindow::on_create_response() { emit sessionCreated(); }
+void CreatingWindow::on_join_response(const SessionInfo&,
+                                      const std::vector<CarStaticInfo>&) {
+    emit sessionCreated();
+}
 
 void CreatingWindow::setupUI() {
     // Layout principal
@@ -68,6 +71,7 @@ void CreatingWindow::setupUI() {
     formLayout->addRow(racesLabel, racesSpin);
 
     // Número de vueltas
+    // TODO(nico): borrar, el numero vueltas en un circuito siempre es 1
     lapsSpin = new QSpinBox(this);
     lapsSpin->setMinimum(1);
     lapsSpin->setMaximum(10);
@@ -78,10 +82,11 @@ void CreatingWindow::setupUI() {
     formLayout->addRow(lapsLabel, lapsSpin);
 
     // Ciudad/Mapa
+    // TODO(juli): hacer que el cliente obtenga los mapas del servidor
     cityCombo = new QComboBox(this);
-    cityCombo->addItem("🏙️  Liberty City", "city");
-    cityCombo->addItem("🏙️  San Andreas", "city");
-    cityCombo->addItem("🏙️  Vice City", "city");
+    cityCombo->addItem("🏙️  Liberty City", "LibertyCity");
+    cityCombo->addItem("🏙️  San Andreas", "SanAndreas");
+    cityCombo->addItem("🏙️  Vice City", "ViceCity");
     cityCombo->setMinimumHeight(35);
     QLabel* cityLabel = new QLabel("🗺️  Mapa/Ciudad:", this);
     formLayout->addRow(cityLabel, cityCombo);
@@ -145,7 +150,7 @@ void CreatingWindow::reset() {
 }
 
 void CreatingWindow::onSubmitClicked() {
-    api.request_create_session({
+    api.request_create_and_join_session({
         .name = nameEdit->text().trimmed().toUtf8().constData(),
         .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
         .raceCount = static_cast<uint8_t>(racesSpin->value()),

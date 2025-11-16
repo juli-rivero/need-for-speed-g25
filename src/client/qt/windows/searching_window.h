@@ -22,7 +22,8 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
 
     // Connexion overrides
     void on_search_response(const std::vector<SessionInfo> &) override;
-    void on_join_response(const SessionInfo &) override;
+    void on_join_response(const SessionInfo &,
+                          const std::vector<CarStaticInfo> &) override;
 
    signals:
     void createGameClicked();
@@ -49,6 +50,8 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
    private:
     void updateGamesList(const std::vector<SessionInfo> &games);
     QString getCarEmoji(const QString &carType) const;
+
+    void showEvent(QShowEvent *event) override;
 
     // Métodos para crear cada página
     void createThis();

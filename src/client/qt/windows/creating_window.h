@@ -6,6 +6,7 @@
 #include <QSpinBox>
 #include <QString>
 #include <QWidget>
+#include <vector>
 
 #include "client/connexion/connexion.h"
 
@@ -17,7 +18,8 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
    public:
     explicit CreatingWindow(QWidget* parent, Connexion&);
 
-    void on_create_response() override;
+    void on_join_response(const SessionInfo&,
+                          const std::vector<CarStaticInfo>&) override;
 
     void reset();
    signals:

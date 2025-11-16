@@ -6,7 +6,6 @@
 #include <vector>
 
 #include "common/dto/dto.h"
-#include "common/dto/dto_search.h"
 #include "common/macros.h"
 #include "common/protocol.h"
 #include "common/thread.h"
@@ -29,10 +28,12 @@ class Receiver final : public Thread {
         explicit Listener(Receiver& receiver);
         virtual void on_error_response(const std::string&) {}
         virtual void on_search_response(const std::vector<SessionInfo>&) {}
-        virtual void on_join_response(const SessionInfo&) {}
-        virtual void on_create_response() {}
+        virtual void on_join_response(const SessionInfo&,
+                                      const std::vector<CarStaticInfo>&) {}
         virtual void on_leave_response() {}
-        virtual void on_start_response() {}
+        virtual void on_start_game() {}
+        virtual void on_session_snapshot(const SessionConfig&,
+                                         const std::vector<PlayerInfo>&) {}
         ~Listener() override = default;
     };
 

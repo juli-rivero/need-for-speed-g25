@@ -16,7 +16,6 @@ class MapLoader {
         std::string name;
         std::string city;
         b2Vec2 gravity;
-
     };
 
     static MapInfo loadFromYAML(

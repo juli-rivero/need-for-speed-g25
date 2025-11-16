@@ -1,5 +1,6 @@
 #pragma once
 
+#include <algorithm>
 #include <memory>
 #include <optional>
 #include <unordered_map>
@@ -25,8 +26,6 @@ struct PlayerRaceData {
 
 class RaceSession {
    public:
-
-
     RaceSession(
         const YamlGameConfig& cfg, CityId city,
         std::vector<std::unique_ptr<Checkpoint>> checkpoints,
@@ -78,6 +77,7 @@ class RaceSession {
         if (_state != RaceState::Countdown) return 0.f;
         return std::max(0.f, _countdownTime - _raceClock);
     }
+
    private:
     const YamlGameConfig& _cfg;
     CityId _city;

@@ -21,13 +21,6 @@ void GameSessionFacade::run() {
 
     while (should_keep_running()) {
         for (auto& [id, st] : inputStates) {
-            if (st.leftPressed && !st.rightPressed)
-                st.turn = TurnDirection::Left;
-            else if (st.rightPressed && !st.leftPressed)
-                st.turn = TurnDirection::Right;
-            else
-                st.turn = TurnDirection::None;
-
             match->applyInput(id, st);
         }
 
@@ -62,16 +55,14 @@ void GameSessionFacade::onPlayerEvent(PlayerId id, const std::string& event) {
         st.brake = true;
     else if (event == "brake_up")
         st.brake = false;
-
     else if (event == "turn_left_down")
-        st.leftPressed = true;
-    else if (event == "turn_left_up")
-        st.leftPressed = false;
-
+        st.turn = TurnDirection::Left;
+    else if (event == "turn_left_up" && st.turn == TurnDirection::Left)
+        st.turn = TurnDirection::None;
     else if (event == "turn_right_down")
-        st.rightPressed = true;
-    else if (event == "turn_right_up")
-        st.rightPressed = false;
+        st.turn = TurnDirection::Right;
+    else if (event == "turn_right_up" && st.turn == TurnDirection::Right)
+        st.turn = TurnDirection::None;
 
     else if (event == "nitro_toggle")
         st.nitro = !st.nitro;

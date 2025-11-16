@@ -7,22 +7,36 @@
 #include <mutex>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
-#include "../../common/emitter.h"
-#include "../session/game.h"
+#include "common/emitter.h"
+#include "common/macros.h"
+#include "logic/GameSessionFacade.h"
+#include "server/config/YamlGameConfig.h"
 #include "spdlog/spdlog.h"
 
 class Session;
+
+struct UserSetup {
+    PlayerConfig game_config;
+    bool ready{false};
+
+    UserSetup(const std::string& name, PlayerId id);
+};
 
 class Session final {
     const SessionConfig config;
 
     std::shared_ptr<spdlog::logger> log;
 
-    std::unordered_map<int, UserSetup> users_setup;
+    std::unordered_map<PlayerId, UserSetup> users_setup;
     std::mutex mtx;
 
-    Game* game;
+    GameSessionFacade game;
+
+    YamlGameConfig& yaml_config;
+
+    const PlayerId creator;
 
    public:
     struct Listener : common::Listener<Session::Listener> {
@@ -30,22 +44,29 @@ class Session final {
 
         explicit Listener(Session& session);
 
-        virtual void on_start_game(Game& game) = 0;
+        virtual void on_start_game(GameSessionFacade& game) = 0;
+        virtual void on_session_updated(
+            const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
     };
 
-    explicit Session(const SessionConfig&, int creator);
+    Session(const SessionConfig&, PlayerId creator, YamlGameConfig&);
 
     MAKE_FIXED(Session)
 
     SessionInfo get_info();
 
-    void add_client(int client_id);
-    void remove_client(int client_id);
+    void add_client(PlayerId client_id);
+    void remove_client(PlayerId client_id);
 
     bool in_game() const;
     bool full() const;
+    bool empty() const;
 
-    void set_ready(int client_id, bool ready);
+    std::vector<CarStaticInfo> get_types_of_static_cars() const;
+
+    void set_car(PlayerId client_id, const std::string& car_name);
+
+    void set_ready(PlayerId client_id, bool ready);
 
     ~Session();
 
@@ -55,4 +76,6 @@ class Session final {
     void start_game();
 
     bool all_ready() const;
+
+    void notify_change();
 };

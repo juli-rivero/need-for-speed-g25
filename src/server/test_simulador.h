@@ -2,21 +2,16 @@
 
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
-#include <chrono>
+
 #include <cmath>
 #include <iostream>
-#include <memory>
-#include <thread>
+#include <string>
 #include <vector>
 
-#include "config/MapLoader.h"
+#include "common/structs.h"
 #include "config/YamlGameConfig.h"
 #include "session/logic/GameSessionFacade.h"
 #include "session/logic/types.h"
-#include "session/model/Bridge.h"
-#include "session/model/Wall.h"
-#include "session/physics/Box2DPhysicsWorld.h"
-#include "session/physics/EntityFactory.h"
 
 // MAIN DE PRUEBAS MANUALES (FISICAS,LOGICA,SERVIDOR) --NO ES EL CLIENTE
 // ============================================================
@@ -29,27 +24,33 @@ static const float DT = 1.0f / 60.0f;
 
 static const char* toString(MatchState s) {
     switch (s) {
-        case MatchState::Starting:     return "Starting";
-        case MatchState::Racing:       return "Racing";
-        case MatchState::Intermission: return "Intermission";
-        case MatchState::Finished:     return "Finished";
+        case MatchState::Starting:
+            return "Starting";
+        case MatchState::Racing:
+            return "Racing";
+        case MatchState::Intermission:
+            return "Intermission";
+        case MatchState::Finished:
+            return "Finished";
     }
     return "Unknown";
 }
 
 static const char* toString(RaceState s) {
     switch (s) {
-        case RaceState::Countdown: return "Countdown";
-        case RaceState::Running:   return "Running";
-        case RaceState::Finished:  return "Finished";
+        case RaceState::Countdown:
+            return "Countdown";
+        case RaceState::Running:
+            return "Running";
+        case RaceState::Finished:
+            return "Finished";
     }
     return "Unknown";
 }
 
-static void drawText(SDL_Renderer* renderer, TTF_Font* font,
-                     int x, int y, const std::string& text,
-                     SDL_Color color = {255,255,255,255})
-{
+static void drawText(SDL_Renderer* renderer, TTF_Font* font, int x, int y,
+                     const std::string& text,
+                     SDL_Color color = {255, 255, 255, 255}) {
     SDL_Surface* surf = TTF_RenderText_Blended(font, text.c_str(), color);
     if (!surf) return;
 
@@ -65,8 +66,6 @@ static void drawText(SDL_Renderer* renderer, TTF_Font* font,
 
     SDL_DestroyTexture(tex);
 }
-
-
 
 static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
                                   SDL_FPoint* center, SDL_RendererFlip flip) {
@@ -89,8 +88,7 @@ static void SDL_RenderFillRectExF(SDL_Renderer* r, SDL_FRect* rect, float angle,
     SDL_DestroyTexture(tex);
 }
 static void renderMiniHUD(SDL_Renderer* r, TTF_Font* font,
-                          const WorldSnapshot& snap)
-{
+                          const WorldSnapshot& snap) {
     int x = 20;
     int y = WIN_H - 150;
 
@@ -99,29 +97,29 @@ static void renderMiniHUD(SDL_Renderer* r, TTF_Font* font,
     SDL_Rect bg = {x - 10, y - 10, 350, 140};
     SDL_RenderFillRect(r, &bg);
 
-    SDL_Color white{255,255,255,255};
-    SDL_Color yellow{255,220,0,255};
+    SDL_Color white{255, 255, 255, 255};
+    SDL_Color yellow{255, 220, 0, 255};
 
     drawText(r, font, x, y,
-         std::string("Match State: ") + toString(snap.matchState), white);
+             std::string("Match State: ") + toString(snap.matchState), white);
 
     drawText(r, font, x, y + 20,
-         std::string("Race State:  ") + toString(snap.raceState), white);
+             std::string("Race State:  ") + toString(snap.raceState), white);
 
     drawText(r, font, x, y + 40,
-        "Countdown:   " + std::to_string((int)snap.raceCountdown), yellow);
+             "Countdown:   " + std::to_string(snap.raceCountdown), yellow);
 
     drawText(r, font, x, y + 60,
-        "Race Time:   " + std::to_string((int)snap.raceElapsed), yellow);
+             "Race Time:   " + std::to_string(snap.raceElapsed), yellow);
 
     drawText(r, font, x, y + 80,
-        "Time Left:   " + std::to_string((int)snap.raceTimeLeft), yellow);
+             "Time Left:   " + std::to_string(snap.raceTimeLeft), yellow);
 
     drawText(r, font, x, y + 100,
-        "Race Index:  " + std::to_string(snap.currentRaceIndex), white);
+             "Race Index:  " + std::to_string(snap.currentRaceIndex), white);
 
     drawText(r, font, x, y + 120,
-        "Players:     " + std::to_string(snap.players.size()), white);
+             "Players:     " + std::to_string(snap.players.size()), white);
 }
 
 // ============================================================
@@ -360,13 +358,10 @@ int test() {
                           << dyn.collisions.size() << ") ----\n";
 
                 for (const auto& c : dyn.collisions) {
-
                     if (c.type == CollisionType::CarToCar) {
-                        std::cout << "CarToCar: A=" << c.carA
-                                  << " B=" << c.carB
+                        std::cout << "CarToCar: A=" << c.carA << " B=" << c.carB
                                   << " intensity=" << c.intensity << "\n";
-                    }
-                    else if (c.type == CollisionType::CarToWall) {
+                    } else if (c.type == CollisionType::CarToWall) {
                         std::cout << "CarToWall: Car=" << c.carA
                                   << " intensity=" << c.intensity << "\n";
                     }
@@ -408,9 +403,10 @@ int test() {
                 const auto& carDyn = ps.car;
 
                 // Buscar info estática del auto correspondiente
-                auto itStat = std::find_if(
-                    stat.cars.begin(), stat.cars.end(),
-                    [&](const CarStaticInfo& c) { return c.id == ps.id; });
+                auto itStat = std::find_if(stat.cars.begin(), stat.cars.end(),
+                                           [&](const CarStaticInfo& c) {
+                                               return carDyn.type == c.type;
+                                           });
                 if (itStat == stat.cars.end()) continue;
                 const auto& carStat = *itStat;
 
@@ -515,9 +511,10 @@ int test() {
             }
 
             // Dibujar UI (vida y velocidad) del jugador local
-            auto itStatLocal = std::find_if(
-                stat.cars.begin(), stat.cars.end(),
-                [&](const CarStaticInfo& c) { return c.id == local.id; });
+            auto itStatLocal = std::find_if(stat.cars.begin(), stat.cars.end(),
+                                            [&](const CarStaticInfo& c) {
+                                                return c.type == local.car.type;
+                                            });
             if (itStatLocal != stat.cars.end()) {
                 renderUI(renderer, local.car, *itStatLocal);
             }

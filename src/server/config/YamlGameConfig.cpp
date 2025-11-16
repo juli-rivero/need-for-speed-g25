@@ -85,6 +85,25 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     }
 }
 
+const std::vector<RaceDefinition>& YamlGameConfig::getRaces(
+    const CityId& city) const {
+    for (const auto& c : cities) {
+        if (c.name == city) return c.races;
+    }
+    throw std::invalid_argument("City not found: " + city);
+}
+
+CarSpriteType YamlGameConfig::getCarSpriteType(const std::string& name) {
+    if (name == "Speedster") return CarSpriteType::Speedster;
+    if (name == "Tank") return CarSpriteType::Tank;
+    if (name == "Drifter") return CarSpriteType::Drifter;
+    if (name == "Rocket") return CarSpriteType::Rocket;
+    if (name == "Classic") return CarSpriteType::Classic;
+    if (name == "Offroad") return CarSpriteType::Offroad;
+    if (name == "Ghost") return CarSpriteType::Ghost;
+
+    throw std::invalid_argument("Unknown car type: " + name);
+}
 void YamlGameConfig::printSummary() const {
     std::cout << "\n=== CONFIGURACIÓN GLOBAL ===\n";
     std::cout << "Jugadores máx: " << maxPlayers << "\n";

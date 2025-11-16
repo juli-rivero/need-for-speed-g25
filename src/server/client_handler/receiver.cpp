@@ -68,6 +68,14 @@ void Receiver::switch_and_dispatch_request(const RequestType& request) {
             emitter.dispatch(&Listener::on_start_request, start_request.ready);
             break;
         }
+        case RequestType::ChooseCarRequest: {
+            log->trace("Received ChooseCarRequest");
+            auto choose_car_request =
+                receiver.get<dto_session::ChooseCarRequest>();
+            emitter.dispatch(&Listener::on_choose_car,
+                             choose_car_request.car_name);
+            break;
+        }
         default:
             throw std::runtime_error("Unknown request type");
     }

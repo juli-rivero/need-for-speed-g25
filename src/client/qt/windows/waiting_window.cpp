@@ -5,14 +5,40 @@
 #include <QMessageBox>
 
 #include "client/qt/theme_manager.h"
+#include "client/qt/ui/CarSprite.h"
 
 WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
       Responder(connexion),
       api(connexion.get_api()),
+      id(connexion.unique_id),
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
+}
+void WaitingWindow::on_session_snapshot(
+    const SessionConfig&, const std::vector<PlayerInfo>& player_infos) {
+    QMetaObject::invokeMethod(
+        this,
+        [this, player_infos]() {
+            updatePlayersList(player_infos);
+            for (const auto& player : player_infos) {
+                if (player.id == id) {
+                    updateReadyButton(player.isReady);
+                    break;
+                }
+            }
+        },
+        Qt::QueuedConnection);
+}
+void WaitingWindow::on_start_game() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit startGameRequested(); }, Qt::QueuedConnection);
+}
+
+void WaitingWindow::on_leave_response() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit leaveGameRequested(); }, Qt::QueuedConnection);
 }
 
 void WaitingWindow::setupUI() {
@@ -109,7 +135,8 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
         hlayout->setContentsMargins(15, 10, 15, 10);
 
         // Icono del auto
-        QLabel* carIcon = new QLabel(getCarEmoji(player.carType));
+        QLabel* carIcon =
+            new QLabel(CarSprite::getSprite(player.carType).c_str());
         carIcon->setStyleSheet(
             QString("font-size: 32px; border: none; color: %1;")
                 .arg(palette.textPrimary));
@@ -139,8 +166,7 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
         hlayout->addStretch();
 
         // Estado ready
-        QLabel* statusLabel =
-            new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
+        statusLabel = new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
         statusLabel->setStyleSheet(
             QString("font-size: 14px; font-weight: bold; color: %1; "
                     "border: none; padding: 5px 15px;")
@@ -173,45 +199,14 @@ void WaitingWindow::updateStatusMessage() {
             "color: #27ae60; font-size: 14px; font-weight: bold;");
 
         // Emitir señal para que el padre inicie el juego
-        emit startGameRequested();
+        // emit startGameRequested();
     } else {
         statusLabel->setText(
             "⏳ Esperando que todos los jugadores estén listos...");
         statusLabel->setStyleSheet("color: #95a5a6; font-size: 12px;");
     }
 }
-
-QString WaitingWindow::getCarEmoji(int carType) const {
-    switch (carType) {
-        case 0:
-            return "🏎️";  // Deportivo
-        case 1:
-            return "🚗";  // Sedán
-        case 2:
-            return "🚙";  // SUV
-        case 3:
-            return "🚚";  // Camión
-        case 4:
-            return "🚗";  // Muscle Car
-        case 5:
-            return "🚕";  // Compacto
-        default:
-            return "🚗";
-    }
-}
-
-void WaitingWindow::onLeaveClicked() {
-    QMessageBox::StandardButton reply =
-        QMessageBox::question(this, "Salir de la Partida",
-                              "¿Estás seguro que quieres salir de la partida?",
-                              QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        emit leaveGameRequested();
-    }
-}
-
-void WaitingWindow::onReadyToggled(bool checked) {
+void WaitingWindow::updateReadyButton(bool checked) {
     playerIsReady = checked;
 
     if (checked) {
@@ -223,6 +218,20 @@ void WaitingWindow::onReadyToggled(bool checked) {
         readyButton->setStyleSheet(
             "background-color: #27ae60; color: white; font-weight: bold;");
     }
+}
 
-    emit readyStateChanged(checked);
+void WaitingWindow::onLeaveClicked() {
+    QMessageBox::StandardButton reply =
+        QMessageBox::question(this, "Salir de la Partida",
+                              "¿Estás seguro que quieres salir de la partida?",
+                              QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        api.request_leave_current_session();
+    }
+}
+
+void WaitingWindow::onReadyToggled(bool checked) {
+    // emit readyStateChanged(checked);
+    api.set_ready(checked);
 }

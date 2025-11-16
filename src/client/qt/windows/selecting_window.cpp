@@ -6,13 +6,13 @@
 #include <QScrollArea>
 
 #include "client/qt/theme_manager.h"
+#include "client/qt/ui/CarSprite.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
       Responder(connexion),
       api(connexion.get_api()),
       selectedCarIndex(0) {
-    initCarTypes();
     setupUI();
 
     // Conectar al cambio de tema global
@@ -23,12 +23,12 @@ SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     applyTheme();
 
     // Seleccionar el primer auto por defecto
-    if (!carTypes.empty()) {
+    /*if (!carTypes.empty()) {
         updateCarDetails(0);
-    }
+    }*/
 }
 
-void SelectingWindow::initCarTypes() {
+/*void SelectingWindow::initCarTypes() {
     // Inicializar tipos de autos con sus características
     carTypes = {
         {"Deportivo",
@@ -79,7 +79,7 @@ void SelectingWindow::initCarTypes() {
          0.35f,  // mass
          0.90f,  // controllability
          "🚕"}};
-}
+}*/
 
 void SelectingWindow::setupUI() {
     mainLayout = new QVBoxLayout(this);
@@ -104,7 +104,7 @@ void SelectingWindow::setupUI() {
     scrollArea->setMinimumWidth(500);
 
     carCardsContainer = new QWidget();
-    QVBoxLayout* cardsLayout = new QVBoxLayout(carCardsContainer);
+    cardsLayout = new QVBoxLayout(carCardsContainer);
 
     carButtonGroup = new QButtonGroup(this);
     carButtonGroup->setExclusive(true);
@@ -178,7 +178,7 @@ void SelectingWindow::setupUI() {
             &SelectingWindow::onCarSelected);
 }
 
-QWidget* SelectingWindow::createCarCard(const CarType& car, int index) {
+QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     QWidget* card = new QWidget();
 
     QHBoxLayout* cardLayout = new QHBoxLayout(card);
@@ -192,14 +192,14 @@ QWidget* SelectingWindow::createCarCard(const CarType& car, int index) {
     cardLayout->addWidget(radioBtn);
 
     // Emoji del auto
-    QLabel* emojiLabel = new QLabel(car.emoji);
+    QLabel* emojiLabel = new QLabel(CarSprite::getSprite(car.type).c_str());
     emojiLabel->setStyleSheet("font-size: 32px;");
     cardLayout->addWidget(emojiLabel);
 
     // Información del auto
     QVBoxLayout* infoLayout = new QVBoxLayout();
 
-    QLabel* nameLabel = new QLabel(car.name);
+    QLabel* nameLabel = new QLabel(car.name.c_str());
     infoLayout->addWidget(nameLabel);
 
     // Mini barras de estadísticas
@@ -225,7 +225,7 @@ QWidget* SelectingWindow::createCarCard(const CarType& car, int index) {
     addMiniBar("ACE", car.acceleration);
     addMiniBar("SAL", car.health);
     addMiniBar("MAS", car.mass);
-    addMiniBar("CTR", car.controllability);
+    addMiniBar("CTR", car.control);
 
     infoLayout->addLayout(miniStatsLayout);
     cardLayout->addLayout(infoLayout, 1);
@@ -246,12 +246,14 @@ QProgressBar* SelectingWindow::createStatBar(float value) {
 void SelectingWindow::onCarSelected(int carIndex) {
     selectedCarIndex = carIndex;
     updateCarDetails(carIndex);
-    emit carSelected(carIndex);
 }
 
-void SelectingWindow::onConfirmClicked() { emit confirmRequested(); }
+void SelectingWindow::onConfirmClicked() {
+    api.choose_car(carTypes[selectedCarIndex].name);
+    emit confirmRequested();
+}
 
-void SelectingWindow::onCancelClicked() { emit cancelRequested(); }
+void SelectingWindow::onCancelClicked() { api.request_leave_current_session(); }
 
 void SelectingWindow::reset() {
     // Seleccionar el primer auto
@@ -261,22 +263,44 @@ void SelectingWindow::reset() {
         updateCarDetails(0);
     }
 }
+void SelectingWindow::on_join_response(
+    const SessionInfo&, const std::vector<CarStaticInfo>& car_static_infos) {
+    carTypes = car_static_infos;
+    QMetaObject::invokeMethod(
+        this,
+        [this]() {
+            // TODO(nico): mejorar, esto lo hago para visualizar la conexion
+            QLayoutItem* item;
+            while ((item = cardsLayout->takeAt(0)) != nullptr) delete item;
+            for (size_t i = 0; i < carTypes.size(); ++i) {
+                QWidget* card = createCarCard(carTypes[i], i);
+                cardsLayout->addWidget(card);
+            }
+            reset();
+        },
+        Qt::QueuedConnection);
+}
+void SelectingWindow::on_leave_response() {
+    QMetaObject::invokeMethod(
+        this, [this]() { emit cancelRequested(); }, Qt::QueuedConnection);
+}
 
 void SelectingWindow::updateCarDetails(int carIndex) {
     if (carIndex < 0 || carIndex >= static_cast<int>(carTypes.size())) {
         return;
     }
 
-    const CarType& car = carTypes[carIndex];
+    const CarStaticInfo& car = carTypes[carIndex];
 
-    carNameLabel->setText(car.emoji + " " + car.name);
-    carDescLabel->setText(car.description);
+    carNameLabel->setText(
+        (CarSprite::getSprite(car.type) + " " + car.name).c_str());
+    carDescLabel->setText(car.description.c_str());
 
     speedBar->setValue(static_cast<int>(car.maxSpeed * 100));
     accelBar->setValue(static_cast<int>(car.acceleration * 100));
     healthBar->setValue(static_cast<int>(car.health * 100));
     massBar->setValue(static_cast<int>(car.mass * 100));
-    controlBar->setValue(static_cast<int>(car.controllability * 100));
+    controlBar->setValue(static_cast<int>(car.control * 100));
 
     // Aplicar estilos del tema a las barras
     ThemeManager& theme = ThemeManager::instance();
@@ -284,10 +308,10 @@ void SelectingWindow::updateCarDetails(int carIndex) {
     accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
     healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
     massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-    controlBar->setStyleSheet(theme.carStatBarStyle(car.controllability));
+    controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
 }
 
-CarConfig SelectingWindow::getSelectedCar() const {
+/*CarConfig SelectingWindow::getSelectedCar() const {
     if (selectedCarIndex < 0 ||
         selectedCarIndex >= static_cast<int>(carTypes.size())) {
         // Retornar el primero por defecto
@@ -299,7 +323,7 @@ CarConfig SelectingWindow::getSelectedCar() const {
     const CarType& car = carTypes[selectedCarIndex];
     return {car.name,   car.name, car.maxSpeed,       car.acceleration,
             car.health, car.mass, car.controllability};
-}
+}*/
 
 void SelectingWindow::applyTheme() {
     // Obtener el tema actual
@@ -407,11 +431,11 @@ void SelectingWindow::applyTheme() {
     // Re-aplicar estilos a las barras de progreso actuales
     if (selectedCarIndex >= 0 &&
         selectedCarIndex < static_cast<int>(carTypes.size())) {
-        const CarType& car = carTypes[selectedCarIndex];
+        const CarStaticInfo& car = carTypes[selectedCarIndex];
         speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
         accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
         healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
         massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-        controlBar->setStyleSheet(theme.carStatBarStyle(car.controllability));
+        controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
     }
 }

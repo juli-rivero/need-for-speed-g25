@@ -13,6 +13,8 @@ class Connexion final {
 
     MAKE_FIXED(Connexion)
 
+    PlayerId unique_id;
+
     Api& get_api();
 
     struct Responder : Receiver::Listener {

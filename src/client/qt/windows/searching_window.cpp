@@ -66,8 +66,6 @@ SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
     createThis();
     // Aplicar tema inicial
     applyTheme();
-
-    api.request_search_all_sessions();
 }
 
 void SearchingWindow::on_search_response(
@@ -212,7 +210,8 @@ el widget statusLabel->setText("✅ Conectado al servidor");
     setWindowTitle("Need for Speed - Sala de Espera");
 }*/
 
-void SearchingWindow::on_join_response(const SessionInfo&) {
+void SearchingWindow::on_join_response(const SessionInfo&,
+                                       const std::vector<CarStaticInfo>&) {
     // Guardar el ID de la partida a la que nos unimos
     // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
     // request para pedirlo
@@ -247,6 +246,10 @@ QString SearchingWindow::getCarEmoji(const QString& carType) const {
     if (carType == "Muscle Car") return "🚗";
     if (carType == "Compacto") return "🚕";
     return "🚗";
+}
+void SearchingWindow::showEvent(QShowEvent* event) {
+    api.request_search_all_sessions();
+    QWidget::showEvent(event);
 }
 
 // GESTIÓN DE TEMAS DINÁMICOS

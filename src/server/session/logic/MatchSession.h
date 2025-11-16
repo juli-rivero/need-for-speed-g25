@@ -15,8 +15,6 @@
 #include "server/session/model/Bridge.h"
 #include "server/session/model/Wall.h"
 
-
-
 class MatchSession {
    private:
     const YamlGameConfig& _cfg;
@@ -38,7 +36,6 @@ class MatchSession {
     std::unordered_set<PlayerId> permanentlyDisqualified;
 
     std::vector<PlayerResult> _lastResults;
-
 
     UpgradeSystem _upgradeSystem;
 
