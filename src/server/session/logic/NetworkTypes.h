@@ -1,18 +1,9 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "common/structs.h"
-#include "server/session/logic/types.h"
-
-enum class MatchState { Starting, Racing, Intermission, Finished };
-
-enum class RaceState { Countdown, Running, Finished };
-
-// ========= INPUTS ==========
-enum class TurnDirection { None, Left, Right };
 
 struct PlayerInput {
     bool accelerate{false};
@@ -20,63 +11,7 @@ struct PlayerInput {
     bool nitro{false};
     TurnDirection turn{TurnDirection::None};
 };
-// ========= Events ==========
-enum class CollisionType { CarToCar, CarToWall };
-static constexpr PlayerId INVALID_PLAYER = UINT32_MAX;
-struct CollisionEvent {
-    CollisionType type;
-    PlayerId carA;
-    PlayerId carB;
-    float intensity;
-};
 
-// ========= SNAPSHOTS ==========
-
-struct RaceProgressSnapshot {
-    PlayerId playerId;
-    int nextCheckpoint;  // número de checkpoint pendiente
-    bool finished;
-    bool disqualified;
-    float elapsedTime;
-};
-
-// estado individual del auto
-struct CarSnapshot {
-    CarSpriteType type;
-    float x, y;         // posición actual
-    float vx, vy;       // velocidad lineal
-    float angle;        // orientación (radianes)
-    float speed;        // módulo de la velocidad
-    float health;       // salud del vehículo
-    bool nitroActive;   // nitro encendido
-    bool braking;       // si está frenando
-    bool accelerating;  // si está acelerando
-};
-struct PlayerSnapshot {
-    PlayerId id;       // ID del jugador
-    std::string name;  // nombre del jugador
-    CarSnapshot car;   // posición, velocidad, etc.
-    RaceProgressSnapshot raceProgress;
-};
-struct WorldSnapshot {
-    float time{0.0f};  // tiempo global simulado
-    std::string raceCity;
-    std::string raceMapFile;
-
-    // estado de MatchSession
-    MatchState matchState{MatchState::Starting};
-    uint32_t currentRaceIndex{0};
-
-    // estado de RaceSession
-    RaceState raceState{RaceState::Countdown};
-    float raceElapsed{0.0f};
-    float raceCountdown{0.0f};
-
-    float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
-    std::vector<PlayerSnapshot> players;
-    std::vector<CollisionEvent> collisions;
-    std::vector<PlayerId> permanentlyDQ;
-};
 struct WallInfo {
     int id;
     float x, y;

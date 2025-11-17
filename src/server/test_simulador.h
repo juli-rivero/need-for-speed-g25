@@ -358,12 +358,17 @@ int test() {
                           << dyn.collisions.size() << ") ----\n";
 
                 for (const auto& c : dyn.collisions) {
-                    if (c.type == CollisionType::CarToCar) {
-                        std::cout << "CarToCar: A=" << c.carA << " B=" << c.carB
-                                  << " intensity=" << c.intensity << "\n";
-                    } else if (c.type == CollisionType::CarToWall) {
-                        std::cout << "CarToWall: Car=" << c.carA
-                                  << " intensity=" << c.intensity << "\n";
+                    if (auto car_to_car = std::get_if<CollisionCarToCar>(&c)) {
+                        std::cout << "CarToCar: A=" << car_to_car->player
+                                  << " B=" << car_to_car->other
+                                  << " intensity=" << car_to_car->intensity
+                                  << "\n";
+                    } else if (auto simple_collision =
+                                   std::get_if<CollisionSimple>(&c)) {
+                        std::cout
+                            << "CarToWall: Car=" << simple_collision->player
+                            << " intensity=" << simple_collision->intensity
+                            << "\n";
                     }
                 }
                 std::cout << "----------------------------------------\n";
