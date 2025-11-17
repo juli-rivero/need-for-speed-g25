@@ -66,8 +66,8 @@ bool Game::send_events() {
 void Game::get_state() {
     cars.clear();
 
-    for (auto& car_snapshot : api.get_snapshot().cars)
-        cars.emplace_back(*this, car_snapshot);
+    for (auto& player : api.get_snapshot().players)
+        cars.emplace_back(*this, player);
 }
 
 #define MY_ID 0

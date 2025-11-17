@@ -2,14 +2,14 @@
 
 #define MAX_SPEED 5
 
-Car::Car(Game& game, const CarSnapshot& base)
+Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
       id(base.id),
-      x(base.x),
-      y(base.y),
-      angle(base.angle),
-      speed(base.speed),
-      sprite(*game.assets.car_name.at(id)) {}
+      x(base.car.x),
+      y(base.car.y),
+      angle(base.car.angle),
+      speed(base.car.speed),
+      sprite(*game.assets.car_name.at(base.car.type)) {}
 
 void Car::set_camera() {
     game.cam_x = x + sprite.GetWidth() / 2 - game.renderer.GetOutputWidth() / 2;
