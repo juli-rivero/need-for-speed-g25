@@ -7,23 +7,6 @@
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
     : renderer(renderer), mixer(mixer), assets(renderer) {
     renderer.Clear();
-
-    // Coche 0: yo
-    // Coche 1: simulado
-    for (size_t i = 1; i < 7; ++i) {
-        car_x[i] = 100 * i;
-        car_y[i] = 100 * i;
-        car_speed[i] = 3;
-        // car_angle[i] = 0;
-    }
-
-    car_sprite[0] = &assets.car1;
-    car_sprite[1] = &assets.car2;
-    car_sprite[2] = &assets.car3;
-    car_sprite[3] = &assets.car4;
-    car_sprite[4] = &assets.car5;
-    car_sprite[5] = &assets.car6;
-    car_sprite[6] = &assets.car7;
 }
 
 //
@@ -59,30 +42,21 @@ bool Game::send_events() {
 
             if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
 
-            if (tecla == SDLK_LEFT)
-                left_held = true;  // EVENT: Enviar "iniciar giro izquierda"
-            if (tecla == SDLK_RIGHT)
-                right_held = true;  // EVENT: Enviar "iniciar giro derecha"
-            if (tecla == SDLK_UP)
-                car_speed[0] -= 1;  // EVENT: Enviar "iniciar acelerar"
-            if (tecla == SDLK_DOWN)
-                car_speed[0] += 1;  // EVENT: Enviar "iniciar desacelerar"
+            if (tecla == SDLK_LEFT) api.start_turning(TurnDirection::Left);
+            if (tecla == SDLK_RIGHT) api.start_turning(TurnDirection::Right);
+            if (tecla == SDLK_UP) api.start_accelerating();
+            if (tecla == SDLK_DOWN) api.start_breaking();
 
-            // if (tecla == SDLK_SPACE) // EVENT: Enviar "activar nitro
-
-            // Pruebas de sonido, se removeran despues
-            if (tecla == SDLK_c) mixer.PlayChannel(-1, assets.sound_crash);
+            if (tecla == SDLK_SPACE) api.start_using_nitro();
         }
 
         if (event.type == SDL_KEYUP) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_LEFT)
-                left_held = false;  // EVENT: Enviar "detener giro izquierda"
-            if (tecla == SDLK_RIGHT)
-                right_held = false;  // EVENT: Enviar "detener giro derecha"
-            // if (tecla == SDLK_UP) // EVENT: Enviar "detener acelerar"
-            // if (tecla == SDLK_DOWN) // EVENT: Enviar "detener desacelerar"
+            if (tecla == SDLK_LEFT) api.stop_turning(TurnDirection::Left);
+            if (tecla == SDLK_RIGHT) api.stop_turning(TurnDirection::Right);
+            if (tecla == SDLK_UP) api.stop_accelerating();
+            if (tecla == SDLK_DOWN) api.stop_breaking();
         }
     }
 
@@ -90,45 +64,36 @@ bool Game::send_events() {
 }
 
 void Game::get_state() {
-    // EVENT: Aca en teoria es donde actualizaria mi estado interno en base al
-    // snapshot del servidor.
-    //        por ahora calculo todo localmente, como una clase de "simulacion",
-    //        para tener algo para dibujar. Si es necesario borrar esto, despues
-    //        lo vemos.
+    cars.clear();
 
-    if (left_held) car_angle[0] -= 3;
-    if (right_held) car_angle[0] += 3;
-
-    for (size_t i = 1; i < 7; ++i) car_angle[i] += 3;
-
-    for (size_t i = 0; i < 7; ++i) {
-        if (car_angle[i] > 360) car_angle[i] -= 360;
-        if (car_angle[i] < 0) car_angle[i] += 360;
-        car_x[i] += sin(-car_angle[i] * 3.14 / 180) * car_speed[i];
-        car_y[i] += cos(-car_angle[i] * 3.14 / 180) * car_speed[i];
-    }
+    for (auto& player : api.get_snapshot().players)
+        cars.emplace_back(*this, player);
 }
+
+#define MY_ID 0
 
 void Game::draw_state() {
     renderer.Clear();
-
-    // Definir la camara alrededor del jugador.
-    cam_x =
-        car_x[0] + assets.car1.GetWidth() / 2 - renderer.GetOutputWidth() / 2;
-    cam_y =
-        car_y[0] + assets.car1.GetHeight() / 2 - renderer.GetOutputHeight() / 2;
 
     // Ciudad
     render(assets.city_liberty, 0, 0);
 
     // Coches
-    for (size_t i = 0; i < 7; ++i)
-        render(*car_sprite[i], car_x[i], car_y[i], car_angle[i]);
+    for (Car& car : cars) {
+        if (car.get_id() == MY_ID) car.set_camera();
+        car.draw();
+    }
 
     // HUD
     render("Hola, mundo!", 10, 10, false);
 
     renderer.Present();
+}
+
+void Game::play_sounds() {
+    for (Car& car : cars) {
+        if (car.get_id() == 1) car.sound_crash();
+    }
 }
 
 void Game::wait_next_frame() {
@@ -138,9 +103,12 @@ void Game::wait_next_frame() {
 
 bool Game::start() {
     while (1) {
+        frame += 1;
+
         bool quit = send_events();
         get_state();
         draw_state();
+        play_sounds();
 
         if (quit) {
             return true;

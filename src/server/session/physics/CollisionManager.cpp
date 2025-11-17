@@ -13,8 +13,7 @@ void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
         auto* car = static_cast<Car*>(entA);
         auto it = carToPlayer.find(car);
         if (it != carToPlayer.end()) {
-            collisionEvents.push_back(
-                {CollisionType::CarToWall, it->second, INVALID_PLAYER, impact});
+            collisionEvents.push_back(CollisionSimple{it->second, impact});
         }
         return;
     }
@@ -24,8 +23,7 @@ void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
         auto* car = static_cast<Car*>(entB);
         auto it = carToPlayer.find(car);
         if (it != carToPlayer.end()) {
-            collisionEvents.push_back(
-                {CollisionType::CarToWall, it->second, INVALID_PLAYER, impact});
+            collisionEvents.push_back(CollisionSimple{it->second, impact});
         }
         return;
     }
@@ -40,8 +38,11 @@ void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
         auto it2 = carToPlayer.find(car2);
 
         if (it1 != carToPlayer.end() && it2 != carToPlayer.end()) {
-            collisionEvents.push_back(
-                {CollisionType::CarToCar, it1->second, it2->second, impact});
+            collisionEvents.push_back(CollisionCarToCar{
+                it1->second,
+                it2->second,
+                impact,
+            });
         }
     }
 }
