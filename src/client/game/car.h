@@ -13,20 +13,15 @@ class Car final {
     Game& game;
 
     // Parametros mutables
+    int id;
     float x;
     float y;
     float angle;
+    float speed;
     SDL2pp::Texture& sprite;
-    size_t id;
-
-    // Constantes utiles
-    const int WIDTH;
-    const int HEIGHT;
 
    public:
-    Car(Game& game, SDL2pp::Texture& sprite, size_t id);
-
-    void update(const CarSnapshot&);  // TEMP
+    Car(Game& game, const CarSnapshot& base);
 
     void set_camera();
     void sound_crash();
@@ -34,5 +29,5 @@ class Car final {
 
     size_t get_id();
 
-    // MAKE_FIXED(Car)
+    MAKE_FIXED(Car)
 };

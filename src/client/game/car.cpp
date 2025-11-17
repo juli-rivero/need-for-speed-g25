@@ -2,25 +2,19 @@
 
 #define MAX_SPEED 5
 
-Car::Car(Game& game, SDL2pp::Texture& sprite, size_t id)
+Car::Car(Game& game, const CarSnapshot& base)
     : game(game),
-      x(0),
-      y(0),
-      angle(0),
-      sprite(sprite),
-      id(id),
-      WIDTH(sprite.GetWidth()),
-      HEIGHT(sprite.GetHeight()) {}
-
-void Car::update(const CarSnapshot& snapshot) {
-    x = snapshot.x;
-    y = snapshot.y;
-    angle = snapshot.angle;
-}
+      id(base.id),
+      x(base.x),
+      y(base.y),
+      angle(base.angle),
+      speed(base.speed),
+      sprite(*game.assets.car_name.at(id)) {}
 
 void Car::set_camera() {
-    game.cam_x = x + WIDTH / 2 - game.renderer.GetOutputWidth() / 2;
-    game.cam_y = y + HEIGHT / 2 - game.renderer.GetOutputHeight() / 2;
+    game.cam_x = x + sprite.GetWidth() / 2 - game.renderer.GetOutputWidth() / 2;
+    game.cam_y =
+        y + sprite.GetHeight() / 2 - game.renderer.GetOutputHeight() / 2;
     game.cam_world_x = x;
     game.cam_world_y = y;
 }
@@ -33,8 +27,7 @@ static inline int vol(double x1, double y1, double x2, double y2) {
 
 void Car::draw() {
     game.render(sprite, x, y, angle);
-    game.render(std::to_string(vol(x, y, game.cam_world_x, game.cam_world_y)),
-                x, y - 32, true);
+    game.render(std::to_string(speed), x, y - 32, true);
 }
 
 void Car::sound_crash() {

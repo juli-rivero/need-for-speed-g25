@@ -14,4 +14,12 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_brake("assets/sound/brake.ogg"),
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
-      font("assets/fonts/OpenSans-Regular.ttf", 20) {}
+      font("assets/fonts/OpenSans-Regular.ttf", 20) {
+    car_name.insert({0, &car1});
+    car_name.insert({1, &car2});
+    car_name.insert({2, &car3});
+    car_name.insert({3, &car4});
+    car_name.insert({4, &car5});
+    car_name.insert({5, &car6});
+    car_name.insert({6, &car7});
+}

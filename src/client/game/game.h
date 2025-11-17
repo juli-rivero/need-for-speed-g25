@@ -2,7 +2,6 @@
 
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
-#include <map>
 #include <string>
 
 #include "client/game/assets.h"
@@ -26,7 +25,6 @@ class Game final {
     MockApi api;
 
     std::list<Car> cars;
-    std::map<int, Car*> cars_by_id;
 
     // Metodos de actualizacion internos
     bool send_events();

@@ -7,23 +7,6 @@
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
     : renderer(renderer), mixer(mixer), assets(renderer) {
     renderer.Clear();
-
-    // Coche 0: yo
-    // Coche 1: simulado
-    for (size_t i = 0; i < 7; ++i) {
-        SDL2pp::Texture* texture;
-
-        if (i == 0) texture = &assets.car1;
-        if (i == 1) texture = &assets.car2;
-        if (i == 2) texture = &assets.car3;
-        if (i == 3) texture = &assets.car4;
-        if (i == 4) texture = &assets.car5;
-        if (i == 5) texture = &assets.car6;
-        if (i == 6) texture = &assets.car7;
-
-        cars.emplace_back(*this, *texture, i);
-        cars_by_id.emplace(i, &cars.back());
-    }
 }
 
 //
@@ -81,14 +64,13 @@ bool Game::send_events() {
 }
 
 void Game::get_state() {
-    // EVENT: Aca en teoria es donde actualizaria mi estado interno en base al
-    // snapshot del servidor.
-    //        por ahora calculo todo localmente, como una clase de "simulacion",
-    //        para tener algo para dibujar. Si es necesario borrar esto, despues
-    //        lo vemos.
+    cars.clear();
+
     for (auto& car_snapshot : api.get_snapshot().cars)
-        cars_by_id[car_snapshot.id]->update(car_snapshot);
+        cars.emplace_back(*this, car_snapshot);
 }
+
+#define MY_ID 0
 
 void Game::draw_state() {
     renderer.Clear();
@@ -98,7 +80,7 @@ void Game::draw_state() {
 
     // Coches
     for (Car& car : cars) {
-        if (car.get_id() == 0) car.set_camera();
+        if (car.get_id() == MY_ID) car.set_camera();
         car.draw();
     }
 
