@@ -14,4 +14,12 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_brake("assets/sound/brake.ogg"),
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
-      font("assets/fonts/OpenSans-Regular.ttf", 20) {}
+      font("assets/fonts/OpenSans-Regular.ttf", 20) {
+    car_name.insert({CarSpriteType::Speedster, &car1});
+    car_name.insert({CarSpriteType::Tank, &car2});
+    car_name.insert({CarSpriteType::Drifter, &car3});
+    car_name.insert({CarSpriteType::Rocket, &car4});
+    car_name.insert({CarSpriteType::Classic, &car5});
+    car_name.insert({CarSpriteType::Offroad, &car6});
+    car_name.insert({CarSpriteType::Ghost, &car7});
+}
