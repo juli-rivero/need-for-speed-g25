@@ -1,36 +1,36 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
+#include <list>
 #include <string>
 
 #include "client/game/assets.h"
+#include "client/game/car.h"
+#include "client/game/mock_api.h"
 #include "common/macros.h"
 
+class Car;
+
 class Game final {
+    friend class Car;
+
    private:
     // Componentes graficos
     SDL2pp::Renderer& renderer;
     SDL2pp::Mixer& mixer;
     Assets assets;
 
-    // Componentes logicos
-    // TODO(crook): Temporal
-    bool left_held = false;
-    bool right_held = false;
+    uint64_t frame = 0;
 
-    double car_x[7] = {0};
-    double car_y[7] = {0};
-    double car_speed[7] = {0};
-    double car_angle[7] = {0};
+    MockApi api;
 
-    // Obviamente arrays de referencias no son validas en C++
-    // Porque cuando C++ te hace la vida facil el planeta explotara.
-    SDL2pp::Texture* car_sprite[7];
+    std::list<Car> cars;
 
     // Metodos de actualizacion internos
     bool send_events();
     void get_state();
     void draw_state();
+    void play_sounds();
     void wait_next_frame();
 
     // Auxiliar: dibujar una textura (o texto) en la ubicacion dada.
@@ -39,6 +39,8 @@ class Game final {
     // impactar el punto base usado.
     int cam_x = 0;
     int cam_y = 0;
+    double cam_world_x = 0;
+    double cam_world_y = 0;
 
     void render(SDL2pp::Texture& surface, int x, int y, double angle = 0,
                 bool in_world = true);
