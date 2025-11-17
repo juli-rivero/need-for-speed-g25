@@ -4,8 +4,6 @@
 
 #include "spdlog/spdlog.h"
 
-using dto::RequestType;
-
 Receiver::Receiver(ProtocolReceiver& receiver, spdlog::logger* log)
     : receiver(receiver), log(log) {}
 
@@ -17,7 +15,8 @@ Receiver::Listener::Listener(Receiver& receiver)
 void Receiver::run() {
     while (should_keep_running()) {
         try {
-            switch_and_dispatch_request(receiver.get<RequestType>());
+            const auto request = receiver.get<dto::Request>();
+            std::visit([this](auto& body) { recv(body); }, request);
         } catch (ClosedProtocol&) {
             log->debug("Protocol closed by client");
             return;
@@ -33,50 +32,27 @@ void Receiver::stop() {
     log->debug("Receiver stopped");
 }
 
-void Receiver::switch_and_dispatch_request(const RequestType& request) {
-    log->trace("received type request: {}", static_cast<int>(request));
-    switch (request) {
-        case RequestType::JoinRequest: {
-            log->trace("Received JoinRequest");
-            auto join_request = receiver.get<dto_search::JoinRequest>();
-            emitter.dispatch(&Listener::on_join_request,
-                             join_request.session_id);
-            break;
-        }
-        case RequestType::SearchRequest: {
-            log->trace("Received SearchRequest");
-            receiver.get<dto_search::SearchRequest>();
-            emitter.dispatch(&Listener::on_search_request);
-            break;
-        }
-        case RequestType::CreateRequest: {
-            log->trace("Received CreateRequest");
-            auto create_request = receiver.get<dto_search::CreateRequest>();
-            emitter.dispatch(&Listener::on_create_request,
-                             create_request.config);
-            break;
-        }
-        case RequestType::LeaveRequest: {
-            log->trace("Received LeaveRequest");
-            receiver.get<dto_session::LeaveRequest>();
-            emitter.dispatch(&Listener::on_leave_request);
-            break;
-        }
-        case RequestType::StartRequest: {
-            log->trace("Received StartRequest");
-            auto start_request = receiver.get<dto_session::StartRequest>();
-            emitter.dispatch(&Listener::on_start_request, start_request.ready);
-            break;
-        }
-        case RequestType::ChooseCarRequest: {
-            log->trace("Received ChooseCarRequest");
-            auto choose_car_request =
-                receiver.get<dto_session::ChooseCarRequest>();
-            emitter.dispatch(&Listener::on_choose_car,
-                             choose_car_request.car_name);
-            break;
-        }
-        default:
-            throw std::runtime_error("Unknown request type");
-    }
+void Receiver::recv(const dto_search::JoinRequest& request) {
+    log->trace("Received JoinRequest");
+    emitter.dispatch(&Listener::on_join_request, request.session_id);
+}
+void Receiver::recv(const dto_search::SearchRequest&) {
+    log->trace("Received SearchRequest");
+    emitter.dispatch(&Listener::on_search_request);
+}
+void Receiver::recv(const dto_search::CreateRequest& request) {
+    log->trace("Received CreateRequest");
+    emitter.dispatch(&Listener::on_create_request, request.config);
+}
+void Receiver::recv(const dto_session::LeaveRequest&) {
+    log->trace("Received LeaveRequest");
+    emitter.dispatch(&Listener::on_leave_request);
+}
+void Receiver::recv(const dto_session::StartRequest& request) {
+    log->trace("Received StartRequest");
+    emitter.dispatch(&Listener::on_start_request, request.ready);
+}
+void Receiver::recv(const dto_session::ChooseCarRequest& request) {
+    log->trace("Received ChooseCarRequest");
+    emitter.dispatch(&Listener::on_choose_car, request.car_name);
 }
