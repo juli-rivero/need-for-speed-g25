@@ -268,7 +268,7 @@ int test() {
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         RaceDefinition race{"LibertyCity",
-                            "assets/liberty_city_circuito2.yaml"};
+                            "assets/liberty_city_circuito1.yaml"};
         PlayerConfig player{1, "Tester", "Speedster"};
         PlayerConfig player2{2, "Ghost", "Ghost"};
         std::vector<RaceDefinition> races{race};

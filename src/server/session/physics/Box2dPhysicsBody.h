@@ -7,7 +7,7 @@
 class Box2dPhysicsBody {
    public:
     Box2dPhysicsBody(b2WorldId world, const b2BodyDef& def)
-        : world(world), body(b2CreateBody(world, &def)) {}
+        : body(b2CreateBody(world, &def)) {}
 
     ~Box2dPhysicsBody() {
         if (b2Body_IsValid(body)) {
@@ -25,7 +25,6 @@ class Box2dPhysicsBody {
     b2Vec2 getPosition() const { return b2Body_GetPosition(body); }
 
    private:
-    [[maybe_unused]] b2WorldId world;  // TODO(elvis) se usara luego
     b2BodyId body;
     b2ShapeId shape{b2_nullShapeId};
 };
