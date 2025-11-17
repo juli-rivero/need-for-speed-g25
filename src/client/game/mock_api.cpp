@@ -35,10 +35,12 @@ void MockApi::start_using_nitro() {
     nitro_expired_at = clock::now() + std::chrono::seconds(10);
 }
 
-Snapshot MockApi::get_snapshot() {
-    control_car(snapshot.cars[0]);
+WorldSnapshot MockApi::get_snapshot() {
+    control_car(snapshot.players[0].car);
 
-    for (auto& car : snapshot.cars) {
+    for (auto& player : snapshot.players) {
+        auto& car = player.car;
+
         // m   =            k                        *     m/s     *    s
         if (has_velocity(car)) {
             const auto aux_x = car.x;
@@ -68,9 +70,9 @@ void MockApi::control_car(CarSnapshot& car) const {
 
     if (accelerating) car.speed += ACCELERATION * DELTA_TIME;
 
-    car.nitro_active = false;
+    car.nitroActive = false;
     if (controllable_has_nitro()) {
-        car.nitro_active = true;
+        car.nitroActive = true;
         car.speed += NITRO_ACCELERATION * DELTA_TIME;
     }
 

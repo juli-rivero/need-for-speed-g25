@@ -21,7 +21,7 @@ class Car final {
     SDL2pp::Texture& sprite;
 
    public:
-    Car(Game& game, const CarSnapshot& base);
+    Car(Game& game, const PlayerSnapshot& base);
 
     void set_camera();
     void sound_crash();
