@@ -34,6 +34,7 @@ class CollisionManager {
     void registerCar(const Car* car, PlayerId playerId) {
         carToPlayer[car] = playerId;
     }
+    bool hasCollisionEvent() const { return !collisionEvents.empty(); }
     std::vector<CollisionEvent> consumeEvents() {
         auto out = collisionEvents;
         collisionEvents.clear();

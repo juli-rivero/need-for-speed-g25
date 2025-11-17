@@ -78,6 +78,9 @@ struct CollisionCarToCar : CollisionSimple {
 };
 
 using CollisionEvent = std::variant<CollisionSimple, CollisionCarToCar>;
+struct CollisionPacket {
+    std::vector<CollisionEvent> events;
+};
 
 enum class MatchState { Starting, Racing, Intermission, Finished };
 
@@ -126,6 +129,5 @@ struct WorldSnapshot {
 
     float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
     std::vector<PlayerSnapshot> players;
-    std::vector<CollisionEvent> collisions;
     std::vector<PlayerId> permanentlyDQ;
 };

@@ -139,7 +139,7 @@ WorldSnapshot MatchSession::getSnapshot() {
                   << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
         snap.players.push_back(std::move(ps));
     }
-    snap.collisions = _world.getCollisionManager().consumeEvents();
+    // snap.collisions = _world.getCollisionManager().consumeEvents();
     snap.permanentlyDQ.assign(permanentlyDisqualified.begin(),
                               permanentlyDisqualified.end());
     return snap;
