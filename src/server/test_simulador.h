@@ -353,26 +353,6 @@ int test() {
             // game.update(DT);
             auto dyn = game.getSnapshot();
             if (dyn.players.empty()) continue;
-            if (!dyn.collisions.empty()) {
-                std::cout << "---- COLISIONES DETECTADAS ("
-                          << dyn.collisions.size() << ") ----\n";
-
-                for (const auto& c : dyn.collisions) {
-                    if (auto car_to_car = std::get_if<CollisionCarToCar>(&c)) {
-                        std::cout << "CarToCar: A=" << car_to_car->player
-                                  << " B=" << car_to_car->other
-                                  << " intensity=" << car_to_car->intensity
-                                  << "\n";
-                    } else if (auto simple_collision =
-                                   std::get_if<CollisionSimple>(&c)) {
-                        std::cout
-                            << "CarToWall: Car=" << simple_collision->player
-                            << " intensity=" << simple_collision->intensity
-                            << "\n";
-                    }
-                }
-                std::cout << "----------------------------------------\n";
-            }
 
             // jugador local
             PlayerId localPlayerId = 1;

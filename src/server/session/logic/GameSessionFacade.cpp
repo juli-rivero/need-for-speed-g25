@@ -26,6 +26,13 @@ void GameSessionFacade::run() {
 
         world.step(dt);
         match->update(dt);
+        auto& cm = world.getCollisionManager();
+        if (cm.hasCollisionEvent()) {
+            CollisionPacket packet;
+            packet.events = cm.consumeEvents();
+            // TODO(juli): MANDAR ACA
+        }
+
         std::this_thread::sleep_for(16ms);
     }
 }
