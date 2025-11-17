@@ -4,7 +4,6 @@
 #include "common/dto/dto_session.h"
 
 using dto::ErrorResponse;
-using dto::ResponseType;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
 using dto_session::LeaveResponse;
@@ -21,8 +20,6 @@ void Sender::run() {
     while (should_keep_running()) {
         try {
             auto response = responses.pop();
-            log->trace("sending type response: {}",
-                       static_cast<int>(response.type));
             sender << response << ProtocolSender::send;
         } catch (ClosedQueue&) {
             log->debug("Sender stopped by closed queue");
@@ -45,32 +42,30 @@ void Sender::stop() {
 
 void Sender::reply_search(const vector<SessionInfo>& info) {
     log->trace("sending search response");
-    responses.try_push({ResponseType::SearchResponse, SearchResponse{info}});
+    responses.try_push(SearchResponse{info});
 }
 
 void Sender::reply_joined(const SessionInfo& session,
                           const vector<CarStaticInfo>& carTypes) {
     log->trace("sending join response");
-    responses.try_push(
-        {ResponseType::JoinResponse, JoinResponse{session, carTypes}});
+    responses.try_push(JoinResponse{session, carTypes});
 }
 
 void Sender::reply_left() {
     log->trace("sending leave response");
-    responses.try_push({ResponseType::LeaveResponse, LeaveResponse{}});
+    responses.try_push(LeaveResponse{});
 }
 
 void Sender::reply_error(const string& message) {
     log->trace("sending error response");
-    responses.try_push({ResponseType::ErrorResponse, ErrorResponse{message}});
+    responses.try_push(ErrorResponse{message});
 }
 void Sender::send_session_snapshot(const SessionConfig& config,
                                    const std::vector<PlayerInfo>& players) {
     log->trace("sending session snapshot");
-    responses.try_push(
-        {ResponseType::SessionSnapshot, SessionSnapshot{config, players}});
+    responses.try_push(SessionSnapshot{config, players});
 }
 void Sender::notify_game_started() {
     log->trace("sending start response");
-    responses.try_push({ResponseType::StartResponse, StartResponse{}});
+    responses.try_push(StartResponse{});
 }

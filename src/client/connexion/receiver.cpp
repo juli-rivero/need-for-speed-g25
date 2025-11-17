@@ -7,8 +7,6 @@
 
 #include "common/dto/dto_session.h"
 
-using dto::ResponseType;
-
 Receiver::Receiver(ProtocolReceiver& receiver) : receiver(receiver) {}
 
 Receiver::Listener::Listener(Receiver& receiver)
@@ -17,7 +15,8 @@ Receiver::Listener::Listener(Receiver& receiver)
 void Receiver::run() {
     while (should_keep_running()) {
         try {
-            delegate_response(receiver.get<ResponseType>());
+            const auto response = receiver.get<dto::Response>();
+            std::visit([this](auto& body) { recv(body); }, response);
         } catch (ClosedProtocol&) {
             return;
         } catch (std::runtime_error& e) {
@@ -32,43 +31,29 @@ void Receiver::stop() {
     if (not receiver.is_stream_recv_closed()) receiver.close_stream_recv();
 }
 
-void Receiver::delegate_response(const ResponseType& response) {
-    spdlog::trace("received type response: {}", static_cast<int>(response));
-    switch (response) {
-        case ResponseType::JoinResponse: {
-            auto join_response = receiver.get<dto_search::JoinResponse>();
-            emitter.dispatch(&Listener::on_join_response, join_response.session,
-                             join_response.carTypes);
-            break;
-        }
-        case ResponseType::SearchResponse: {
-            auto search_response = receiver.get<dto_search::SearchResponse>();
-            emitter.dispatch(&Listener::on_search_response,
-                             search_response.sessions);
-            break;
-        }
-        case ResponseType::LeaveResponse: {
-            receiver.get<dto_session::LeaveResponse>();
-            emitter.dispatch(&Listener::on_leave_response);
-            break;
-        }
-        case ResponseType::StartResponse: {
-            receiver.get<dto_session::StartResponse>();
-            emitter.dispatch(&Listener::on_start_game);
-            break;
-        }
-        case ResponseType::SessionSnapshot: {
-            const auto snapshot = receiver.get<dto_session::SessionSnapshot>();
-            emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
-                             snapshot.players);
-            break;
-        }
-        case ResponseType::ErrorResponse: {
-            const auto error = receiver.get<dto::ErrorResponse>();
-            emitter.dispatch(&Listener::on_error_response, error.message);
-            break;
-        }
-        default:
-            throw std::runtime_error("Unknown response type");
-    }
+void Receiver::recv(const dto::ErrorResponse& response) {
+    spdlog::trace("received error response");
+    emitter.dispatch(&Listener::on_error_response, response.message);
+}
+void Receiver::recv(const dto_search::SearchResponse& response) {
+    spdlog::trace("received search response");
+    emitter.dispatch(&Listener::on_search_response, response.sessions);
+}
+void Receiver::recv(const dto_search::JoinResponse& response) {
+    spdlog::trace("received join response");
+    emitter.dispatch(&Listener::on_join_response, response.session,
+                     response.carTypes);
+}
+void Receiver::recv(const dto_session::LeaveResponse&) {
+    spdlog::trace("received leave response");
+    emitter.dispatch(&Listener::on_leave_response);
+}
+void Receiver::recv(const dto_session::StartResponse&) {
+    spdlog::trace("received start response");
+    emitter.dispatch(&Listener::on_start_game);
+}
+void Receiver::recv(const dto_session::SessionSnapshot& response) {
+    spdlog::trace("received session snapshot");
+    emitter.dispatch(&Listener::on_session_snapshot, response.session,
+                     response.players);
 }

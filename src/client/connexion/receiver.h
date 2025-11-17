@@ -39,5 +39,11 @@ class Receiver final : public Thread {
 
    private:
     common::Emitter<Receiver::Listener> emitter;
-    void delegate_response(const dto::ResponseType& response);
+
+    void recv(const dto::ErrorResponse&);
+    void recv(const dto_search::SearchResponse&);
+    void recv(const dto_search::JoinResponse&);
+    void recv(const dto_session::LeaveResponse&);
+    void recv(const dto_session::StartResponse&);
+    void recv(const dto_session::SessionSnapshot&);
 };

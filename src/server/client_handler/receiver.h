@@ -37,5 +37,10 @@ class Receiver final : public Thread {
    private:
     common::Emitter<Receiver::Listener> emitter;
 
-    void switch_and_dispatch_request(const dto::RequestType& request);
+    void recv(const dto_search::JoinRequest&);
+    void recv(const dto_search::SearchRequest&);
+    void recv(const dto_search::CreateRequest&);
+    void recv(const dto_session::LeaveRequest&);
+    void recv(const dto_session::StartRequest&);
+    void recv(const dto_session::ChooseCarRequest&);
 };

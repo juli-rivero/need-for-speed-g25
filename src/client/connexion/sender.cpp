@@ -2,7 +2,6 @@
 
 #include <spdlog/spdlog.h>
 
-using dto::RequestType;
 using dto_search::CreateRequest;
 using dto_search::JoinRequest;
 using dto_search::SearchRequest;
@@ -16,8 +15,6 @@ void Sender::run() {
     while (should_keep_running()) {
         try {
             auto response = responses.pop();
-            spdlog::trace("sending type request: {}",
-                          static_cast<int>(response.type));
             sender << response << ProtocolSender::send;
         } catch (ClosedQueue&) {
             return;
@@ -35,21 +32,26 @@ void Sender::stop() {
 }
 
 void Sender::request_search_all_sessions() {
-    responses.try_push({RequestType::SearchRequest, SearchRequest{}});
+    spdlog::trace("requesting search all sessions");
+    responses.try_push(SearchRequest{});
 }
 void Sender::request_join_session(const std::string& session) {
-    responses.try_push({RequestType::JoinRequest, JoinRequest{session}});
+    spdlog::trace("requesting join session {}", session);
+    responses.try_push(JoinRequest{session});
 }
 void Sender::request_create_and_join_session(const SessionConfig& config) {
-    responses.try_push({RequestType::CreateRequest, CreateRequest{config}});
+    spdlog::trace("requesting create and join session {}", config.name);
+    responses.try_push(CreateRequest{config});
 }
 void Sender::request_leave_current_session() {
-    responses.try_push({RequestType::LeaveRequest, LeaveRequest{}});
+    spdlog::trace("requesting leave current session");
+    responses.try_push(LeaveRequest{});
 }
 void Sender::set_ready(const bool ready) {
-    responses.try_push({RequestType::StartRequest, StartRequest{ready}});
+    spdlog::trace("setting ready to {}", ready);
+    responses.try_push(StartRequest{ready});
 }
 void Sender::choose_car(const std::string& car_name) {
-    responses.try_push(
-        {RequestType::ChooseCarRequest, ChooseCarRequest{car_name}});
+    spdlog::trace("choosing car {}", car_name);
+    responses.try_push(ChooseCarRequest{car_name});
 }
