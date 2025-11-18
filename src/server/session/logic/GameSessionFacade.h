@@ -48,6 +48,15 @@ class GameSessionFacade : public Thread {
     void stopReversing(PlayerId id);
     void useNitro(PlayerId id);
 
+#if OFFLINE
+    WorldSnapshot getSnapshot() const {
+        return match ? match->getSnapshot() : WorldSnapshot{};
+    }
+    StaticSnapshot getStaticSnapshot() const {
+        return match ? match->getStaticSnapshot() : StaticSnapshot{};
+    }
+#endif
+
    private:
     common::Emitter<GameSessionFacade::Listener> emitter;
 };
