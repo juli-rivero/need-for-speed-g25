@@ -57,6 +57,11 @@ void Receiver::recv(const dto_session::ChooseCarRequest& request) {
 }
 
 // -------------------- Game requests --------------------
+void Receiver::recv(const dto_game::GameInfoRequest&) {
+    log->trace("Received GameInfoRequest");
+    emitter.dispatch(&Listener::on_request_game_info);
+}
+
 void Receiver::recv(const dto_game::TurnRequest& request) {
     log->trace("Received TurnRequest: dir={}, turn={}",
                static_cast<int>(request.direction), request.turn);

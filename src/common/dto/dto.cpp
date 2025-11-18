@@ -2,18 +2,13 @@
 
 #include <iostream>
 
-namespace dto {
-
 // ErrorResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, dto::ErrorResponse& e) {
-    p >> e.message;
-    return p;
+    return p >> e.message;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const dto::ErrorResponse& e) {
-    p << e.message;
-    return p;
+    return p << e.message;
 }
-}  // namespace dto
 
 using dto::Request;
 // Request SENDABLE
@@ -51,15 +46,18 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
             e = p.get<dto_session::ChooseCarRequest>();
             break;
         case 6:
-            e = p.get<dto_game::TurnRequest>();
+            e = p.get<dto_game::GameInfoRequest>();
             break;
         case 7:
-            e = p.get<dto_game::AccelerateRequest>();
+            e = p.get<dto_game::TurnRequest>();
             break;
         case 8:
-            e = p.get<dto_game::UseBoostRequest>();
+            e = p.get<dto_game::AccelerateRequest>();
             break;
         case 9:
+            e = p.get<dto_game::UseBoostRequest>();
+            break;
+        case 10:
             e = p.get<dto_game::ReverseRequest>();
             break;
         default:
@@ -102,6 +100,12 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             e = p.get<dto_session::SessionSnapshot>();
             break;
         case 6:
+            e = p.get<dto_game::GameInfoResponse>();
+            break;
+        case 7:
+            e = p.get<dto_game::GameStaticSnapshot>();
+            break;
+        case 8:
             e = p.get<dto_game::GameSnapshot>();
             break;
         default:

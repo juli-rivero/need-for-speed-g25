@@ -70,6 +70,18 @@ void Sender::notify_game_started() {
     log->trace("sending start response");
     responses.try_push(StartResponse{});
 }
+
+void Sender::send_game_info(const std::string& map,
+                            const StaticSnapshot& info) {
+    log->trace("sending game info response");
+    responses.try_push(dto_game::GameInfoResponse{map, info});
+}
+
+void Sender::send_game_static_snapshot(const StaticSnapshot& info) {
+    log->trace("sending game static snapshot");
+    responses.try_push(dto_game::GameStaticSnapshot{info});
+}
+
 void Sender::send_game_snapshot(float raceTimeLeft,
                                 const std::vector<PlayerSnapshot>& players) {
     log->trace("sending game snapshot");

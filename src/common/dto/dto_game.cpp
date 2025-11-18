@@ -1,84 +1,69 @@
 #include "common/dto/dto_game.h"
 
-namespace dto_game {
+#include "common/dto/structs_serializable.h"
+
+using namespace dto_game;
+
+// GameInfoRequest SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameInfoRequest&) {
+    return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const GameInfoRequest&) {
+    return p;
+}
+
+// GameInfoResponse SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameInfoResponse& r) {
+    return p >> r.map >> r.info;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const GameInfoResponse& r) {
+    return p << r.map << r.info;
+}
+
+// GameStaticSnapshot SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameStaticSnapshot& r) {
+    return p >> r.info;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const GameStaticSnapshot& r) {
+    return p << r.info;
+}
 
 // TurnRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, TurnRequest& e) {
-    e.direction = static_cast<TurnDirection>(p.get<uint8_t>());
-    p >> e.turn;
-    return p;
+    return p >> e.direction >> e.turn;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const TurnRequest& e) {
-    p << static_cast<uint8_t>(e.direction) << e.turn;
-    return p;
+    return p << e.direction << e.turn;
 }
 
 // AccelerateRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, AccelerateRequest& e) {
-    p >> e.accelerate;
-    return p;
+    return p >> e.accelerate;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const AccelerateRequest& e) {
-    p << e.accelerate;
-    return p;
+    return p << e.accelerate;
 }
 
 // UseBoostRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, UseBoostRequest& e) {
-    p >> e.useBoost;
-    return p;
+    return p >> e.useBoost;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const UseBoostRequest& e) {
-    p << e.useBoost;
-    return p;
+    return p << e.useBoost;
 }
 
 // ReverseRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, ReverseRequest& e) {
-    p >> e.reverse;
-    return p;
+    return p >> e.reverse;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const ReverseRequest& e) {
-    p << e.reverse;
-    return p;
+    return p << e.reverse;
 }
 
 // GameSnapshot SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& r) {
-    p >> r.raceTimeLeft;
-
-    r.players.resize(p.get<size_t>());
-    for (auto& player : r.players) {
-        p >> player.id >> player.name;
-
-        CarSnapshot& car = player.car;
-        car.type = static_cast<CarSpriteType>(p.get<uint8_t>());
-        p >> car.x >> car.y >> car.vx >> car.vy >> car.angle >> car.speed >>
-            car.health >> car.nitroActive >> car.braking >> car.accelerating;
-
-        RaceProgressSnapshot& progress = player.raceProgress;
-        p >> progress.playerId >> progress.nextCheckpoint >>
-            progress.finished >> progress.disqualified >> progress.elapsedTime;
-    }
-    return p;
+    return p >> r.raceTimeLeft >> r.players;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& r) {
-    p << r.raceTimeLeft;
-
-    p << r.players.size();
-    for (const auto& player : r.players) {
-        p << player.id << player.name;
-
-        const CarSnapshot& car = player.car;
-        p << static_cast<uint8_t>(car.type);
-        p << car.x << car.y << car.vx << car.vy << car.angle << car.speed
-          << car.health << car.nitroActive << car.braking << car.accelerating;
-
-        const RaceProgressSnapshot& progress = player.raceProgress;
-        p << progress.playerId << progress.nextCheckpoint << progress.finished
-          << progress.disqualified << progress.elapsedTime;
-    }
-    return p;
+    return p << r.raceTimeLeft << r.players;
 }
-
-}  // namespace dto_game
