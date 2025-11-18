@@ -4,6 +4,8 @@
 #include <QPushButton>
 #include <QRadioButton>
 #include <QScrollArea>
+#include <unordered_map>
+#include <vector>
 
 #include "client/qt/theme_manager.h"
 #include "client/qt/ui/CarSprite.h"

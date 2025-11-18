@@ -7,6 +7,7 @@
 #include <QPushButton>
 #include <QWidget>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "client/qt/game_card_widget.h"

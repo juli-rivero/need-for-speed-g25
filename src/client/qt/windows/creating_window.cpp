@@ -4,6 +4,7 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
+#include <vector>
 
 #include "client/qt/theme_manager.h"
 
