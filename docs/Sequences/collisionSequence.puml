@@ -1,0 +1,81 @@
+@startuml
+title Ciclo de Física + Colisiones + Checkpoints (con GameSessionFacade::run)
+
+actor Client
+
+participant GameSessionFacade
+participant MatchSession
+participant RaceSession
+participant Box2DPhysicsWorld as Physics
+participant CollisionManager as Collisions
+participant Entity
+participant Car
+participant PlayerRaceData as PlayerState
+
+== Inicio del tick de servidor ==
+
+Client -> GameSessionFacade : (inputs llegan antes del tick)
+
+' =====================================
+'   1. GameSessionFacade::run()
+' =====================================
+GameSessionFacade -> MatchSession : update(dt)
+activate MatchSession
+
+MatchSession -> RaceSession : update(dt)
+activate RaceSession
+
+' =====================================
+'   2. Física Box2D
+' =====================================
+RaceSession -> Physics : step(dt)
+activate Physics
+
+' ===> Contact events ===
+Physics -> Collisions : process(contactEvents)
+activate Collisions
+
+loop por cada colisión física
+    Collisions -> Entity : lookup(shapeId)
+    Collisions -> Entity : lookup(shapeId)
+    Entity --> Collisions : entA, entB
+
+    Collisions -> Collisions : generateCollisionEvent(entA, entB, impact)
+
+    alt choque fuerte
+        Collisions -> RaceSession : onCarDestroyed(playerId)
+    else choque leve
+        ' solo registrar evento
+    end
+end
+
+' ===> Sensor events (checkpoints, hints) ===
+Physics -> Collisions : processSensors(sensorEvents)
+
+loop por cada sensor
+    Collisions -> Entity : lookup(shapeId)
+    Entity --> Collisions : checkpoint or car
+    Collisions -> RaceSession : onCheckpointCrossed(playerId, checkpointOrder)
+end
+
+deactivate Collisions
+deactivate Physics
+
+' =====================================
+'   3. RaceSession actualiza estado
+' =====================================
+RaceSession -> PlayerState : nextCheckpoint++ / finished / disqualified
+RaceSession -> PlayerState : elapsed += dt
+
+RaceSession --> MatchSession : estado de carrera actualizado
+deactivate RaceSession
+
+MatchSession --> GameSessionFacade : estado de match actualizado
+deactivate MatchSession
+
+' =====================================
+'   4. Servidor genera snapshot
+' =====================================
+GameSessionFacade -> GameSessionFacade : build WorldSnapshot
+
+@enduml

@@ -82,7 +82,7 @@ std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
             .acceleration = car.acceleration,
             .mass = car.mass,
             .control = car.control,
-            .health = car.health,
+            .health = car.maxHealth,
         });
     }
     return types_of_static_cars;
@@ -126,7 +126,11 @@ void Session::start_game() {
     races.reserve(config.raceCount);
     const auto all_races = yaml_config.getRaces(config.city);
     for (int i = 0; i < config.raceCount; ++i) {
-        races.push_back(all_races[std::rand() % all_races.size()]);
+        // const auto index = rand() % all_races.size();
+        constexpr auto index = 0;
+        spdlog::info("city {}, race {}", all_races[index].city,
+                     all_races[index].mapFile);
+        races.push_back(all_races[index]);
     }
 
     game.start(races, players);

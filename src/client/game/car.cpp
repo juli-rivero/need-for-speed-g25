@@ -1,8 +1,11 @@
 #include "client/game/car.h"
 
 constexpr float PI = 3.14;
+constexpr float pixels_per_meter = 10;
 
-static float world_to_pixel(const float meters) { return meters * 20; }
+static float world_to_pixel(const float meters) {
+    return meters * pixels_per_meter;
+}
 static float radians_to_sdl_degrees(const float radians) {
     float degrees = radians * 180 / PI;
     degrees += 90;

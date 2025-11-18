@@ -270,7 +270,7 @@ int test() {
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         RaceDefinition race{"LibertyCity",
-                            "assets/liberty_city_circuito2.yaml"};
+                            "assets/liberty_city_circuito1.yaml"};
         PlayerConfig player{1, "Tester", "Speedster"};
         PlayerConfig player2{2, "Ghost", "Ghost"};
         std::vector<RaceDefinition> races{race};
@@ -282,8 +282,6 @@ int test() {
 
         auto stat = game.getStaticSnapshot();
         bool running = true;
-        float nitroTime = 0.0f;
-        bool nitroActive = false;
 
         TTF_Font* font = TTF_OpenFont("assets/fonts/OpenSans-Regular.ttf", 16);
         if (!font) {
@@ -341,38 +339,10 @@ int test() {
                     }
                 }
             }
-            // Control del nitro (se apaga automáticamente tras X segundos)
-            if (nitroActive) {
-                nitroTime -= DT;
-                if (nitroTime <= 0) {
-                    nitroActive = false;
-                    game.useNitro(1);
-                }
-            }
 
             // game.update(DT);
             auto dyn = game.getSnapshot();
             if (dyn.players.empty()) continue;
-            if (!dyn.collisions.empty()) {
-                std::cout << "---- COLISIONES DETECTADAS ("
-                          << dyn.collisions.size() << ") ----\n";
-
-                for (const auto& c : dyn.collisions) {
-                    if (auto car_to_car = std::get_if<CollisionCarToCar>(&c)) {
-                        std::cout << "CarToCar: A=" << car_to_car->player
-                                  << " B=" << car_to_car->other
-                                  << " intensity=" << car_to_car->intensity
-                                  << "\n";
-                    } else if (auto simple_collision =
-                                   std::get_if<CollisionSimple>(&c)) {
-                        std::cout
-                            << "CarToWall: Car=" << simple_collision->player
-                            << " intensity=" << simple_collision->intensity
-                            << "\n";
-                    }
-                }
-                std::cout << "----------------------------------------\n";
-            }
 
             // jugador local
             PlayerId localPlayerId = 1;

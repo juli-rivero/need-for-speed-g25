@@ -1,10 +1,12 @@
 #include "MapLoader.h"
 
+#include <algorithm>
 #include <iostream>
 #include <utility>
 
 #include "../session/physics/Box2DBodyAdapter.h"
 #include "../session/physics/EntityFactory.h"
+static constexpr float MAP_SCALE = 0.1f;
 
 MapLoader::MapInfo MapLoader::loadFromYAML(
     const std::string& yamlPath, Box2DPhysicsWorld& world,
@@ -50,17 +52,33 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
 
     if (mapNode["walls"]) {
         for (const auto& n : mapNode["walls"]) {
-            auto id = n["id"].as<int>();
-            float x = n["x"].as<float>();
-            float y = n["y"].as<float>();
-            float w = n["w"].as<float>();
-            float h = n["h"].as<float>();
+            const auto& verts = n["vertices"];
+            std::vector<b2Vec2> poly;
 
-            auto wall = factory.createWall(world, x, y, w, h);
+            for (const auto& v : verts) {
+                poly.push_back({v["x"].as<float>(), v["y"].as<float>()});
+            }
+
+            // calcular bounding box
+            float minX = poly[0].x;
+            float maxX = minX;
+            float minY = poly[0].y;
+            float maxY = minY;
+
+            for (const auto& p : poly) {
+                minX = std::min(minX, p.x);
+                maxX = std::max(maxX, p.x);
+                minY = std::min(minY, p.y);
+                maxY = std::max(maxY, p.y);
+            }
+
+            float w = (maxX - minX) * MAP_SCALE;
+            float h = (maxY - minY) * MAP_SCALE;
+            float cx = (minX + maxX) * 0.5f * MAP_SCALE;
+            float cy = (minY + maxY) * 0.5f * MAP_SCALE;
+
+            auto wall = factory.createWall(world, cx, cy, w, h);
             walls.push_back(std::move(wall));
-
-            std::cout << "Wall id=" << id << " pos=(" << x << "," << y
-                      << ") size=(" << w << "," << h << ")\n";
         }
     }
 

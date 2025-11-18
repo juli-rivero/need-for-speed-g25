@@ -1,0 +1,54 @@
+@startuml
+title Inicialización de una Carrera (MatchSession::startRace)
+
+participant GameSessionFacade
+participant MatchSession
+participant MapLoader
+participant Box2DPhysicsWorld as Physics
+participant CollisionManager as Collisions
+participant EntityFactory
+participant Player
+participant Car
+participant RaceSession
+
+== Inicio de una carrera ==
+
+GameSessionFacade -> MatchSession : startRace(raceIndex)
+activate MatchSession
+
+' ==== 1. Cargar YAML del mapa ====
+MatchSession -> MapLoader : loadFromYAML(mapFile, world,...)
+activate MapLoader
+MapLoader -> EntityFactory : crear cuerpos físicos (paredes, puentes, checkpoints)
+MapLoader --> MatchSession : walls, bridges, checkpoints, spawnPoints
+deactivate MapLoader
+
+' ==== 2. Crear jugadores y autos ====
+loop por cada PlayerConfig
+    MatchSession -> EntityFactory : createCar(world, chosenType, spawn.x, spawn.y)
+    activate EntityFactory
+        EntityFactory -> Physics : crear cuerpo físico del auto
+        EntityFactory --> Car : devuelve nuevo Car(body, tipo)
+    deactivate EntityFactory
+
+    MatchSession -> Collisions : registerCar(car, playerId)
+
+    MatchSession --> Player : new Player(id, name, car)
+end
+
+' ==== 3. Crear RaceSession con los autos y checkpoints ====
+MatchSession -> RaceSession : new RaceSession(cfg, city, checkpoints, cars, playerIds)
+activate RaceSession
+
+' ==== 4. Conectar física y lógica ====
+MatchSession -> Collisions : setRaceSession(race)
+Collisions --> MatchSession : OK
+
+' ==== 5. Arrancar la carrera ====
+MatchSession -> RaceSession : start()
+RaceSession --> MatchSession : estado = Countdown
+
+deactivate RaceSession
+deactivate MatchSession
+
+@enduml
