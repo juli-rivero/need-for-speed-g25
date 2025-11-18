@@ -1,22 +1,25 @@
 #include "client/game/car.h"
 
-// Conversión de unidades: Box2D (metros, radianes) -> Render (píxeles, grados)
-static constexpr float PPM = 32.0f;  // ajusta para que calce con tu mapa
-static float rad2deg(float r) { return r * 180.0 / 3.14; }
+constexpr float PI = 3.14;
+
+static float world_to_pixel(const float meters) { return meters * 20; }
+static float radians_to_sdl_degrees(const float radians) {
+    float degrees = radians * 180 / PI;
+    degrees += 90;
+    if (degrees > 360) degrees -= 360;
+    if (degrees < 0) degrees += 360;
+    return degrees;
+}
 
 Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
       id(base.id),
-      // convertir metros->píxeles y radianes->grados
-      x(base.car.x * PPM),
-      y(base.car.y * PPM),
-      angle([base]() {
-          float a = 90 + rad2deg(base.car.angle);
-          if (a > 360) a -= 360;
-          if (a < 0) a += 360;
-          return a;
-      }()),
+      name(base.name),
+      x(world_to_pixel(base.car.x)),
+      y(world_to_pixel(base.car.y)),
+      angle(radians_to_sdl_degrees(base.car.angle)),
       speed(base.car.speed),
+      health(base.car.health),
       sprite(*game.assets.car_name.at(base.car.type)) {}
 
 void Car::set_camera() {
@@ -27,15 +30,19 @@ void Car::set_camera() {
     game.cam_world_y = y;
 }
 
-static inline int vol(double x1, double y1, double x2, double y2) {
-    double dist = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    int v = MIX_MAX_VOLUME - dist / 3;  // Quizas 4?
-    return (v >= 0) ? v : 0;
+void Car::draw(bool with_name) {
+    game.render(sprite, x, y, angle);
+    if (with_name) game.render(name, x, y - 32, true);
 }
 
-void Car::draw() {
-    game.render(sprite, x, y, angle);
-    game.render(std::to_string(speed), x, y - 32, true);
+int Car::get_vol() const {
+    const double dx = game.cam_world_x - x;
+    const double dy = game.cam_world_y - y;
+
+    const double dist = sqrt(dx * dx + dy * dy);
+
+    const int v = MIX_MAX_VOLUME - dist / 4;
+    return (v >= 0) ? v : 0;
 }
 
 void Car::sound_crash() {
@@ -43,7 +50,9 @@ void Car::sound_crash() {
     if (game.frame % 120 != 0) return;
 
     game.mixer.PlayChannel(id, game.assets.sound_crash);
-    game.mixer.SetVolume(id, vol(x, y, game.cam_world_x, game.cam_world_y));
+    game.mixer.SetVolume(id, get_vol());
 }
 
-size_t Car::get_id() { return id; }
+size_t Car::get_id() const { return id; }
+float Car::get_health() const { return health; }
+float Car::get_speed() const { return speed; }
