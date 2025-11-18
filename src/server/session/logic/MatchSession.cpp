@@ -235,7 +235,7 @@ void MatchSession::update(float dt) {
             // Actualizar cada coche según su input persistente
             for (auto& [id, player] : _players) {
                 auto car = player->getCar();
-                car->update();
+                car->update(dt);
                 if (car->isDestroyed()) {
                     _race->onCarDestroyed(id);
                     permanentlyDisqualified.insert(id);
@@ -307,14 +307,15 @@ void MatchSession::endIntermissionAndPrepareNextRace() {
         if (it == _players.end()) continue;
 
         auto car = it->second->getCar();
+        auto& u = car->getUpgrades();
         for (const auto& up : upgrades) {
             switch (up.stat) {
                 case UpgradeStat::MaxSpeed:
-                    car->getUpgrades().bonusMaxSpeed += up.delta;
+                    u.bonusMaxSpeed += up.delta;
                     break;
 
                 case UpgradeStat::Acceleration:
-                    car->getUpgrades().bonusAcceleration += up.delta;
+                    u.bonusAcceleration += up.delta;
                     break;
 
                 case UpgradeStat::Health:
@@ -322,7 +323,7 @@ void MatchSession::endIntermissionAndPrepareNextRace() {
                     break;
 
                 case UpgradeStat::Nitro:
-                    car->getUpgrades().bonusNitro += up.delta;
+                    u.bonusNitro += up.delta;
                     break;
             }
         }

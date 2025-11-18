@@ -44,7 +44,7 @@ car_types:
     control: 0.9
     health: 80
     mass: 1.2
-    nitro_multiplier: 1.8
+    nitro_multiplier: 2.0
     nitro_duration: 3
     nitro_cooldown: 5
     density: 0.9
