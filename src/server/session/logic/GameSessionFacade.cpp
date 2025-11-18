@@ -32,6 +32,11 @@ void GameSessionFacade::run() {
             packet.events = cm.consumeEvents();
             // TODO(juli): MANDAR ACA
         }
+        // TODO(juli)
+        //  if (match->hasPendingEndRacePacket()) {
+        //      auto pkt = match->consumeEndRacePacket();
+        //      onRaceFinished(pkt);
+        //  }
 
         std::this_thread::sleep_for(16ms);
     }
@@ -74,8 +79,11 @@ void GameSessionFacade::onPlayerEvent(PlayerId id, const std::string& event) {
     else if (event == "nitro_toggle")
         st.nitro = !st.nitro;
 }
+
+// void GameSessionFacade::onRaceFinished(const EndRaceSummaryPacket& summary) {
+//
+// } TODO(elvis): (juli)
 void GameSessionFacade::stop() {
     Thread::stop();
     Thread::join();
-    // if (match) match->stop(); TODO: por ahora
 }
