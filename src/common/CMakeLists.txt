@@ -1,0 +1,19 @@
+add_subdirectory(dto)
+
+target_sources(taller_common
+        PRIVATE
+        protocol.cpp
+        resolver.cpp
+        resolvererror.cpp
+        socket.cpp
+        PUBLIC
+        buffer.h
+        emitter.h
+        liberror.h
+        protocol.h
+        queue.h
+        resolver.h
+        resolvererror.h
+        socket.h
+        thread.h
+)

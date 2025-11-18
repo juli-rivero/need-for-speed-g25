@@ -1,0 +1,10 @@
+target_sources(taller_server
+        PRIVATE
+        search_controller.cpp
+        session_controller.cpp
+        game_controller.cpp
+        PUBLIC
+        search_controller.h
+        session_controller.h
+        game_controller.h
+)

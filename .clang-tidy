@@ -1,0 +1,4 @@
+Checks: '-*,google-*,-google-readability-braces-around-statements'
+WarningsAsErrors: '*'
+HeaderFilterRegex: '^src/'
+CheckOptions: []

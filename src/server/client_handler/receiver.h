@@ -1,0 +1,41 @@
+#pragma once
+
+#include <string>
+
+#include "common/dto/dto.h"
+#include "common/emitter.h"
+#include "common/macros.h"
+#include "common/protocol.h"
+#include "common/thread.h"
+#include "spdlog/spdlog.h"
+
+class Receiver final : public Thread {
+    ProtocolReceiver& receiver;
+    spdlog::logger* log;
+
+    friend class ClientHandler;
+    void run() override;
+    void stop() override;
+
+   public:
+    Receiver(ProtocolReceiver&, spdlog::logger*);
+
+    MAKE_FIXED(Receiver)
+
+    struct Listener : common::Listener<Receiver::Listener> {
+        explicit Listener(Receiver& receiver);
+        virtual void on_join_request(const std::string&) {}
+        virtual void on_search_request() {}
+        virtual void on_create_request(const SessionConfig&) {}
+        virtual void on_leave_request() {}
+        virtual void on_start_request(bool) {}
+        virtual void on_choose_car(const std::string&) {}
+
+        ~Listener() override = default;
+    };
+
+   private:
+    common::Emitter<Receiver::Listener> emitter;
+
+    void switch_and_dispatch_request(const dto::RequestType& request);
+};
