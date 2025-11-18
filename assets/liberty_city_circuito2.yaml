@@ -25,4 +25,4 @@ map:
   # --- Dos spawn points dentro del cuadrilátero ---
   spawn_points:
     - { x: 5, y: 15, angle: 0.0 }   # Player 1
-    - { x: 250, y: 100, angle: 0.0 }   # Player 2
+    - { x: 10, y: 10, angle: 0.0 }   # Player 2

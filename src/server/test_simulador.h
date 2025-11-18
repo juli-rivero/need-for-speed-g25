@@ -1,6 +1,5 @@
 #pragma once
 
-/*
 #include <SDL2/SDL.h>
 #include <SDL_ttf.h>
 
@@ -300,44 +299,42 @@ int test() {
                             running = false;
                             break;
                         case SDLK_w:
-                            game.onPlayerEvent(1, "accelerate_down");
+                            game.startAccelerating(1);
                             break;
                         case SDLK_s:
-                            game.onPlayerEvent(1, "brake_down");
+                            game.startReversing(1);
                             break;
                         case SDLK_a:
-                            game.onPlayerEvent(1, "turn_left_down");
+                            game.startTurningLeft(1);
                             break;
                         case SDLK_d:
-                            game.onPlayerEvent(1, "turn_right_down");
+                            game.startTurningRight(1);
                             break;
                         case SDLK_LSHIFT:
                         case SDLK_RSHIFT:
-                            game.onPlayerEvent(1, "nitro_toggle");
-                            nitroActive = true;
-                            nitroTime = 3.0f;  // 3 segundos de nitro
+                            game.useNitro(1);
                             break;
                         case SDLK_SPACE:
-                            game.onPlayerEvent(2, "accelerate_down");
+                            game.startAccelerating(2);
                             break;
                     }
                 }
                 if (e.type == SDL_KEYUP && !e.key.repeat) {
                     switch (e.key.keysym.sym) {
                         case SDLK_w:
-                            game.onPlayerEvent(1, "accelerate_up");
+                            game.stopAccelerating(1);
                             break;
                         case SDLK_s:
-                            game.onPlayerEvent(1, "brake_up");
+                            game.stopReversing(1);
                             break;
                         case SDLK_a:
-                            game.onPlayerEvent(1, "turn_left_up");
+                            game.stopTurningLeft(1);
                             break;
                         case SDLK_d:
-                            game.onPlayerEvent(1, "turn_right_up");
+                            game.stopTurningRight(1);
                             break;
                         case SDLK_SPACE:
-                            game.onPlayerEvent(2, "accelerate_up");
+                            game.stopAccelerating(2);
                             break;
                     }
                 }
@@ -347,7 +344,7 @@ int test() {
                 nitroTime -= DT;
                 if (nitroTime <= 0) {
                     nitroActive = false;
-                    game.onPlayerEvent(1, "nitro_toggle");
+                    game.useNitro(1);
                 }
             }
 
@@ -540,4 +537,3 @@ int test() {
         return 1;
     }
 }
-*/
