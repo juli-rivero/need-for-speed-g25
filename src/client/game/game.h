@@ -25,6 +25,7 @@ class Game final {
     MockApi api;
 
     std::list<Car> cars;
+    Car* my_car;
 
     // Metodos de actualizacion internos
     bool send_events();
@@ -45,6 +46,8 @@ class Game final {
     void render(SDL2pp::Texture& surface, int x, int y, double angle = 0,
                 bool in_world = true);
     void render(const std::string& texto, int x, int y, bool in_world = true);
+    void render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
+                     bool in_world = true);
 
    public:
     explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer);

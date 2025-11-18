@@ -1,14 +1,14 @@
 #include "client/game/car.h"
 
-#define MAX_SPEED 5
-
 Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
       id(base.id),
+      name(base.name),
       x(base.car.x),
       y(base.car.y),
       angle(base.car.angle),
       speed(base.car.speed),
+      health(base.car.health),
       sprite(*game.assets.car_name.at(base.car.type)) {}
 
 void Car::set_camera() {
@@ -19,23 +19,27 @@ void Car::set_camera() {
     game.cam_world_y = y;
 }
 
-static inline int vol(double x1, double y1, double x2, double y2) {
-    double dist = sqrt((x2 - x1) * (x2 - x1) + (y2 - y1) * (y2 - y1));
-    int v = MIX_MAX_VOLUME - dist / 3;  // Quizas 4?
-    return (v >= 0) ? v : 0;
+void Car::draw(bool with_name) {
+    game.render(sprite, x, y, angle);
+    if (with_name) game.render(name, x, y - 32, true);
 }
 
-void Car::draw() {
-    game.render(sprite, x, y, angle);
-    game.render(std::to_string(speed), x, y - 32, true);
+int Car::get_vol(double x, double y) {
+    double dx = game.cam_world_x - x;
+    double dy = game.cam_world_y - y;
+
+    double dist = sqrt(dx * dx + dy * dy);
+
+    int v = MIX_MAX_VOLUME - dist / 4;
+    return (v >= 0) ? v : 0;
 }
 
 void Car::sound_crash() {
     // Atenuar el sonido basado en que tan lejos esta de la camara.
-    if (game.frame % 120 != 0) return;
-
     game.mixer.PlayChannel(id, game.assets.sound_crash);
-    game.mixer.SetVolume(id, vol(x, y, game.cam_world_x, game.cam_world_y));
+    game.mixer.SetVolume(id, get_vol(x, y));
 }
 
 size_t Car::get_id() { return id; }
+float Car::get_health() { return health; }
+float Car::get_speed() { return speed; }
