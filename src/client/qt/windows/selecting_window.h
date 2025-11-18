@@ -40,15 +40,6 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
    private:
    
-    void calculateMaxStats();
-    float normalizeValue(float value, float maxValue) const;
-    
-    // Valores máximos para normalización
-    float maxMaxSpeed;
-    float maxAcceleration;
-    float maxHealth;
-    float maxMass;
-    float maxControl;
     void setupUI();
     QWidget* createCarCard(const CarStaticInfo& car, int index);
     QProgressBar* createStatBar(float value);
@@ -56,6 +47,12 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
     std::vector<CarStaticInfo> carTypes;
     int selectedCarIndex;
+
+    QLabel* speedValueLabel;
+    QLabel* accelValueLabel;
+    QLabel* healthValueLabel;
+    QLabel* massValueLabel;
+    QLabel* controlValueLabel;
 
     // UI Components
     QVBoxLayout* mainLayout;
