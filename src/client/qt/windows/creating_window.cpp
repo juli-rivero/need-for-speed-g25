@@ -75,10 +75,6 @@ void CreatingWindow::setupUI() {
     QLabel* racesLabel = new QLabel("🏁 Cantidad de carreras:", this);
     formLayout->addRow(racesLabel, racesSpin);
 
-    // ELIMINAR COMPLETAMENTE LAS VUELTAS (como indica el TODO)
-    // TODO(nico): borrar, el numero vueltas en un circuito siempre es 1
-    // lapsSpin y todo su código relacionado
-
     // Ciudad/Mapa
     cityCombo = new QComboBox(this);
     cityCombo->addItem("🏙️  Liberty City", "LibertyCity");
@@ -123,7 +119,6 @@ void CreatingWindow::reset() {
     nameEdit->clear();
     playersSpin->setValue(4);
     racesSpin->setValue(3);
-    // NO lapsSpin
     cityCombo->setCurrentIndex(0);
     createButton->setEnabled(false);
 }
@@ -137,7 +132,7 @@ void CreatingWindow::validateInput() {
 void CreatingWindow::onSubmitClicked() {
     api.request_create_and_join_session({
         .name = nameEdit->text().trimmed().toUtf8().constData(),
-        .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
+        .maxPlayers = static_castuint8_t(playersSpin->value()),
         .raceCount = static_cast<uint8_t>(racesSpin->value()),
         .city = cityCombo->currentData().toString().toUtf8().constData(),
     });

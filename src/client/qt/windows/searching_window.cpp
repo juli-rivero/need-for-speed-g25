@@ -135,16 +135,6 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
 
 void SearchingWindow::on_join_response(const SessionInfo&,
                                        const std::vector<CarStaticInfo>&) {
-    // Guardar el ID de la partida a la que nos unimos
-    // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
-    // request para pedirlo
-
-    // Establecer modo: estamos UNIÉNDONOS a una partida
-    // carSelectionMode = CarSelectionMode::Joining; # TODO(nico): verificar si
-    // se puede borrar
-
-    // Cuando te unes a una partida, ir a selección de auto
-    // showCarSelectionPage();
 
     spdlog::trace("unido a partida");
 
