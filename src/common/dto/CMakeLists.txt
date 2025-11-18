@@ -3,8 +3,10 @@ target_sources(taller_common
         dto.cpp
         dto_search.cpp
         dto_session.cpp
+        dto_game.cpp
         PUBLIC
         dto.h
         dto_search.h
         dto_session.h
+        dto_game.h
 )

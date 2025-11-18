@@ -14,17 +14,20 @@ SessionController::SessionController(Session& session, const PlayerId client_id,
                                      Api& api, Receiver& receiver,
                                      ISessionEvents& handler,
                                      spdlog::logger* log)
-    : Session::Listener(session),
-      Receiver::Listener(receiver),
-      log(log),
+    : log(log),
       client_id(client_id),
       api(api),
-      dispatcher(handler) {
+      dispatcher(handler),
+      session(session) {
     log->debug("controlling lobby");
+    Receiver::Listener::subscribe(receiver);
+    Session::Listener::subscribe(session);
     api.reply_joined(session.get_info(), session.get_types_of_static_cars());
 }
 
 SessionController::~SessionController() {
+    Receiver::Listener::unsubscribe();
+    Session::Listener::unsubscribe();
     log->trace("left session");
     api.reply_left();
 }

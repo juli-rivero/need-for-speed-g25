@@ -9,9 +9,6 @@
 
 Receiver::Receiver(ProtocolReceiver& receiver) : receiver(receiver) {}
 
-Receiver::Listener::Listener(Receiver& receiver)
-    : common::Listener<Receiver::Listener>(receiver.emitter) {}
-
 void Receiver::run() {
     while (should_keep_running()) {
         try {
@@ -31,6 +28,9 @@ void Receiver::stop() {
     if (not receiver.is_stream_recv_closed()) receiver.close_stream_recv();
 }
 
+void Receiver::Listener::subscribe(Receiver& r) {
+    common::Listener<Receiver::Listener>::subscribe(r.emitter);
+}
 void Receiver::recv(const dto::ErrorResponse& response) {
     spdlog::trace("received error response");
     emitter.dispatch(&Listener::on_error_response, response.message);
@@ -52,8 +52,13 @@ void Receiver::recv(const dto_session::StartResponse&) {
     spdlog::trace("received start response");
     emitter.dispatch(&Listener::on_start_game);
 }
-void Receiver::recv(const dto_session::SessionSnapshot& response) {
+void Receiver::recv(const dto_session::SessionSnapshot& snapshot) {
     spdlog::trace("received session snapshot");
-    emitter.dispatch(&Listener::on_session_snapshot, response.session,
-                     response.players);
+    emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
+                     snapshot.players);
+}
+void Receiver::recv(const dto_game::GameSnapshot& snapshot) {
+    spdlog::trace("received game snapshot");
+    emitter.dispatch(&Listener::on_game_snapshot, snapshot.raceTimeLeft,
+                     snapshot.players);
 }

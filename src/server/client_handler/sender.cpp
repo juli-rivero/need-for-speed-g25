@@ -4,6 +4,7 @@
 #include "common/dto/dto_session.h"
 
 using dto::ErrorResponse;
+using dto_game::GameSnapshot;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
 using dto_session::LeaveResponse;
@@ -68,4 +69,9 @@ void Sender::send_session_snapshot(const SessionConfig& config,
 void Sender::notify_game_started() {
     log->trace("sending start response");
     responses.try_push(StartResponse{});
+}
+void Sender::send_game_snapshot(float raceTimeLeft,
+                                const std::vector<PlayerSnapshot>& players) {
+    log->trace("sending game snapshot");
+    responses.try_push(GameSnapshot{raceTimeLeft, players});
 }

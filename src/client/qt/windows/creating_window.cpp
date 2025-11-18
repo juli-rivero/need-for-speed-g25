@@ -8,17 +8,22 @@
 #include "client/qt/theme_manager.h"
 
 CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), Responder(connexion), api(connexion.get_api()) {
+    : QWidget(parent), api(connexion.get_api()) {
     setupUI();
 
     // Conectar al sistema de temas
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
             &CreatingWindow::applyTheme);
     applyTheme();  // Aplicar tema inicial
+
+    Responder::subscribe(connexion);
 }
+CreatingWindow::~CreatingWindow() { Responder::unsubscribe(); }
+
 void CreatingWindow::on_join_response(const SessionInfo&,
                                       const std::vector<CarStaticInfo>&) {
-    emit sessionCreated();
+    QMetaObject::invokeMethod(
+        this, [this]() { emit sessionCreated(); }, Qt::QueuedConnection);
 }
 
 void CreatingWindow::setupUI() {

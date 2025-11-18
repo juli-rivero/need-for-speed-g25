@@ -12,10 +12,7 @@
 #include "spdlog/spdlog.h"
 
 SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent),
-      Responder(connexion),
-      api(connexion.get_api()),
-      currentGameId(-1) {
+    : QWidget(parent), api(connexion.get_api()), currentGameId(-1) {
     spdlog::trace("creating lobby window");
     // lobbyClient = new MockLobbyClient();
     // spdlog::trace("created lobby client");
@@ -66,7 +63,10 @@ SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
     createThis();
     // Aplicar tema inicial
     applyTheme();
+
+    Responder::subscribe(connexion);
 }
+SearchingWindow::~SearchingWindow() { Responder::unsubscribe(); }
 
 void SearchingWindow::on_search_response(
     const std::vector<SessionInfo>& session_infos) {
@@ -228,8 +228,8 @@ void SearchingWindow::on_join_response(const SessionInfo&,
     QMetaObject::invokeMethod(
         this, [this]() { emit joinGameClicked(); }, Qt::QueuedConnection);
 
-    statusLabel->setText("✅ Unido a la partida - Selecciona tu auto");
-    statusLabel->setStyleSheet("color: green;");
+    // statusLabel->setText("✅ Unido a la partida - Selecciona tu auto");
+    // statusLabel->setStyleSheet("color: green;");
 }
 
 void SearchingWindow::onError(QString message) {

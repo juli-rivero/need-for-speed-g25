@@ -21,6 +21,7 @@ class SearchController final : Receiver::Listener {
    public:
     SearchController(SessionsMonitor&, PlayerId client_id, Api&, Receiver&,
                      ISearchEvents& handler, spdlog::logger*);
+    ~SearchController() override;
 
     MAKE_FIXED(SearchController)
 

@@ -21,10 +21,10 @@ class MatchSession {
     Box2DPhysicsWorld& _world;
     std::vector<std::unique_ptr<Wall>> _walls;
     std::vector<std::unique_ptr<Bridge>> _bridges;
-    std::vector<PlayerConfig> _playerConfigs;
+    const std::vector<PlayerConfig> _playerConfigs;
     std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
     MatchState _state{MatchState::Starting};
-    std::vector<RaceDefinition> _races;  // N carreras planificadas
+    const std::vector<RaceDefinition> _races;  // N carreras planificadas
     std::size_t _currentRace{0};
 
     std::unique_ptr<RaceSession> _race;  // carrera en curso
@@ -51,7 +51,7 @@ class MatchSession {
 
     void start();           // Lobby → Racing (carrera 0)
     void update(float dt);  // delega a la carrera actual / intermission
-    void applyInput(PlayerId id, const PlayerInput& input);
+    void applyInput(PlayerId id, const CarInput&);
     WorldSnapshot getSnapshot();
     StaticSnapshot getStaticSnapshot();
     // upgrades propuestos por jugadores (se aplicarán a la próxima carrera)

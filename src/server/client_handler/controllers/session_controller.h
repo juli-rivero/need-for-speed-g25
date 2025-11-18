@@ -18,6 +18,7 @@ class SessionController final : Session::Listener, Receiver::Listener {
     const PlayerId client_id;
     Api& api;
     ISessionEvents& dispatcher;
+    Session& session;
 
    public:
     SessionController(Session&, PlayerId client_id, Api&, Receiver&,

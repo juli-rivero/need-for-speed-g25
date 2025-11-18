@@ -10,8 +10,6 @@
 #include "common/protocol.h"
 #include "common/thread.h"
 
-class Receiver;
-
 class Receiver final : public Thread {
     ProtocolReceiver& receiver;
 
@@ -25,7 +23,6 @@ class Receiver final : public Thread {
     MAKE_FIXED(Receiver)
 
     struct Listener : common::Listener<Receiver::Listener> {
-        explicit Listener(Receiver& receiver);
         virtual void on_error_response(const std::string&) {}
         virtual void on_search_response(const std::vector<SessionInfo>&) {}
         virtual void on_join_response(const SessionInfo&,
@@ -34,7 +31,23 @@ class Receiver final : public Thread {
         virtual void on_start_game() {}
         virtual void on_session_snapshot(const SessionConfig&,
                                          const std::vector<PlayerInfo>&) {}
+
+        /**
+         * This method is called to process a snapshot of the current game
+         * state.
+         *
+         * @param timeElapsed The time elapsed in seconds since the last
+         * snapshot.
+         * @param playerSnapshots A vector containing the current state of all
+         * players, including their positions, speeds, and other relevant
+         * information.
+         */
+        virtual void on_game_snapshot(const float,
+                                      const std::vector<PlayerSnapshot>&) {}
         ~Listener() override = default;
+
+       protected:
+        void subscribe(Receiver&);
     };
 
    private:
@@ -46,4 +59,5 @@ class Receiver final : public Thread {
     void recv(const dto_session::LeaveResponse&);
     void recv(const dto_session::StartResponse&);
     void recv(const dto_session::SessionSnapshot&);
+    void recv(const dto_game::GameSnapshot&);
 };

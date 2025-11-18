@@ -1,13 +1,21 @@
 #include "client/game/car.h"
 
-#define MAX_SPEED 5
+// Conversión de unidades: Box2D (metros, radianes) -> Render (píxeles, grados)
+static constexpr float PPM = 32.0f;  // ajusta para que calce con tu mapa
+static float rad2deg(float r) { return r * 180.0 / 3.14; }
 
 Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
       id(base.id),
-      x(base.car.x),
-      y(base.car.y),
-      angle(base.car.angle),
+      // convertir metros->píxeles y radianes->grados
+      x(base.car.x * PPM),
+      y(base.car.y * PPM),
+      angle([base]() {
+          float a = 90 + rad2deg(base.car.angle);
+          if (a > 360) a -= 360;
+          if (a < 0) a += 360;
+          return a;
+      }()),
       speed(base.car.speed),
       sprite(*game.assets.car_name.at(base.car.type)) {}
 

@@ -15,6 +15,10 @@ Connexion::Connexion(Protocol&& protocol)
 
 Api& Connexion::get_api() { return sender; }
 
+void Connexion::Responder::subscribe(Connexion& c) {
+    Receiver::Listener::subscribe(c.receiver);
+}
+
 Connexion::~Connexion() {
     if (sender.is_alive()) sender.stop();
     if (receiver.is_alive()) receiver.stop();

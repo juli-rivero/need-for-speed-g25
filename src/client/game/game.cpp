@@ -4,10 +4,17 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer)
-    : renderer(renderer), mixer(mixer), assets(renderer) {
+Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
+           Connexion& connexion)
+    : renderer(renderer),
+      mixer(mixer),
+      assets(renderer),
+      api(connexion.get_api()),
+      id(connexion.unique_id) {
     renderer.Clear();
+    Responder::subscribe(connexion);
 }
+Game::~Game() { Responder::unsubscribe(); }
 
 //
 // AUXILIAR
@@ -32,6 +39,13 @@ void Game::render(const std::string& texto, int x, int y, bool in_world) {
 // PRINCIPAL
 //
 
+void Game::on_game_snapshot(
+    const float time_elapsed,
+    const std::vector<PlayerSnapshot>& player_snapshots) {
+    std::lock_guard lock(mutex);
+    elapsed = time_elapsed;
+    players = player_snapshots;
+}
 bool Game::send_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -64,13 +78,11 @@ bool Game::send_events() {
 }
 
 void Game::get_state() {
+    std::lock_guard lock(mutex);
     cars.clear();
 
-    for (auto& player : api.get_snapshot().players)
-        cars.emplace_back(*this, player);
+    for (auto& player : players) cars.emplace_back(*this, player);
 }
-
-#define MY_ID 0
 
 void Game::draw_state() {
     renderer.Clear();
@@ -80,7 +92,7 @@ void Game::draw_state() {
 
     // Coches
     for (Car& car : cars) {
-        if (car.get_id() == MY_ID) car.set_camera();
+        if (car.get_id() == id) car.set_camera();
         car.draw();
     }
 

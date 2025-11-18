@@ -7,12 +7,10 @@
 
 #include "client/qt/theme_manager.h"
 #include "client/qt/ui/CarSprite.h"
+#include "spdlog/spdlog.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent),
-      Responder(connexion),
-      api(connexion.get_api()),
-      selectedCarIndex(0) {
+    : QWidget(parent), api(connexion.get_api()), selectedCarIndex(0) {
     setupUI();
 
     // Conectar al cambio de tema global
@@ -26,7 +24,9 @@ SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     /*if (!carTypes.empty()) {
         updateCarDetails(0);
     }*/
+    Responder::subscribe(connexion);
 }
+SelectingWindow::~SelectingWindow() { Responder::unsubscribe(); }
 
 /*void SelectingWindow::initCarTypes() {
     // Inicializar tipos de autos con sus características

@@ -20,55 +20,52 @@ void GameSessionFacade::run() {
     const float dt = 1.f / 60.f;
 
     while (should_keep_running()) {
-        for (auto& [id, st] : inputStates) {
-            match->applyInput(id, st);
+        std::pair<PlayerId, CarInput> input;
+        while (queue_actions.try_pop(input)) {
+            match->applyInput(input.first, input.second);
         }
 
         world.step(dt);
         match->update(dt);
+
+        emitter.dispatch(&Listener::on_snapshot, match->getSnapshot());
         std::this_thread::sleep_for(16ms);
     }
 }
 
-WorldSnapshot GameSessionFacade::getSnapshot() const {
-    try {
-        return match ? match->getSnapshot() : WorldSnapshot{};
-    } catch (...) {
-        std::cerr << "[ERROR] Snapshot causó crash." << std::endl;
-        return WorldSnapshot{};
-    }
-}
-
-StaticSnapshot GameSessionFacade::getStaticSnapshot() const {
-    return match ? match->getStaticSnapshot() : StaticSnapshot{};
-}
-
-void GameSessionFacade::onPlayerEvent(PlayerId id, const std::string& event) {
-    auto& st = inputStates[id];
-
-    if (event == "accelerate_down")
-        st.accelerate = true;
-    else if (event == "accelerate_up")
-        st.accelerate = false;
-
-    else if (event == "brake_down")
-        st.brake = true;
-    else if (event == "brake_up")
-        st.brake = false;
-    else if (event == "turn_left_down")
-        st.turn = TurnDirection::Left;
-    else if (event == "turn_left_up" && st.turn == TurnDirection::Left)
-        st.turn = TurnDirection::None;
-    else if (event == "turn_right_down")
-        st.turn = TurnDirection::Right;
-    else if (event == "turn_right_up" && st.turn == TurnDirection::Right)
-        st.turn = TurnDirection::None;
-
-    else if (event == "nitro_toggle")
-        st.nitro = !st.nitro;
-}
 void GameSessionFacade::stop() {
     Thread::stop();
     Thread::join();
     // if (match) match->stop(); TODO: por ahora
+}
+
+void GameSessionFacade::Listener::subscribe(GameSessionFacade& g) {
+    common::Listener<GameSessionFacade::Listener>::subscribe(g.emitter);
+}
+void GameSessionFacade::startTurningLeft(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StartTurningLeft});
+}
+void GameSessionFacade::stopTurningLeft(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StopTurningLeft});
+}
+void GameSessionFacade::startTurningRight(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StartTurningRight});
+}
+void GameSessionFacade::stopTurningRight(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StopTurningRight});
+}
+void GameSessionFacade::startAccelerating(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StartAccelerating});
+}
+void GameSessionFacade::stopAccelerating(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StopAccelerating});
+}
+void GameSessionFacade::startReversing(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StartReversing});
+}
+void GameSessionFacade::stopReversing(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StopReversing});
+}
+void GameSessionFacade::useNitro(PlayerId id) {
+    queue_actions.try_push({id, CarInput::StartUsingNitro});
 }

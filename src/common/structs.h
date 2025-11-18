@@ -97,7 +97,7 @@ struct CarSnapshot {
 
 struct RaceProgressSnapshot {
     PlayerId playerId;
-    int nextCheckpoint;  // número de checkpoint pendiente
+    uint32_t nextCheckpoint;  // número de checkpoint pendiente
     bool finished;
     bool disqualified;
     float elapsedTime;

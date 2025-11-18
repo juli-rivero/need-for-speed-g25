@@ -6,16 +6,18 @@
 
 #include "client/qt/theme_manager.h"
 #include "client/qt/ui/CarSprite.h"
+#include "spdlog/spdlog.h"
 
 WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent),
-      Responder(connexion),
       api(connexion.get_api()),
       id(connexion.unique_id),
       currentGameId(-1),
       playerIsReady(false) {
     setupUI();
+    Responder::subscribe(connexion);
 }
+WaitingWindow::~WaitingWindow() { Responder::unsubscribe(); }
 void WaitingWindow::on_session_snapshot(
     const SessionConfig&, const std::vector<PlayerInfo>& player_infos) {
     QMetaObject::invokeMethod(

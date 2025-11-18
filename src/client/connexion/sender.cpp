@@ -2,6 +2,10 @@
 
 #include <spdlog/spdlog.h>
 
+using dto_game::AccelerateRequest;
+using dto_game::ReverseRequest;
+using dto_game::TurnRequest;
+using dto_game::UseBoostRequest;
 using dto_search::CreateRequest;
 using dto_search::JoinRequest;
 using dto_search::SearchRequest;
@@ -54,4 +58,34 @@ void Sender::set_ready(const bool ready) {
 void Sender::choose_car(const std::string& car_name) {
     spdlog::trace("choosing car {}", car_name);
     responses.try_push(ChooseCarRequest{car_name});
+}
+
+// Game
+void Sender::start_turning(TurnDirection dir) {
+    spdlog::trace("start turning {}", static_cast<int>(dir));
+    responses.try_push(TurnRequest{dir, true});
+}
+void Sender::stop_turning(TurnDirection dir) {
+    spdlog::trace("stop turning {}", static_cast<int>(dir));
+    responses.try_push(TurnRequest{dir, false});
+}
+void Sender::start_accelerating() {
+    spdlog::trace("start accelerating");
+    responses.try_push(AccelerateRequest{true});
+}
+void Sender::stop_accelerating() {
+    spdlog::trace("stop accelerating");
+    responses.try_push(AccelerateRequest{false});
+}
+void Sender::start_breaking() {
+    spdlog::trace("start reversing/braking");
+    responses.try_push(ReverseRequest{true});
+}
+void Sender::stop_breaking() {
+    spdlog::trace("stop reversing/braking");
+    responses.try_push(ReverseRequest{false});
+}
+void Sender::start_using_nitro() {
+    spdlog::trace("use nitro");
+    responses.try_push(UseBoostRequest{true});
 }
