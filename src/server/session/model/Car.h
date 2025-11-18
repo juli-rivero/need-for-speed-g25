@@ -23,14 +23,22 @@ struct UpgradeStats {
 class Car : public Entity {
    private:
     std::string name;
+
     bool accelerating{false};
     bool braking{false};
     TurnDirection turning{TurnDirection::None};
+
     bool nitroActive{false};
+    float nitroTimeRemaining = 0.0f;
+    float nitroCooldownRemaining = 0.0f;
+
     const CarType& carType;
+
     float health;
     float maxHealth;
+
     mutable UpgradeStats upgrades;
+
     std::shared_ptr<IPhysicalBody> body;
 
    public:
@@ -70,7 +78,7 @@ class Car : public Entity {
         accelerating = accel;
         braking = brake;
         turning = turn;
-        nitroActive = nitro;
+        activateNitro(nitro);
     }
 
     bool isAccelerating() const { return accelerating; }
@@ -102,10 +110,32 @@ class Car : public Entity {
     void turnRight() { body->applyTorque(carType.control * 20.0f); }
 
     void damage(float amount) { setHealth(health - amount); }
-    void activateNitro(bool active) { nitroActive = active; }
+    void activateNitro(bool active) {
+        if (active) {
+            if (!nitroActive && nitroCooldownRemaining <= 0.0f) {
+                nitroActive = true;
+                nitroTimeRemaining = carType.nitroDuration;
+            }
+        } else {
+            nitroActive = false;
+        }
+    }
     bool isDestroyed() const { return health <= 0; }
     bool isNitroActive() const { return nitroActive; }
-    void update() {
+    void update(float dt) {
+        // === manejar timers de nitro ===
+        if (nitroActive) {
+            nitroTimeRemaining -= dt;
+            if (nitroTimeRemaining <= 0.0f) {
+                nitroActive = false;
+                nitroCooldownRemaining = carType.nitroCooldown;
+            }
+        } else {
+            if (nitroCooldownRemaining > 0.0f) {
+                nitroCooldownRemaining -= dt;
+            }
+        }
+
         if (accelerating) accelerate();
         if (braking) brake();
 

@@ -280,8 +280,6 @@ int test() {
 
         auto stat = game.getStaticSnapshot();
         bool running = true;
-        float nitroTime = 0.0f;
-        bool nitroActive = false;
 
         TTF_Font* font = TTF_OpenFont("assets/fonts/OpenSans-Regular.ttf", 16);
         if (!font) {
@@ -313,8 +311,6 @@ int test() {
                         case SDLK_LSHIFT:
                         case SDLK_RSHIFT:
                             game.onPlayerEvent(1, "nitro_toggle");
-                            nitroActive = true;
-                            nitroTime = 3.0f;  // 3 segundos de nitro
                             break;
                         case SDLK_SPACE:
                             game.onPlayerEvent(2, "accelerate_down");
@@ -339,14 +335,6 @@ int test() {
                             game.onPlayerEvent(2, "accelerate_up");
                             break;
                     }
-                }
-            }
-            // Control del nitro (se apaga automáticamente tras X segundos)
-            if (nitroActive) {
-                nitroTime -= DT;
-                if (nitroTime <= 0) {
-                    nitroActive = false;
-                    game.onPlayerEvent(1, "nitro_toggle");
                 }
             }
 

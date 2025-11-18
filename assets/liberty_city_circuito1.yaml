@@ -3,7 +3,6 @@ map:
   gravity: [0.0, 0.0]
   city: "LibertyCity"
 
-
   walls:
     - type: residential
       height: 10
