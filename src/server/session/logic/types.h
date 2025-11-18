@@ -34,9 +34,20 @@ struct CityDefinition {
     CityId name;
     std::vector<RaceDefinition> races;
 };
+
+enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
 struct UpgradeChoice {
-    // ejemplo: "max_speed", "acceleration"
-    std::string stat;
-    float delta{0.0f};
-    float penalty{0.0f};  // segundos que se aplicarán en la próxima carrera
+    UpgradeStat stat;
+    float delta;    // cuanto aumenta al stat
+    float penalty;  // cuantos segundos penaliza
+};
+struct EndRaceUpgradeReport {
+    PlayerId id;
+    float penaltyTime;
+    std::vector<UpgradeChoice> upgrades;
+};
+
+struct EndRaceSummaryPacket {
+    uint32_t raceIndex;
+    std::vector<EndRaceUpgradeReport> results;
 };

@@ -21,7 +21,7 @@ checkpoints:
   []
 hints:
   []
-buildings:
+walls:
   - type: residential
     height: 10
     vertices:

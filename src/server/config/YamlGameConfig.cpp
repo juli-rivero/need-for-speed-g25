@@ -31,7 +31,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                 type.acceleration = c["acceleration"].as<float>();
                 type.mass = c["mass"].as<float>();
                 type.control = c["control"].as<float>();
-                type.health = c["health"].as<float>();
+                type.maxHealth = c["health"].as<float>();
                 type.nitroMultiplier = c["nitro_multiplier"].as<float>();
                 type.nitroDuration = c["nitro_duration"].as<float>();
                 type.nitroCooldown = c["nitro_cooldown"].as<float>();
@@ -115,7 +115,7 @@ void YamlGameConfig::printSummary() const {
         std::cout << c.name << " (" << c.description << ")\n";
         std::cout << "   speed=" << c.maxSpeed << ", acc=" << c.acceleration
                   << ", mass=" << c.mass << ", control=" << c.control
-                  << ", hp=" << c.health << ", nitro×" << c.nitroMultiplier
+                  << ", hp=" << c.maxHealth << ", nitro×" << c.nitroMultiplier
                   << "\n";
     }
 

@@ -139,7 +139,7 @@ WorldSnapshot MatchSession::getSnapshot() {
                   << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
         snap.players.push_back(std::move(ps));
     }
-    snap.collisions = _world.getCollisionManager().consumeEvents();
+    // snap.collisions = _world.getCollisionManager().consumeEvents();
     snap.permanentlyDQ.assign(permanentlyDisqualified.begin(),
                               permanentlyDisqualified.end());
     return snap;
@@ -210,7 +210,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
             .acceleration = type.acceleration,
             .mass = type.mass,
             .control = type.control,
-            .health = type.health,
+            .health = type.maxHealth,
         };
         /*ci.id = playerId;
         ci.playerName = player->getName();
@@ -235,7 +235,7 @@ void MatchSession::update(float dt) {
             // Actualizar cada coche según su input persistente
             for (auto& [id, player] : _players) {
                 auto car = player->getCar();
-                car->update();
+                car->update(dt);
                 if (car->isDestroyed()) {
                     _race->onCarDestroyed(id);
                     permanentlyDisqualified.insert(id);
@@ -243,7 +243,7 @@ void MatchSession::update(float dt) {
             }
             _race->update(dt);
             if (_race->isFinished()) {
-                finishRaceAndComputeTotals();
+                pendingEndRacePacket = finishRaceAndComputeTotals();
                 startIntermission();
             }
             break;
@@ -265,13 +265,27 @@ void MatchSession::applyInput(const PlayerId id, const CarInput& car_input) {
         it->second->getCar()->applyInput(car_input);
     }
 }
-void MatchSession::finishRaceAndComputeTotals() {
+EndRaceSummaryPacket MatchSession::finishRaceAndComputeTotals() {
     _lastResults = _race->makeResults();
     for (const auto& r : _lastResults) {
         if (!r.dnf) {
             _totalTime[r.id] += r.netTime;  // acumulado por partida
         }
     }
+    // ← crear paquete para el cliente
+    EndRaceSummaryPacket summary;
+    summary.raceIndex = _currentRace;
+    for (const auto& r : _lastResults) {
+        EndRaceUpgradeReport rep;
+        rep.id = r.id;
+        rep.penaltyTime = r.penalty;
+        auto it = _queuedUpgrades.find(r.id);
+        if (it != _queuedUpgrades.end()) rep.upgrades = it->second;
+
+        summary.results.push_back(rep);
+    }
+
+    return summary;  // ← antes no retornabas nada!
 }
 
 void MatchSession::startIntermission() {
@@ -287,10 +301,32 @@ void MatchSession::queueUpgrades(
 void MatchSession::endIntermissionAndPrepareNextRace() {
     _penaltiesForNextRace = _upgradeSystem.applyForNextRace(_queuedUpgrades);
 
-    // TODO(elvis): aplicar mejoras a los autos de cada jugador ANTES de crear
-    // la próxima RaceSession. p.ej:
-    // playerCar->setMaxSpeed(playerCar->getMaxSpeed() + delta);
+    for (auto& [pid, upgrades] : _queuedUpgrades) {
+        auto it = _players.find(pid);
+        if (it == _players.end()) continue;
 
+        auto car = it->second->getCar();
+        auto& u = car->getUpgrades();
+        for (const auto& up : upgrades) {
+            switch (up.stat) {
+                case UpgradeStat::MaxSpeed:
+                    u.bonusMaxSpeed += up.delta;
+                    break;
+
+                case UpgradeStat::Acceleration:
+                    u.bonusAcceleration += up.delta;
+                    break;
+
+                case UpgradeStat::Health:
+                    car->increaseMaxHealth(up.delta);
+                    break;
+
+                case UpgradeStat::Nitro:
+                    u.bonusNitro += up.delta;
+                    break;
+            }
+        }
+    }
     _queuedUpgrades.clear();
 
     if (_currentRace + 1 < _races.size()) {

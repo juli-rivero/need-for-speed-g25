@@ -29,6 +29,18 @@ void GameSessionFacade::run() {
         match->update(dt);
 
         emitter.dispatch(&Listener::on_snapshot, match->getSnapshot());
+        auto& cm = world.getCollisionManager();
+        if (cm.hasCollisionEvent()) {
+            CollisionPacket packet;
+            packet.events = cm.consumeEvents();
+            // TODO(juli): MANDAR ACA
+        }
+        // TODO(juli)
+        //  if (match->hasPendingEndRacePacket()) {
+        //      auto pkt = match->consumeEndRacePacket();
+        //      onRaceFinished(pkt);
+        //  }
+
         std::this_thread::sleep_for(16ms);
     }
 }
@@ -36,7 +48,6 @@ void GameSessionFacade::run() {
 void GameSessionFacade::stop() {
     Thread::stop();
     Thread::join();
-    // if (match) match->stop(); TODO: por ahora
 }
 
 void GameSessionFacade::Listener::subscribe(GameSessionFacade& g) {

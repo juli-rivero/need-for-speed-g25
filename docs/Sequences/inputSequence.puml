@@ -1,0 +1,67 @@
+@startuml
+title Flujo de Input del Jugador → Movimiento del Auto
+
+actor Client
+
+participant GameSessionFacade
+participant MatchSession
+participant RaceSession
+participant Car
+participant IPhysicalBody as Body
+
+' ======================================
+'   1. Cliente envía input
+' ======================================
+Client -> GameSessionFacade : onPlayerEvent(playerId, rawInput)
+
+GameSessionFacade -> GameSessionFacade : traducir rawInput → PlayerInput
+
+' ======================================
+'   2. Facade pasa input al MatchSession
+' ======================================
+GameSessionFacade -> MatchSession : applyInput(playerId, PlayerInput)
+activate MatchSession
+
+MatchSession -> RaceSession : update local input state
+
+' ======================================
+'   3. RaceSession aplica input al Car
+' ======================================
+RaceSession -> Car : setInput(accel, brake, turn, nitro)
+
+' ======================================
+'   4. Car procesa input y mueve el cuerpo
+' ======================================
+note over Car
+update() es llamado dentro del game loop:\n
+- accelerate()\n
+- brake()\n
+- turnLeft/turnRight()\n
+- aplicar nitro o velocidad máxima
+end note
+
+RaceSession -> Car : update()
+
+' === aceleración ===
+Car -> Body : applyForce(dir.x * force, dir.y * force)
+
+' === máxima velocidad ===
+Car -> Body : setLinearVelocity(vx, vy)
+
+' === freno ===
+Car -> Body : applyForce(-dir.x * brakeForce, -dir.y * brakeForce)
+
+' === giro ===
+Car -> Body : applyTorque(control * factor)
+
+' ======================================
+'   5. Termina el ciclo
+' ======================================
+Body --> Car : nueva velocidad/posición
+Car --> RaceSession : estado actualizado
+RaceSession --> MatchSession : estado actualizado
+MatchSession --> GameSessionFacade : listo para snapshot
+
+deactivate MatchSession
+
+@enduml

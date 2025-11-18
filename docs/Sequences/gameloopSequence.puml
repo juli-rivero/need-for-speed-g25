@@ -1,0 +1,75 @@
+@startuml
+title Ciclo principal del GameLoop.
+
+actor Client
+
+participant GameSessionFacade
+participant MatchSession
+participant RaceSession
+participant Box2DPhysicsWorld as Physics
+participant CollisionManager as Collisions
+
+' ============================
+'       START (inicio)
+' ============================
+
+Client -> GameSessionFacade : start(races, players)
+activate GameSessionFacade
+
+GameSessionFacade -> MatchSession : se crea el MatchSession
+activate MatchSession
+
+MatchSession -> RaceSession : se crea el RaceSession
+activate RaceSession
+
+MatchSession -> RaceSession : start()
+RaceSession --> MatchSession : estado = Countdown
+
+GameSessionFacade --> GameSessionFacade : start() (Thread::start)
+
+deactivate MatchSession
+deactivate RaceSession
+
+
+' ============================
+'       GAME LOOP (run)
+' ============================
+Client --> GameSessionFacade : run()
+loop Cada 1/60 segundos
+    GameSessionFacade -> MatchSession : update(dt)
+    activate MatchSession
+
+        MatchSession -> RaceSession : update(dt)
+        activate RaceSession
+
+            ' === física ===
+            RaceSession -> Physics : step(dt)
+            activate Physics
+
+                Physics -> Collisions : process(contactEvents)
+                activate Collisions
+                    Collisions -> RaceSession : onCarDestroyed() / onCheckpointCrossed()
+                deactivate Collisions
+
+            deactivate Physics
+
+            RaceSession --> MatchSession : estado de carrera actualizado
+        deactivate RaceSession
+
+        MatchSession --> GameSessionFacade : estado de match actualizado
+    deactivate MatchSession
+
+    GameSessionFacade -> GameSessionFacade : recopila snapshot
+end
+
+' ============================
+'           STOP
+' ============================
+
+Client -> GameSessionFacade : stop()
+GameSessionFacade -> MatchSession : destruir carrera / limpiar estado
+GameSessionFacade --> Client : thread finalizado
+
+deactivate GameSessionFacade
+
+@enduml

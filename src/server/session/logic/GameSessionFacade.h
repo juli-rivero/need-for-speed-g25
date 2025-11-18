@@ -27,6 +27,7 @@ class GameSessionFacade : public Thread {
                const std::vector<PlayerConfig>& players);
 
     void run() override;
+
     void stop() override;
 
     explicit GameSessionFacade(const YamlGameConfig& configPath);

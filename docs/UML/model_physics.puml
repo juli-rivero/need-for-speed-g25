@@ -1,0 +1,197 @@
+@startuml
+skinparam classAttributeIconSize 0
+
+' =============================
+' ===== ENTIDADES LÓGICAS =====
+' =============================
+class Entity {
+  - id : int
+  - type : EntityType
+  + getId() : int
+  + getEntityType() : EntityType
+}
+
+class CarType {
+  name : string
+  description : string
+  maxSpeed : float
+  acceleration : float
+  mass : float
+  control : float
+  health : float
+  nitroMultiplier : float
+  nitroDuration : float
+  nitroCooldown : float
+  width : float
+  height : float
+  density : float
+  friction : float
+  restitution : float
+  linearDamping : float
+  angularDamping : float
+}
+
+class Car {
+  - name : string
+  - accelerating : bool
+  - braking : bool
+  - turning : TurnDirection
+  - nitroActive : bool
+  - carType : CarType
+  - health : float
+  - body : IPhysicalBody
+  + getPosition() : Vec2
+  + accelerate()
+  + brake()
+  + update()
+}
+
+class Wall {
+  - width : float
+  - height : float
+  - body : IPhysicalBody
+}
+
+class Bridge {
+  - lowerBody : IPhysicalBody
+  - upperBody : IPhysicalBody
+  - width : float
+  - height : float
+  - driveable : bool
+}
+
+class Checkpoint {
+  - order : int
+  - width : float
+  - height : float
+  - angle : float
+  - body : IPhysicalBody
+  + getOrder() : int
+}
+
+class Player {
+  - id : PlayerId
+  - name : string
+  - car : Car
+  + getCar() : Car
+}
+
+Entity <|-- Car
+Entity <|-- Wall
+Entity <|-- Bridge
+Entity <|-- Checkpoint
+
+Car --> CarType : <<uses>>
+Car --> IPhysicalBody : <<has>>
+Wall --> IPhysicalBody : <<has>>
+Bridge --> IPhysicalBody : <<has>>
+Checkpoint --> IPhysicalBody : <<has>>
+
+Player *-- Car : <<owns>>
+
+' =============================
+' ===== MOTOR FÍSICO ==========
+' =============================
+
+interface IPhysicalBody {
+  +getPosition() : Vec2
+  +getAngle() : float
+  +setTransform(x:float,y:float,angle:float)
+  +applyForce(fx:float, fy:float)
+  +applyTorque(torque:float)
+  +setAngularVelocity(av:float)
+  +setLinearVelocity(vx:float,vy:float)
+  +getLinearVelocity() : Vec2
+  +getId() : b2BodyId
+}
+
+class Box2dPhysicsBody {
+  -body : b2BodyId
+  -shape : b2ShapeId
+  +getId() : b2BodyId
+  +getShapeId() : b2ShapeId
+  +setTransform(x,y,angle)
+  +getPosition() : b2Vec2
+}
+
+class Box2DBodyAdapter {
+  -body : shared_ptr<Box2dPhysicsBody>
+  +getPosition() : Vec2
+  +getAngle() : float
+  +setTransform()
+  +applyForce()
+  +applyTorque()
+  +setAngularVelocity()
+  +setLinearVelocity()
+  +getLinearVelocity()
+  +getId() : b2BodyId
+}
+
+IPhysicalBody <|.. Box2DBodyAdapter
+Box2DBodyAdapter --> Box2dPhysicsBody : <<wraps>>
+
+' =============================
+' ===== FACTORÍAS =============
+' =============================
+
+class Box2DPhysicsFactory {
+  +createCar(world,x,y,CarType)
+  +createBuilding(world,x,y,w,h)
+  +createCheckpoint(world,x,y,w,h)
+  +createBridge(world,x,y,w,h,driveable)
+}
+
+class EntityFactory {
+  +createCar(world,CarType,x,y)
+  +createWall(world,x,y,w,h)
+  +createCheckpoint(world,x,y,w,h,angle,order)
+  +createBridge(world,x,y,w,h,driveable)
+}
+
+Box2DPhysicsFactory --> Box2dPhysicsBody : <<creates>>
+EntityFactory --> Box2DBodyAdapter : <<creates>>
+EntityFactory --> Car
+EntityFactory --> Wall
+EntityFactory --> Checkpoint
+EntityFactory --> Bridge
+
+' =============================
+' ===== COLISIONES =============
+' =============================
+
+class CollisionEvent {
+  +type : CollisionType
+  +carA : PlayerId
+  +carB : PlayerId
+  +intensity : float
+}
+
+class CollisionManager {
+  -shapeToEntity : unordered_map<b2ShapeId,Entity*>
+  -carToPlayer : unordered_map<const Car*,PlayerId>
+  -collisionEvents : vector<CollisionEvent>
+  -raceSession : RaceSession*
+  +registerEntity()
+  +registerCar()
+  +consumeEvents()
+  +process()
+  +processSensors()
+  +generateCollisionEvent()
+  +setRaceSession()
+}
+
+CollisionManager --> Entity : <<maps-to>>
+CollisionManager --> Car : <<maps-to>>
+CollisionManager --> CollisionEvent : <<creates>>
+
+class Box2DPhysicsWorld {
+  -world : b2WorldId
+  -collisionManager : unique_ptr<CollisionManager>
+  -_timeAccumulator : float
+  +step(dt)
+  +getCollisionManager() : CollisionManager
+}
+
+Box2DPhysicsWorld *-- CollisionManager : <<owns>>
+
+@enduml
