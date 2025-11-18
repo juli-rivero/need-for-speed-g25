@@ -10,7 +10,8 @@
 #include "spdlog/spdlog.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), api(connexion.get_api()), selectedCarIndex(0) {
+    : QWidget(parent), api(connexion.get_api()), selectedCarIndex(0),
+      carDetailImageLabel(nullptr) {  
     setupUI();
 
     // Conectar al cambio de tema global
@@ -20,66 +21,9 @@ SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
     // Aplicar tema inicial
     applyTheme();
 
-    // Seleccionar el primer auto por defecto
-    /*if (!carTypes.empty()) {
-        updateCarDetails(0);
-    }*/
     Responder::subscribe(connexion);
 }
 SelectingWindow::~SelectingWindow() { Responder::unsubscribe(); }
-
-/*void SelectingWindow::initCarTypes() {
-    // Inicializar tipos de autos con sus características
-    carTypes = {
-        {"Deportivo",
-         "Rápido y ágil, pero frágil. Ideal para circuitos urbanos.",
-         0.95f,  // maxSpeed
-         0.90f,  // acceleration
-         0.50f,  // health
-         0.40f,  // mass
-         0.85f,  // controllability
-         "🏎️"},
-        {"Sedán",
-         "Balanceado en todas sus características. Buena opción para "
-         "principiantes.",
-         0.70f,  // maxSpeed
-         0.70f,  // acceleration
-         0.70f,  // health
-         0.65f,  // mass
-         0.75f,  // controllability
-         "🚗"},
-        {"SUV", "Resistente y pesado. Puede embestir a otros sin mucho daño.",
-         0.60f,  // maxSpeed
-         0.55f,  // acceleration
-         0.85f,  // health
-         0.85f,  // mass
-         0.60f,  // controllability
-         "🚙"},
-        {"Camión", "Tanque rodante. Muy lento pero casi indestructible.",
-         0.45f,  // maxSpeed
-         0.40f,  // acceleration
-         0.95f,  // health
-         0.95f,  // mass
-         0.50f,  // controllability
-         "🚚"},
-        {"Muscle Car",
-         "Aceleración brutal en línea recta, pero difícil de controlar en "
-         "curvas.",
-         0.85f,  // maxSpeed
-         0.95f,  // acceleration
-         0.60f,  // health
-         0.70f,  // mass
-         0.55f,  // controllability
-         "🚗"},
-        {"Compacto",
-         "Pequeño y maniobrable. Excelente para esquivar el tráfico.",
-         0.65f,  // maxSpeed
-         0.75f,  // acceleration
-         0.45f,  // health
-         0.35f,  // mass
-         0.90f,  // controllability
-         "🚕"}};
-}*/
 
 void SelectingWindow::setupUI() {
     mainLayout = new QVBoxLayout(this);
@@ -180,42 +124,73 @@ void SelectingWindow::setupUI() {
 
 QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     QWidget* card = new QWidget();
+    card->setFixedHeight(80);
 
     QHBoxLayout* cardLayout = new QHBoxLayout(card);
+    cardLayout->setContentsMargins(15, 8, 15, 8);
+    cardLayout->setSpacing(12);
 
     // Radio button
     QRadioButton* radioBtn = new QRadioButton();
+    radioBtn->setFixedSize(20, 20);
     if (index == 0) {
         radioBtn->setChecked(true);
     }
     carButtonGroup->addButton(radioBtn, index);
     cardLayout->addWidget(radioBtn);
 
-    // Emoji del auto
-    QLabel* emojiLabel = new QLabel(CarSprite::getSprite(car.type).c_str());
-    emojiLabel->setStyleSheet("font-size: 32px;");
-    cardLayout->addWidget(emojiLabel);
+    // IMAGEN del auto
+    QLabel* carImageLabel = new QLabel();
+    carImageLabel->setFixedSize(50, 50);
+    carImageLabel->setAlignment(Qt::AlignCenter);
+    carImageLabel->setStyleSheet(
+        "border: 2px solid #ddd;"
+        "border-radius: 8px;"
+        "background-color: white;"
+        "padding: 2px;"
+    );
+    
+    QString imagePath = getCarImagePath(car.type);
+    QPixmap carPixmap(imagePath);
+    
+    if (!carPixmap.isNull()) {
+        carPixmap = carPixmap.scaled(46, 46, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        carImageLabel->setPixmap(carPixmap);
+    } else {
+        carImageLabel->setText(CarSprite::getSprite(car.type).c_str());
+        carImageLabel->setStyleSheet("font-size: 24px; border: none; background: none;");
+    }
+    
+    cardLayout->addWidget(carImageLabel);
 
     // Información del auto
     QVBoxLayout* infoLayout = new QVBoxLayout();
+    infoLayout->setSpacing(4);
 
+    // Nombre del auto
     QLabel* nameLabel = new QLabel(car.name.c_str());
+    QFont nameFont = nameLabel->font();
+    nameFont.setPointSize(11);
+    nameFont.setBold(true);
+    nameLabel->setFont(nameFont);
+    nameLabel->setStyleSheet("color: #2c3e50;");
     infoLayout->addWidget(nameLabel);
 
-    // Mini barras de estadísticas
+    // Mini barras de estadísticas - USANDO createMiniStatBar
     QHBoxLayout* miniStatsLayout = new QHBoxLayout();
-    miniStatsLayout->setSpacing(3);
+    miniStatsLayout->setSpacing(8);
 
     auto addMiniBar = [&](const QString& label, float value) {
         QVBoxLayout* miniBarLayout = new QVBoxLayout();
+        miniBarLayout->setSpacing(1);
+        
         QLabel* miniLabel = new QLabel(label);
-        miniLabel->setStyleSheet("font-size: 9px;");
+        miniLabel->setStyleSheet("font-size: 8px; font-weight: bold; color: #7f8c8d;");
         miniLabel->setAlignment(Qt::AlignCenter);
+        miniLabel->setFixedWidth(20);
         miniBarLayout->addWidget(miniLabel);
 
-        QProgressBar* miniBar = createStatBar(value);
-        miniBar->setMaximumHeight(8);
-        miniBar->setTextVisible(false);
+        QProgressBar* miniBar = createMiniStatBar(value); // <- AHORA ESTÁ DECLARADO
         miniBarLayout->addWidget(miniBar);
 
         miniStatsLayout->addLayout(miniBarLayout);
@@ -230,7 +205,44 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     infoLayout->addLayout(miniStatsLayout);
     cardLayout->addLayout(infoLayout, 1);
 
+    // Estilo de la tarjeta
+    card->setStyleSheet(
+        "QWidget {"
+        "    background-color: white;"
+        "    border: 1px solid #bdc3c7;"
+        "    border-radius: 10px;"
+        "    margin: 2px;"
+        "}"
+        "QWidget:hover {"
+        "    background-color: #f8f9fa;"
+        "    border-color: #3498db;"
+        "}"
+    );
+
     return card;
+}
+
+QProgressBar* SelectingWindow::createMiniStatBar(float value) {
+    QProgressBar* bar = new QProgressBar();
+    bar->setFixedSize(20, 6);
+    bar->setRange(0, 100);
+    bar->setValue(static_cast<int>(value * 100));
+    bar->setTextVisible(false);
+    
+    // Estilo simple
+    bar->setStyleSheet(
+        "QProgressBar {"
+        "    border: 1px solid #bdc3c7;"
+        "    border-radius: 3px;"
+        "    background-color: #ecf0f1;"
+        "}"
+        "QProgressBar::chunk {"
+        "    background-color: #3498db;"
+        "    border-radius: 2px;"
+        "}"
+    );
+    
+    return bar;
 }
 
 QProgressBar* SelectingWindow::createStatBar(float value) {
@@ -292,17 +304,51 @@ void SelectingWindow::updateCarDetails(int carIndex) {
 
     const CarStaticInfo& car = carTypes[carIndex];
 
-    carNameLabel->setText(
-        (CarSprite::getSprite(car.type) + " " + car.name).c_str());
+    // Imagen grande en el panel de detalles - VERSIÓN SIMPLIFICADA
+    QString imagePath = getCarImagePath(car.type);
+    QPixmap detailPixmap(imagePath);
+    
+    if (!detailPixmap.isNull() && !carDetailImageLabel) {
+        detailPixmap = detailPixmap.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        
+        carDetailImageLabel = new QLabel();
+        carDetailImageLabel->setAlignment(Qt::AlignCenter);
+        carDetailImageLabel->setStyleSheet(
+            "border: 2px solid #bdc3c7;"
+            "border-radius: 10px;"
+            "background-color: white;"
+            "padding: 5px;"
+            "margin-bottom: 10px;"
+        );
+        
+        // Buscar el layout de detalles de manera segura
+        QWidget* detailsGroup = carNameLabel->parentWidget();
+        if (detailsGroup) {
+            QVBoxLayout* detailsLayout = qobject_cast<QVBoxLayout*>(detailsGroup->layout());
+            if (detailsLayout) {
+                detailsLayout->insertWidget(0, carDetailImageLabel);
+            }
+        }
+    }
+    
+    // Actualizar la imagen si existe
+    if (carDetailImageLabel && !detailPixmap.isNull()) {
+        QPixmap scaledPixmap = detailPixmap.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        carDetailImageLabel->setPixmap(scaledPixmap);
+    }
+
+    // Actualizar textos
+    carNameLabel->setText(car.name.c_str());
     carDescLabel->setText(car.description.c_str());
 
+    // Actualizar barras (código existente)
     speedBar->setValue(static_cast<int>(car.maxSpeed * 100));
     accelBar->setValue(static_cast<int>(car.acceleration * 100));
     healthBar->setValue(static_cast<int>(car.health * 100));
     massBar->setValue(static_cast<int>(car.mass * 100));
     controlBar->setValue(static_cast<int>(car.control * 100));
 
-    // Aplicar estilos del tema a las barras
+    // Aplicar estilos del tema (código existente)
     ThemeManager& theme = ThemeManager::instance();
     speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
     accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
@@ -310,20 +356,6 @@ void SelectingWindow::updateCarDetails(int carIndex) {
     massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
     controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
 }
-
-/*CarConfig SelectingWindow::getSelectedCar() const {
-    if (selectedCarIndex < 0 ||
-        selectedCarIndex >= static_cast<int>(carTypes.size())) {
-        // Retornar el primero por defecto
-        const CarType& car = carTypes[0];
-        return {car.name,   car.name, car.maxSpeed,       car.acceleration,
-                car.health, car.mass, car.controllability};
-    }
-
-    const CarType& car = carTypes[selectedCarIndex];
-    return {car.name,   car.name, car.maxSpeed,       car.acceleration,
-            car.health, car.mass, car.controllability};
-}*/
 
 void SelectingWindow::applyTheme() {
     // Obtener el tema actual
