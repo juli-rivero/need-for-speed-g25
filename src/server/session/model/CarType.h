@@ -12,7 +12,7 @@ struct CarType {
     float acceleration;
     float mass;
     float control;
-    mutable float health;
+    mutable float maxHealth;
 
     // --- nitro ---
     float nitroMultiplier;

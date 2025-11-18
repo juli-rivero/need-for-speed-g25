@@ -83,7 +83,7 @@ std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
             .acceleration = car.acceleration,
             .mass = car.mass,
             .control = car.control,
-            .health = car.health,
+            .health = car.maxHealth,
         });
     }
     return types_of_static_cars;

@@ -32,5 +32,6 @@ class GameSessionFacade : public Thread {
 
     StaticSnapshot getStaticSnapshot() const;
 
+    // void onRaceFinished(const EndRaceSummaryPacket& summary);
     void stop() override;
 };

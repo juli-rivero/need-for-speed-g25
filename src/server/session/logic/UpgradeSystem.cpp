@@ -4,23 +4,17 @@
 std::unordered_map<PlayerId, float> UpgradeSystem::applyForNextRace(
     const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>&
         upsByPlayer) {
-    std::unordered_map<PlayerId, float> penalties;
+    std::unordered_map<PlayerId, float> out;
 
-    for (auto& [pid, ups] : upsByPlayer) {
+    for (const auto& [pid, vec] : upsByPlayer) {
         float totalPenalty = 0.0f;
-        for (const auto& up : ups) {
-            // si no trae penalty ya calculada, consultá al config por stat
-            float p = up.penalty;
-            if (p == 0.0f) {
-                // if (auto fromCfg = _cfg.penaltyFor(up.stat)) {
-                //     p = *fromCfg;
-                // }
-            }
-            totalPenalty += p;
-            // TODO(elvis): aplicar el stat al auto en el armado de la siguiente
-            // carrera (no aquí)
+
+        for (const auto& up : vec) {
+            totalPenalty += up.penalty;  // ← del YAML
         }
-        penalties[pid] = totalPenalty;
+
+        out[pid] = totalPenalty;
     }
-    return penalties;
+
+    return out;
 }

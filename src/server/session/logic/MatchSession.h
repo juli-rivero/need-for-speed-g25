@@ -35,12 +35,13 @@ class MatchSession {
     std::unordered_map<PlayerId, float> _penaltiesForNextRace;
     std::unordered_set<PlayerId> permanentlyDisqualified;
 
+    std::optional<EndRaceSummaryPacket> pendingEndRacePacket;
     std::vector<PlayerResult> _lastResults;
 
     UpgradeSystem _upgradeSystem;
 
     void startRace(std::size_t raceIndex);
-    void finishRaceAndComputeTotals();
+    EndRaceSummaryPacket finishRaceAndComputeTotals();
     void startIntermission();
     void endIntermissionAndPrepareNextRace();
 
@@ -73,5 +74,13 @@ class MatchSession {
     }
     const std::vector<std::unique_ptr<Bridge>>& getBridges() const {
         return _bridges;
+    }
+    bool hasPendingEndRacePacket() const {
+        return pendingEndRacePacket.has_value();
+    }
+    EndRaceSummaryPacket consumeEndRacePacket() {
+        auto p = *pendingEndRacePacket;
+        pendingEndRacePacket.reset();
+        return p;
     }
 };

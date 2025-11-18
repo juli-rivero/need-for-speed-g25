@@ -13,6 +13,13 @@
 #include "server/session/logic/types.h"
 #include "server/session/model/CarType.h"
 
+struct UpgradeStats {
+    float bonusMaxSpeed = 0;
+    float bonusAcceleration = 0;
+    float bonusHealth = 0;
+    float bonusNitro = 0;
+};
+
 class Car : public Entity {
    private:
     std::string name;
@@ -22,6 +29,8 @@ class Car : public Entity {
     bool nitroActive{false};
     const CarType& carType;
     float health;
+    float maxHealth;
+    mutable UpgradeStats upgrades;
     std::shared_ptr<IPhysicalBody> body;
 
    public:
@@ -30,13 +39,33 @@ class Car : public Entity {
         : Entity(id, EntityType::Car),
           name(name),
           carType(type),
-          health(type.health),
+          health(type.maxHealth),
+          maxHealth(type.maxHealth),
           body(std::move(body)) {}
-
+    UpgradeStats& getUpgrades() const { return upgrades; }
     const CarType& getType() const { return carType; }  // acceso seguro
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
+    float getHealth() const { return health; }
+    float getMaxHealth() const { return maxHealth; }
+
+    void setHealth(float h) { health = std::clamp(h, 0.0f, maxHealth); }
+
+    void addHealth(float delta) {
+        health = std::clamp(health + delta, 0.0f, maxHealth);
+    }
+
+    void setMaxHealth(float h) {
+        maxHealth = h;
+        if (health > maxHealth) health = maxHealth;
+    }
+
+    void increaseMaxHealth(float delta) {
+        maxHealth += delta;
+        health = std::min(health + delta, maxHealth);
+    }
+
     void setInput(bool accel, bool brake, TurnDirection turn, bool nitro) {
         accelerating = accel;
         braking = brake;
@@ -47,14 +76,15 @@ class Car : public Entity {
     bool isAccelerating() const { return accelerating; }
     bool isBraking() const { return braking; }
     void accelerate() {
-        float force = carType.acceleration *
-                      (nitroActive ? carType.nitroMultiplier : 1.0f);
+        float accel = carType.acceleration + upgrades.bonusAcceleration;
+        float force = accel * (nitroActive ? carType.nitroMultiplier : 1.0f);
         Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
         body->applyForce(dir.x * force, dir.y * force);
 
         Vec2 vel = body->getLinearVelocity();
         float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
-        if (speed > carType.maxSpeed) {
+        float maxSpeed = carType.maxSpeed + upgrades.bonusMaxSpeed;
+        if (speed > maxSpeed) {
             float scale = carType.maxSpeed / speed;
             body->setLinearVelocity(vel.x * scale, vel.y * scale);
         }
@@ -70,8 +100,8 @@ class Car : public Entity {
     void turnLeft() { body->applyTorque(-carType.control * 20.0f); }
 
     void turnRight() { body->applyTorque(carType.control * 20.0f); }
-    float getHealth() const { return health; }
-    void damage(float amount) { health = std::max(0.0f, health - amount); }
+
+    void damage(float amount) { setHealth(health - amount); }
     void activateNitro(bool active) { nitroActive = active; }
     bool isDestroyed() const { return health <= 0; }
     bool isNitroActive() const { return nitroActive; }
