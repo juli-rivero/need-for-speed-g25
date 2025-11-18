@@ -29,12 +29,12 @@ void CreatingWindow::on_join_response(const SessionInfo&,
 void CreatingWindow::setupUI() {
     // Layout principal
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(40, 20, 40, 20); // Menos márgenes
+    mainLayout->setContentsMargins(40, 20, 40, 20);  // Menos márgenes
 
     // Título
     QLabel* titleLabel = new QLabel("🎮 Crear Nueva Partida", this);
     QFont titleFont = titleLabel->font();
-    titleFont.setPointSize(20); // Título más pequeño
+    titleFont.setPointSize(20);  // Título más pequeño
     titleFont.setBold(true);
     titleLabel->setFont(titleFont);
     titleLabel->setAlignment(Qt::AlignCenter);
@@ -44,7 +44,7 @@ void CreatingWindow::setupUI() {
 
     // Formulario de configuración
     QFormLayout* formLayout = new QFormLayout();
-    formLayout->setSpacing(12); // Menos spacing
+    formLayout->setSpacing(12);  // Menos spacing
     formLayout->setContentsMargins(15, 15, 15, 15);
 
     // Nombre de la partida
@@ -92,7 +92,7 @@ void CreatingWindow::setupUI() {
     buttonsLayout->addStretch();
 
     cancelButton = new QPushButton("❌ Cancelar", this);
-    cancelButton->setMinimumHeight(40); // Más compacto
+    cancelButton->setMinimumHeight(40);  // Más compacto
     cancelButton->setMinimumWidth(120);
     connect(cancelButton, &QPushButton::clicked, this,
             &CreatingWindow::onCancelClicked);

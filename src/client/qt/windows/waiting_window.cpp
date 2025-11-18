@@ -195,8 +195,7 @@ void WaitingWindow::updateStatusMessage() {
     }
 
     if (allReady && currentPlayers.size() >= 2) {
-        statusLabel->setText(
-            "🏁 ¡Todos listos! La carrera comenzará pronto...");
+        statusLabel->setText("🏁 ¡Todos listos! La carrera comenzará pronto...");
         statusLabel->setStyleSheet(
             "color: #27ae60; font-size: 14px; font-weight: bold;");
 
