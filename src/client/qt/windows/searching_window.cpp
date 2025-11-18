@@ -135,12 +135,10 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
 
 void SearchingWindow::on_join_response(const SessionInfo&,
                                        const std::vector<CarStaticInfo>&) {
-
     spdlog::trace("unido a partida");
 
     QMetaObject::invokeMethod(
         this, [this]() { emit joinGameClicked(); }, Qt::QueuedConnection);
-
 }
 
 void SearchingWindow::onError(QString message) {
@@ -172,27 +170,29 @@ void SearchingWindow::applyTheme() {
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
 
-    setStyleSheet(QString(
-        "QWidget {"
-        "    background-color: %1;"
-        "}"
-        "QLabel {"
-        "    color: %2;"
-        "    background-color: transparent;"
-        "}")
-        .arg(palette.cardBackgroundHover)
-        .arg(palette.textPrimary));
+    setStyleSheet(QString("QWidget {"
+                          "    background-color: %1;"
+                          "}"
+                          "QLabel {"
+                          "    color: %2;"
+                          "    background-color: transparent;"
+                          "}")
+                      .arg(palette.cardBackgroundHover)
+                      .arg(palette.textPrimary));
 
     // Botones
-    if (createGameButton) createGameButton->setStyleSheet(theme.buttonPrimaryStyle());
-    if (joinGameButton) joinGameButton->setStyleSheet(theme.buttonSecondaryStyle());
+    if (createGameButton)
+        createGameButton->setStyleSheet(theme.buttonPrimaryStyle());
+    if (joinGameButton)
+        joinGameButton->setStyleSheet(theme.buttonSecondaryStyle());
     if (refreshButton) refreshButton->setStyleSheet(theme.buttonActionStyle());
 
     // Título
     if (titleLabel) {
-        titleLabel->setStyleSheet(QString(
-            "color: %1; font-size: 18px; font-weight: bold; padding: 8px;")
-            .arg(palette.textPrimary));
+        titleLabel->setStyleSheet(
+            QString(
+                "color: %1; font-size: 18px; font-weight: bold; padding: 8px;")
+                .arg(palette.textPrimary));
     }
 
     // Status label con mejor contraste
@@ -200,14 +200,18 @@ void SearchingWindow::applyTheme() {
         QString text = statusLabel->text();
         if (text.contains("❌") || text.toLower().contains("error")) {
             statusLabel->setStyleSheet(
-                "color: white; background-color: #e74c3c; padding: 6px 10px; border-radius: 4px;");
+                "color: white; background-color: #e74c3c; padding: 6px 10px; "
+                "border-radius: 4px;");
         } else if (text.contains("✅") || text.contains("Conectado")) {
             statusLabel->setStyleSheet(
-                "color: white; background-color: #27ae60; padding: 6px 10px; border-radius: 4px;");
+                "color: white; background-color: #27ae60; padding: 6px 10px; "
+                "border-radius: 4px;");
         } else {
             statusLabel->setStyleSheet(
-                QString("color: %1; background-color: %2; padding: 6px 10px; border-radius: 4px;")
-                .arg(palette.textPrimary).arg(palette.cardBackground));
+                QString("color: %1; background-color: %2; padding: 6px 10px; "
+                        "border-radius: 4px;")
+                    .arg(palette.textPrimary)
+                    .arg(palette.cardBackground));
         }
     }
 

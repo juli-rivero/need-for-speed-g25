@@ -10,8 +10,10 @@
 #include "spdlog/spdlog.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
-    : QWidget(parent), api(connexion.get_api()), selectedCarIndex(0),
-      carDetailImageLabel(nullptr) {  
+    : QWidget(parent),
+      api(connexion.get_api()),
+      selectedCarIndex(0),
+      carDetailImageLabel(nullptr) {  // Eliminar inicialización de máximos
     setupUI();
 
     // Conectar al cambio de tema global
@@ -23,6 +25,7 @@ SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
 
     Responder::subscribe(connexion);
 }
+
 SelectingWindow::~SelectingWindow() { Responder::unsubscribe(); }
 
 void SelectingWindow::setupUI() {
@@ -53,10 +56,10 @@ void SelectingWindow::setupUI() {
     carButtonGroup = new QButtonGroup(this);
     carButtonGroup->setExclusive(true);
 
-    for (size_t i = 0; i < carTypes.size(); ++i) {
-        QWidget* card = createCarCard(carTypes[i], i);
-        cardsLayout->addWidget(card);
-    }
+    // Mensaje de carga
+    QLabel* loadingLabel = new QLabel("Cargando autos disponibles...");
+    loadingLabel->setAlignment(Qt::AlignCenter);
+    cardsLayout->addWidget(loadingLabel);
 
     cardsLayout->addStretch();
     scrollArea->setWidget(carCardsContainer);
@@ -67,30 +70,43 @@ void SelectingWindow::setupUI() {
     detailsGroup->setMinimumWidth(300);
     QVBoxLayout* detailsLayout = new QVBoxLayout(detailsGroup);
 
-    carNameLabel = new QLabel();
+    carNameLabel = new QLabel("Selecciona un auto");
+    QFont nameFont = carNameLabel->font();
+    nameFont.setPointSize(16);
+    nameFont.setBold(true);
+    carNameLabel->setFont(nameFont);
     detailsLayout->addWidget(carNameLabel);
 
-    carDescLabel = new QLabel();
+    carDescLabel =
+        new QLabel("Elige un auto de la lista para ver sus estadísticas");
     carDescLabel->setWordWrap(true);
     detailsLayout->addWidget(carDescLabel);
 
     detailsLayout->addSpacing(10);
 
-    // Barras de estadísticas
-    auto addStatBar = [&](const QString& label, QProgressBar*& bar) {
-        QLabel* statLabel = new QLabel(label);
-        detailsLayout->addWidget(statLabel);
+    // SOLO VALORES NUMÉRICOS - SIN BARRAS DE PROGRESO
+    auto addStat = [&](const QString& label, QLabel*& valueLabel) {
+        QHBoxLayout* statLayout = new QHBoxLayout();
 
-        bar = createStatBar(0.0f);
-        detailsLayout->addWidget(bar);
-        detailsLayout->addSpacing(5);
+        QLabel* statLabel = new QLabel(label);
+        statLabel->setMinimumWidth(140);
+        statLayout->addWidget(statLabel);
+
+        valueLabel = new QLabel("0");
+        valueLabel->setStyleSheet("font-weight: bold; font-size: 14px;");
+        valueLabel->setAlignment(Qt::AlignRight);
+        statLayout->addWidget(valueLabel);
+
+        detailsLayout->addLayout(statLayout);
+        detailsLayout->addSpacing(8);
     };
 
-    addStatBar("⚡ Velocidad Máxima", speedBar);
-    addStatBar("🚀 Aceleración", accelBar);
-    addStatBar("❤️ Salud", healthBar);
-    addStatBar("⚖️ Masa", massBar);
-    addStatBar("🎮 Controlabilidad", controlBar);
+    // Crear solo labels de valor (sin barras)
+    addStat("⚡ Velocidad Máxima:", speedValueLabel);
+    addStat("🚀 Aceleración:", accelValueLabel);
+    addStat("❤️ Salud:", healthValueLabel);
+    addStat("⚖️ Masa:", massValueLabel);
+    addStat("🎮 Controlabilidad:", controlValueLabel);
 
     detailsLayout->addStretch();
     contentLayout->addWidget(detailsGroup, 1);
@@ -111,6 +127,7 @@ void SelectingWindow::setupUI() {
     confirmButton = new QPushButton("✅ Confirmar Selección");
     confirmButton->setMinimumWidth(150);
     confirmButton->setMinimumHeight(45);
+    confirmButton->setEnabled(false);
     connect(confirmButton, &QPushButton::clicked, this,
             &SelectingWindow::onConfirmClicked);
     buttonLayout->addWidget(confirmButton);
@@ -122,6 +139,7 @@ void SelectingWindow::setupUI() {
             &SelectingWindow::onCarSelected);
 }
 
+// Modificar createCarCard para mostrar valores reales en mini-barras:
 QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     QWidget* card = new QWidget();
     card->setFixedHeight(80);
@@ -147,20 +165,21 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
         "border: 2px solid #ddd;"
         "border-radius: 8px;"
         "background-color: white;"
-        "padding: 2px;"
-    );
-    
+        "padding: 2px;");
+
     QString imagePath = getCarImagePath(car.type);
     QPixmap carPixmap(imagePath);
-    
+
     if (!carPixmap.isNull()) {
-        carPixmap = carPixmap.scaled(46, 46, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+        carPixmap = carPixmap.scaled(46, 46, Qt::KeepAspectRatio,
+                                     Qt::SmoothTransformation);
         carImageLabel->setPixmap(carPixmap);
     } else {
         carImageLabel->setText(CarSprite::getSprite(car.type).c_str());
-        carImageLabel->setStyleSheet("font-size: 24px; border: none; background: none;");
+        carImageLabel->setStyleSheet(
+            "font-size: 24px; border: none; background: none;");
     }
-    
+
     cardLayout->addWidget(carImageLabel);
 
     // Información del auto
@@ -176,31 +195,37 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     nameLabel->setStyleSheet("color: #2c3e50;");
     infoLayout->addWidget(nameLabel);
 
-    // Mini barras de estadísticas - USANDO createMiniStatBar
+    // Mini estadísticas - MOSTRAR VALORES REALES
     QHBoxLayout* miniStatsLayout = new QHBoxLayout();
     miniStatsLayout->setSpacing(8);
 
-    auto addMiniBar = [&](const QString& label, float value) {
-        QVBoxLayout* miniBarLayout = new QVBoxLayout();
-        miniBarLayout->setSpacing(1);
-        
+    auto addMiniStat = [&](const QString& label, float value) {
+        QVBoxLayout* miniStatLayout = new QVBoxLayout();
+        miniStatLayout->setSpacing(1);
+
         QLabel* miniLabel = new QLabel(label);
-        miniLabel->setStyleSheet("font-size: 8px; font-weight: bold; color: #7f8c8d;");
+        miniLabel->setStyleSheet(
+            "font-size: 8px; font-weight: bold; color: #7f8c8d;");
         miniLabel->setAlignment(Qt::AlignCenter);
         miniLabel->setFixedWidth(20);
-        miniBarLayout->addWidget(miniLabel);
+        miniStatLayout->addWidget(miniLabel);
 
-        QProgressBar* miniBar = createMiniStatBar(value); // <- AHORA ESTÁ DECLARADO
-        miniBarLayout->addWidget(miniBar);
+        QLabel* valueLabel = new QLabel(QString::number(value, 'f', 0));
+        valueLabel->setStyleSheet(
+            "font-size: 9px; font-weight: bold; color: #2c3e50;");
+        valueLabel->setAlignment(Qt::AlignCenter);
+        valueLabel->setFixedWidth(20);
+        miniStatLayout->addWidget(valueLabel);
 
-        miniStatsLayout->addLayout(miniBarLayout);
+        miniStatsLayout->addLayout(miniStatLayout);
     };
 
-    addMiniBar("VEL", car.maxSpeed);
-    addMiniBar("ACE", car.acceleration);
-    addMiniBar("SAL", car.health);
-    addMiniBar("MAS", car.mass);
-    addMiniBar("CTR", car.control);
+    // MOSTRAR VALORES REALES
+    addMiniStat("VEL", car.maxSpeed);
+    addMiniStat("ACE", car.acceleration);
+    addMiniStat("SAL", car.health);
+    addMiniStat("MAS", car.mass);
+    addMiniStat("CTR", car.control);
 
     infoLayout->addLayout(miniStatsLayout);
     cardLayout->addLayout(infoLayout, 1);
@@ -216,8 +241,7 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
         "QWidget:hover {"
         "    background-color: #f8f9fa;"
         "    border-color: #3498db;"
-        "}"
-    );
+        "}");
 
     return card;
 }
@@ -225,10 +249,10 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
 QProgressBar* SelectingWindow::createMiniStatBar(float value) {
     QProgressBar* bar = new QProgressBar();
     bar->setFixedSize(20, 6);
-    bar->setRange(0, 100);
-    bar->setValue(static_cast<int>(value * 100));
+    bar->setRange(0, 100);  // El rango máximo sigue siendo 100
+    bar->setValue(static_cast<int>(value));  // ✅ Valor real sin multiplicar
     bar->setTextVisible(false);
-    
+
     // Estilo simple
     bar->setStyleSheet(
         "QProgressBar {"
@@ -239,18 +263,18 @@ QProgressBar* SelectingWindow::createMiniStatBar(float value) {
         "QProgressBar::chunk {"
         "    background-color: #3498db;"
         "    border-radius: 2px;"
-        "}"
-    );
-    
+        "}");
+
     return bar;
 }
 
 QProgressBar* SelectingWindow::createStatBar(float value) {
     QProgressBar* bar = new QProgressBar();
     bar->setRange(0, 100);
-    bar->setValue(static_cast<int>(value * 100));
+    bar->setValue(static_cast<int>(value));
     bar->setTextVisible(true);
-    bar->setFormat("%v%");
+    bar->setFormat(
+        QString::number(value, 'f', 1));  // ✅ Muestra el valor con 1 decimal
 
     return bar;
 }
@@ -268,30 +292,46 @@ void SelectingWindow::onConfirmClicked() {
 void SelectingWindow::onCancelClicked() { api.request_leave_current_session(); }
 
 void SelectingWindow::reset() {
-    // Seleccionar el primer auto
-    if (carButtonGroup->buttons().size() > 0) {
+    if (!carTypes.empty() && carButtonGroup->buttons().size() > 0) {
         carButtonGroup->buttons()[0]->setChecked(true);
         selectedCarIndex = 0;
-        updateCarDetails(0);
+        updateCarDetails(0);  // Asegurar que se actualice
     }
 }
+
 void SelectingWindow::on_join_response(
     const SessionInfo&, const std::vector<CarStaticInfo>& car_static_infos) {
-    carTypes = car_static_infos;
     QMetaObject::invokeMethod(
         this,
-        [this]() {
-            // TODO(nico): mejorar, esto lo hago para visualizar la conexion
+        [this, car_static_infos]() {
+            carTypes = car_static_infos;
+
+            if (carTypes.empty()) {
+                QLabel* errorLabel = new QLabel("No hay autos disponibles");
+                errorLabel->setAlignment(Qt::AlignCenter);
+                cardsLayout->addWidget(errorLabel);
+                return;
+            }
+
+            // Limpiar layout
             QLayoutItem* item;
-            while ((item = cardsLayout->takeAt(0)) != nullptr) delete item;
+            while ((item = cardsLayout->takeAt(0)) != nullptr) {
+                if (item->widget()) item->widget()->deleteLater();
+                delete item;
+            }
+
+            // Crear tarjetas
             for (size_t i = 0; i < carTypes.size(); ++i) {
                 QWidget* card = createCarCard(carTypes[i], i);
                 cardsLayout->addWidget(card);
             }
+
+            confirmButton->setEnabled(true);
             reset();
         },
         Qt::QueuedConnection);
 }
+
 void SelectingWindow::on_leave_response() {
     QMetaObject::invokeMethod(
         this, [this]() { emit cancelRequested(); }, Qt::QueuedConnection);
@@ -304,51 +344,17 @@ void SelectingWindow::updateCarDetails(int carIndex) {
 
     const CarStaticInfo& car = carTypes[carIndex];
 
-    // Imagen grande en el panel de detalles - VERSIÓN SIMPLIFICADA
-    QString imagePath = getCarImagePath(car.type);
-    QPixmap detailPixmap(imagePath);
-    
-    if (!detailPixmap.isNull() && !carDetailImageLabel) {
-        detailPixmap = detailPixmap.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        
-        carDetailImageLabel = new QLabel();
-        carDetailImageLabel->setAlignment(Qt::AlignCenter);
-        carDetailImageLabel->setStyleSheet(
-            "border: 2px solid #bdc3c7;"
-            "border-radius: 10px;"
-            "background-color: white;"
-            "padding: 5px;"
-            "margin-bottom: 10px;"
-        );
-        
-        // Buscar el layout de detalles de manera segura
-        QWidget* detailsGroup = carNameLabel->parentWidget();
-        if (detailsGroup) {
-            QVBoxLayout* detailsLayout = qobject_cast<QVBoxLayout*>(detailsGroup->layout());
-            if (detailsLayout) {
-                detailsLayout->insertWidget(0, carDetailImageLabel);
-            }
-        }
-    }
-    
-    // Actualizar la imagen si existe
-    if (carDetailImageLabel && !detailPixmap.isNull()) {
-        QPixmap scaledPixmap = detailPixmap.scaled(120, 120, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-        carDetailImageLabel->setPixmap(scaledPixmap);
-    }
-
     // Actualizar textos
     carNameLabel->setText(car.name.c_str());
     carDescLabel->setText(car.description.c_str());
 
-    // Actualizar barras (código existente)
-    speedBar->setValue(static_cast<int>(car.maxSpeed * 100));
-    accelBar->setValue(static_cast<int>(car.acceleration * 100));
-    healthBar->setValue(static_cast<int>(car.health * 100));
-    massBar->setValue(static_cast<int>(car.mass * 100));
-    controlBar->setValue(static_cast<int>(car.control * 100));
+    speedBar->setValue(static_cast<int>(car.maxSpeed));
+    accelBar->setValue(static_cast<int>(car.acceleration));
+    healthBar->setValue(static_cast<int>(car.health));
+    massBar->setValue(static_cast<int>(car.mass));
+    controlBar->setValue(static_cast<int>(car.control));
 
-    // Aplicar estilos del tema (código existente)
+    // Aplicar estilos del tema
     ThemeManager& theme = ThemeManager::instance();
     speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
     accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
@@ -443,8 +449,9 @@ void SelectingWindow::applyTheme() {
     QList<QLabel*> statLabels = findChildren<QLabel*>();
     for (QLabel* label : statLabels) {
         QString text = label->text();
-        if (text.contains("⚡") || text.contains("🚀") || text.contains("❤️") ||
-            text.contains("⚖️") || text.contains("🎮")) {
+        if (text.contains("⚡") || text.contains("🚀") ||
+            text.contains("❤️") || text.contains("⚖️") ||
+            text.contains("🎮")) {
             label->setStyleSheet(QString("font-weight: bold;"
                                          "color: %1;")
                                      .arg(palette.textPrimary));
@@ -458,16 +465,5 @@ void SelectingWindow::applyTheme() {
 
     if (cancelButton) {
         cancelButton->setStyleSheet(theme.buttonSecondaryStyle());
-    }
-
-    // Re-aplicar estilos a las barras de progreso actuales
-    if (selectedCarIndex >= 0 &&
-        selectedCarIndex < static_cast<int>(carTypes.size())) {
-        const CarStaticInfo& car = carTypes[selectedCarIndex];
-        speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
-        accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
-        healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
-        massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-        controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
     }
 }
