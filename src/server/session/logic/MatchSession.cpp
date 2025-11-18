@@ -148,10 +148,9 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
     StaticSnapshot s;
 
     const auto& raceDef = _races[_currentRace];
-    s.mapName = raceDef.mapFile;
-    s.cityName = raceDef.city;
+    s.race = raceDef.city;
 
-    for (const auto& w : _walls) {
+    /* for (const auto& w : _walls) {
         WallInfo wi;
         wi.id = w->getId();
         wi.x = w->getPosition().x;
@@ -159,8 +158,8 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         wi.w = w->getWidth();
         wi.h = w->getHeight();
         s.walls.push_back(wi);
-    }
-    for (const auto& br : _bridges) {
+    } */
+    /* for (const auto& br : _bridges) {
         BridgeInfo bi;
         bi.id = br->getId();
         bi.lowerX = br->getLowerPosition().x;
@@ -171,7 +170,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         bi.h = br->getHeight();
         bi.driveable = br->isDriveable();
         s.bridges.push_back(bi);
-    }
+    } */
     for (const auto& cp : _race->getCheckpoints()) {
         CheckpointInfo ci;
         ci.id = cp->getId();
@@ -204,8 +203,6 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
             .type = YamlGameConfig::getCarSpriteType(type.name),
             .name = type.name,
             .description = type.description,
-            .height = type.height,
-            .width = type.width,
             .maxSpeed = type.maxSpeed,
             .acceleration = type.acceleration,
             .mass = type.mass,
@@ -222,7 +219,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         ci.control = type.control;
         ci.friction = type.friction;
         ci.nitroMultiplier = type.nitroMultiplier;*/
-        s.cars.push_back(ci);
+        // s.cars.push_back(ci);
     }
 
     return s;

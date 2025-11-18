@@ -1,37 +1,54 @@
 #pragma once
+
+#include <string>
 #include <vector>
 
 #include "common/protocol.h"
 #include "common/structs.h"
 
 namespace dto_game {
-#include "common/dto/macros.inl"
+
+struct GameInfoRequest {};
+
+struct GameInfoResponse {
+    std::string map;
+    StaticSnapshot info;
+};
+
+struct GameStaticSnapshot {
+    StaticSnapshot info;
+};
 
 struct TurnRequest {
-    DECLARE_SERIALIZABLE(TurnRequest)
     TurnDirection direction;
     bool turn;
 };
 struct AccelerateRequest {
-    DECLARE_SERIALIZABLE(AccelerateRequest)
     bool accelerate;
 };
 
 struct UseBoostRequest {
-    DECLARE_SERIALIZABLE(UseBoostRequest)
     bool useBoost;
 };
 
 struct ReverseRequest {
-    DECLARE_SERIALIZABLE(ReverseRequest)
     bool reverse;
 };
 
 struct GameSnapshot {
-    DECLARE_SERIALIZABLE(GameSnapshot)
     float raceTimeLeft;
     std::vector<PlayerSnapshot> players;
 };
 
-#include "common/dto/macros_undef.inl"
 }  // namespace dto_game
+
+#include "common/dto/macros.inl"
+DECLARE_SERIALIZABLE(dto_game::GameInfoRequest)
+DECLARE_SERIALIZABLE(dto_game::GameInfoResponse)
+DECLARE_SERIALIZABLE(dto_game::GameStaticSnapshot)
+DECLARE_SERIALIZABLE(dto_game::TurnRequest)
+DECLARE_SERIALIZABLE(dto_game::AccelerateRequest)
+DECLARE_SERIALIZABLE(dto_game::UseBoostRequest)
+DECLARE_SERIALIZABLE(dto_game::ReverseRequest)
+DECLARE_SERIALIZABLE(dto_game::GameSnapshot)
+#include "common/dto/macros_undef.inl"

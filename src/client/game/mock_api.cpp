@@ -1,5 +1,7 @@
 #include "client/game/mock_api.h"
 
+/*
+
 #include <algorithm>
 #include <cmath>
 
@@ -87,3 +89,4 @@ bool MockApi::controllable_has_nitro() const {
 bool MockApi::has_velocity(const CarSnapshot& car) {
     return std::abs(car.speed) > 0.0001;
 }
+*/

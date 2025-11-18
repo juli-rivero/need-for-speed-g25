@@ -76,8 +76,6 @@ std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
             .type = YamlGameConfig::getCarSpriteType(car.name),
             .name = car.name,
             .description = car.description,
-            .height = car.height,
-            .width = car.width,
             .maxSpeed = car.maxSpeed,
             .acceleration = car.acceleration,
             .mass = car.mass,
