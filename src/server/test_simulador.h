@@ -13,6 +13,8 @@
 #include "session/logic/GameSessionFacade.h"
 #include "session/logic/types.h"
 
+#if OFFLINE
+
 // MAIN DE PRUEBAS MANUALES (FISICAS,LOGICA,SERVIDOR) --NO ES EL CLIENTE
 // ============================================================
 
@@ -537,3 +539,4 @@ int test() {
         return 1;
     }
 }
+#endif
