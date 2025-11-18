@@ -1,0 +1,165 @@
+# CONFIGURACIÓN GLOBAL (constantes)
+
+race:
+  max_players: 8
+  time_limit_sec: 6000        # límite por carrera (10 minutos)
+  intermission_sec: 10       # pausa entre carreras
+# ===================================
+# CONSTANTES DE FÍSICA
+# ===================================
+physics_defaults:
+  density: 1.0
+  friction: 0.8
+  restitution: 0.1
+  linear_damping: 1.8
+  angular_damping: 500
+car_defaults:
+  health: 100.0
+  max_speed: 150.0
+  acceleration: 100.0
+  turn_speed: 2.0
+  mass: 1.0
+  control: 1.0
+  nitro_multiplier: 1.5
+  nitro_duration: 3.0        # segundos
+  nitro_cooldown: 5.0        # tiempo de recarga
+
+# Penalizaciones por mejoras de auto
+# (se suman en segundos al tiempo de carrera)
+penalties:
+  max_speed: 3.0
+  acceleration: 2.0
+  control: 1.5
+  health: 1.0
+# ===================================
+# TIPOS DE AUTOS DISPONIBLES
+# ===================================
+car_types:
+  - name: "Speedster"
+    width: 1.8
+    height: 1.5
+    description: "Rápido pero frágil"
+    max_speed: 22 #m/s
+    acceleration: 60 #m/s^2
+    control: 0.9
+    health: 80
+    mass: 1.2
+    nitro_multiplier: 1.8
+    nitro_duration: 3
+    nitro_cooldown: 5
+    density: 0.9
+    friction: 0.8
+    restitution: 0.2
+    linear_damping: 0.9
+    angular_damping: 5.0
+
+  - name: "Tank"
+    width: 1.6
+    height: 3.6
+    description: "Lento pero indestructible"
+    max_speed: 120
+    acceleration: 8
+    control: 0.7
+    health: 200
+    mass: 1.8
+    nitro_multiplier: 1.3
+    nitro_duration: 4
+    nitro_cooldown: 6
+    density: 1.5
+    friction: 0.9
+    restitution: 0.05
+    linear_damping: 0.9
+    angular_damping: 5.0
+
+  - name: "Drifter"
+    width: 1.4
+    height: 3.0
+    description: "Buen control y derrapes suaves"
+    max_speed: 160
+    acceleration: 12
+    control: 1.5
+    health: 100
+    mass: 1.0
+    nitro_multiplier: 1.6
+    nitro_duration: 3
+    nitro_cooldown: 5
+    friction: 0.6
+    restitution: 0.15
+
+  - name: "Rocket"
+    width: 1.9
+    height: 3.5
+    description: "Aceleración brutal pero poca maniobra"
+    max_speed: 190
+    acceleration: 20
+    control: 0.8
+    health: 90
+    mass: 0.9
+    nitro_multiplier: 2.0
+    nitro_duration: 2
+    nitro_cooldown: 5
+
+  - name: "Classic"
+    width: 1.5
+    height: 3.1
+    description: "Equilibrado, sin puntos débiles"
+    max_speed: 150
+    acceleration: 10
+    control: 1.0
+    health: 100
+    mass: 1.0
+    nitro_multiplier: 1.5
+    nitro_duration: 3
+    nitro_cooldown: 5
+
+  - name: "Offroad"
+    width: 1.1
+    height: 3.0
+    description: "Excelente tracción y peso medio"
+    max_speed: 140
+    acceleration: 11
+    control: 1.1
+    health: 120
+    mass: 1.3
+    nitro_multiplier: 1.4
+    nitro_duration: 4
+    nitro_cooldown: 6
+    friction: 0.95
+
+  - name: "Ghost"
+    width: 1.6
+    height: 2.8
+    description: "Liviano y veloz, pero muy frágil"
+    max_speed: 210
+    acceleration: 17
+    control: 1.2
+    health: 70
+    mass: 0.7
+    nitro_multiplier: 2.0
+    nitro_duration: 2
+    nitro_cooldown: 4
+    density: 0.9
+    friction: 0.8
+    restitution: 0.25
+    linear_damping: 0.9
+    angular_damping: 5.0
+# CIUDADES Y SUS CIRCUITOS (referencias a YAMLs de mapa, lo que generaria el editor)
+
+cities:
+  - city: "LibertyCity"
+    races:
+      - { map_file: "./server/assets/liberty_city_circuito1.yaml" } #cada archivo seria un circuito distino
+      - { map_file: "./server/assets/liberty_city_circuito2.yaml" }
+      - { map_file: "./server/assets/liberty_city_circuito3.yaml" }
+
+  - city: "SanAndreas"
+    races:
+      - { map_file: "./server/assets/san_andreas_circuito1.yaml" }
+      - { map_file: "./server/assets/san_andreas_circuito2.yaml" }
+      - { map_file: "./server/assets/san_andreas_circuito3.yaml" }
+
+  - city: "ViceCity"
+    races:
+      - { map_file: "./server/assets/vice_city_circuito1.yaml" }
+      - { map_file: "./server/assets/vice_city_circuito2.yaml" }
+      - { map_file: "./server/assets/vice_city_circuito3.yaml" }

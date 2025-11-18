@@ -1,0 +1,7 @@
+BasedOnStyle: Google
+
+TabWidth: 4
+IndentWidth: 4
+
+AllowShortLoopsOnASingleLine: true
+AllowShortBlocksOnASingleLine: Empty

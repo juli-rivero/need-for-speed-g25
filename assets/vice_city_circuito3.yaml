@@ -1,0 +1,20 @@
+map:
+  name: "Vice City - Circuito 3"
+  gravity: [0.0, 0.0]
+  city: "ViceCity"
+
+  walls:
+    - { id: 1, x: 0, y: 0, w: 95, h: 2 }
+    - { id: 2, x: 0, y: 48, w: 95, h: 2 }
+
+  checkpoints:
+    - { id: 320, x: 8, y: 8, w: 12, h: 2, order: 1 }
+    - { id: 321, x: 50, y: 22, w: 12, h: 2, order: 2 }
+    - { id: 322, x: 88, y: 8, w: 12, h: 2, order: 3 }
+
+  hints:
+    - { id: 420, x: 30, y: 12, angle: 0.0 }
+    - { id: 421, x: 70, y: 12, angle: -0.1 }
+
+  spawn_points:
+    - { x: 5, y: 5, angle: 0.0 }
