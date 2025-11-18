@@ -12,9 +12,8 @@ UserSetup::UserSetup(const std::string& name, const PlayerId id)
     : game_config(static_cast<PlayerId>(id), name, YamlGameConfig::DefaultCar) {
 }
 
-Session::Listener::Listener(Session& session)
-    : common::Listener<Session::Listener>(session.emitter), session(session) {
-    session.log->trace("new listener added");
+void Session::Listener::subscribe(Session& s) {
+    common::Listener<Session::Listener>::subscribe(s.emitter);
 }
 
 Session::Session(const SessionConfig& config, const PlayerId creator,
@@ -130,7 +129,7 @@ void Session::start_game() {
         races.push_back(all_races[std::rand() % all_races.size()]);
     }
 
-    game.start({}, players);
+    game.start(races, players);
     emitter.dispatch(&Listener::on_start_game, game);
 }
 

@@ -3,7 +3,9 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
 #include <string>
+#include <vector>
 
+#include "client/connexion/connexion.h"
 #include "client/game/assets.h"
 #include "client/game/car.h"
 #include "client/game/mock_api.h"
@@ -11,7 +13,7 @@
 
 class Car;
 
-class Game final {
+class Game final : Connexion::Responder {
     friend class Car;
 
    private:
@@ -22,7 +24,16 @@ class Game final {
 
     uint64_t frame = 0;
 
-    MockApi api;
+    // MockApi api;
+    Api& api;
+    const PlayerId id;
+
+    void on_game_snapshot(const float,
+                          const std::vector<PlayerSnapshot>&) override;
+
+    std::mutex mutex;
+    float elapsed = 0;
+    std::vector<PlayerSnapshot> players;
 
     std::list<Car> cars;
 
@@ -47,7 +58,9 @@ class Game final {
     void render(const std::string& texto, int x, int y, bool in_world = true);
 
    public:
-    explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer);
+    explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
+                  Connexion& connexion);
+    ~Game();
 
     bool start();
 

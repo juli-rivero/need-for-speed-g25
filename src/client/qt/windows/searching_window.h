@@ -19,6 +19,7 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
 
    public:
     explicit SearchingWindow(QWidget *parent, Connexion &);
+    ~SearchingWindow() override;
 
     // Connexion overrides
     void on_search_response(const std::vector<SessionInfo> &) override;

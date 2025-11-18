@@ -17,6 +17,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
 
    public:
     explicit WaitingWindow(QWidget* parent, Connexion&);
+    ~WaitingWindow() override;
 
     void on_session_snapshot(const SessionConfig&,
                              const std::vector<PlayerInfo>&) override;

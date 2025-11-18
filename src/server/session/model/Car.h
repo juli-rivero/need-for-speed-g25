@@ -12,6 +12,19 @@
 #include "server/session/logic/NetworkTypes.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/CarType.h"
+#include "spdlog/spdlog.h"
+
+enum class CarInput {
+    StartTurningLeft,
+    StopTurningLeft,
+    StartTurningRight,
+    StopTurningRight,
+    StartAccelerating,
+    StopAccelerating,
+    StartReversing,
+    StopReversing,
+    StartUsingNitro,
+};
 
 class Car : public Entity {
    private:
@@ -37,11 +50,40 @@ class Car : public Entity {
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return body->getAngle(); }
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
-    void setInput(bool accel, bool brake, TurnDirection turn, bool nitro) {
-        accelerating = accel;
-        braking = brake;
-        turning = turn;
-        nitroActive = nitro;
+    void applyInput(const CarInput action) {
+        switch (action) {
+            case CarInput::StartTurningLeft:
+                turning = TurnDirection::Left;
+                break;
+            case CarInput::StopTurningLeft:
+                if (turning == TurnDirection::Left)
+                    turning = TurnDirection::None;
+                break;
+            case CarInput::StartTurningRight:
+                turning = TurnDirection::Right;
+                break;
+            case CarInput::StopTurningRight:
+                if (turning == TurnDirection::Right)
+                    turning = TurnDirection::None;
+                break;
+            case CarInput::StartAccelerating:
+                accelerating = true;
+                break;
+            case CarInput::StopAccelerating:
+                accelerating = false;
+                break;
+            case CarInput::StartReversing:
+                braking = true;
+                break;
+            case CarInput::StopReversing:
+                braking = false;
+                break;
+            case CarInput::StartUsingNitro:
+                nitroActive = !nitroActive;
+                break;
+            default:
+                throw std::runtime_error("Invalid CarActionType");
+        }
     }
 
     bool isAccelerating() const { return accelerating; }

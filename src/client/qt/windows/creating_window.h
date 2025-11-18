@@ -17,6 +17,7 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
 
    public:
     explicit CreatingWindow(QWidget* parent, Connexion&);
+    ~CreatingWindow() override;
 
     void on_join_response(const SessionInfo&,
                           const std::vector<CarStaticInfo>&) override;

@@ -40,13 +40,12 @@ class Session final {
 
    public:
     struct Listener : common::Listener<Session::Listener> {
-        Session& session;
-
-        explicit Listener(Session& session);
-
         virtual void on_start_game(GameSessionFacade& game) = 0;
         virtual void on_session_updated(
             const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
+
+       protected:
+        void subscribe(Session&);
     };
 
     Session(const SessionConfig&, PlayerId creator, YamlGameConfig&);

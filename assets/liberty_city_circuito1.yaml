@@ -9,13 +9,13 @@ map:
     - { id: 3, x: 0, y: 0, w: 2, h: 50 }
     - { id: 4, x: 100, y: 0, w: 2, h: 50 }
 
-  bridges:
-    - { id: 10, x: 40, y: 25, w: 20, h: 1, driveable: false}
-
   checkpoints:
     - { id: 100, x: 10, y: 5, w: 12, h: 2, angle: 0.0, order: 1 }
     - { id: 101, x: 50, y: 10, w: 12, h: 2, angle: 0.1, order: 2 }
     - { id: 102, x: 90, y: 5, w: 12, h: 2, angle: 0.0, order: 3 }
+
+  bridges:
+    - { id: 10, x: 40, y: 25, w: 20, h: 1, driveable: false}
 
   hints:
     - { id: 200, x: 30, y: 15, angle: 0.2 }

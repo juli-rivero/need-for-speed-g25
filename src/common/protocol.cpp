@@ -100,7 +100,8 @@ ProtocolSender& Protocol::operator<<(const size_t& value) {
 }
 
 ProtocolReceiver& Protocol::operator>>(float& value) {
-    value = static_cast<float>(this->get<uint32_t>()) / 100.0f;
+    value = static_cast<float>(static_cast<int32_t>(this->get<uint32_t>()));
+    value /= 100;
     return *this;
 }
 

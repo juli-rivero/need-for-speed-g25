@@ -23,7 +23,6 @@ class Receiver final : public Thread {
     MAKE_FIXED(Receiver)
 
     struct Listener : common::Listener<Receiver::Listener> {
-        explicit Listener(Receiver& receiver);
         virtual void on_join_request(const std::string&) {}
         virtual void on_search_request() {}
         virtual void on_create_request(const SessionConfig&) {}
@@ -31,7 +30,20 @@ class Receiver final : public Thread {
         virtual void on_start_request(bool) {}
         virtual void on_choose_car(const std::string&) {}
 
+        virtual void on_turn_left() {}
+        virtual void on_stop_turning_left() {}
+        virtual void on_turn_right() {}
+        virtual void on_stop_turning_right() {}
+        virtual void on_accelerate() {}
+        virtual void on_stop_accelerating() {}
+        virtual void on_reverse() {}
+        virtual void on_stop_reversing() {}
+        virtual void on_nitro() {}
+
         ~Listener() override = default;
+
+       protected:
+        void subscribe(Receiver&);
     };
 
    private:
@@ -43,4 +55,10 @@ class Receiver final : public Thread {
     void recv(const dto_session::LeaveRequest&);
     void recv(const dto_session::StartRequest&);
     void recv(const dto_session::ChooseCarRequest&);
+
+    // Game requests
+    void recv(const dto_game::TurnRequest&);
+    void recv(const dto_game::AccelerateRequest&);
+    void recv(const dto_game::UseBoostRequest&);
+    void recv(const dto_game::ReverseRequest&);
 };

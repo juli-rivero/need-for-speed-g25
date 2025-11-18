@@ -1,5 +1,7 @@
 #pragma once
 
+#include <assert.h>
+
 #include <condition_variable>
 #include <mutex>
 #include <unordered_set>
@@ -49,12 +51,22 @@ class Emitter {
 
 template <typename Parent>
 class Listener {
-    Emitter<Parent>& emitter;
+    Emitter<Parent>* emitter = nullptr;
+
+   protected:
+    void subscribe(Emitter<Parent>& new_emitter) {
+        assert(emitter == nullptr);
+        emitter = &new_emitter;
+        emitter->add_listener(static_cast<Parent*>(this));
+    }
+
+    void unsubscribe() {
+        assert(emitter != nullptr);
+        emitter->unsubscribe(static_cast<Parent*>(this));
+        emitter = nullptr;
+    }
 
    public:
-    explicit Listener(Emitter<Parent>& emitter) : emitter(emitter) {
-        emitter.add_listener(static_cast<Parent*>(this));
-    }
-    virtual ~Listener() { emitter.unsubscribe(static_cast<Parent*>(this)); }
+    virtual ~Listener() { assert(emitter == nullptr); }
 };
 }  // namespace common

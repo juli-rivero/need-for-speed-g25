@@ -18,8 +18,8 @@ class Connexion final {
     Api& get_api();
 
     struct Responder : Receiver::Listener {
-        explicit Responder(Connexion& connexion)
-            : Listener(connexion.receiver) {}
+       protected:
+        void subscribe(Connexion&);
     };
 
     ~Connexion();

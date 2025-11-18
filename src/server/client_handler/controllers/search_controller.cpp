@@ -16,14 +16,15 @@ SearchController::SearchController(SessionsMonitor& sessions_monitor,
                                    const PlayerId client_id, Api& api,
                                    Receiver& receiver, ISearchEvents& handler,
                                    spdlog::logger* log)
-    : Listener(receiver),
-      log(log),
+    : log(log),
       sessions_monitor(sessions_monitor),
       client_id(client_id),
       api(api),
       dispatcher(handler) {
     log->debug("controlling browser");
+    Listener::subscribe(receiver);
 }
+SearchController::~SearchController() { Listener::unsubscribe(); }
 
 void SearchController::on_join_request(const std::string& session_id) {
     try {

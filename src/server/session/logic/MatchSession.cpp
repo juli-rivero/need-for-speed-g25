@@ -15,8 +15,8 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
                            std::vector<PlayerConfig> players)
     : _cfg(cfg),
       _world(world),
-      _playerConfigs(std::move(players)),
-      _races(std::move(raceDefs)),
+      _playerConfigs(players),
+      _races(raceDefs),
       _upgradeSystem(cfg) {}
 
 void MatchSession::start() {
@@ -258,12 +258,11 @@ void MatchSession::update(float dt) {
     }
 }
 
-void MatchSession::applyInput(PlayerId id, const PlayerInput& input) {
+void MatchSession::applyInput(const PlayerId id, const CarInput& car_input) {
     auto it = _players.find(id);
     if (it == _players.end()) return;
     if (_race && _race->state() != RaceState::Countdown) {
-        it->second->getCar()->setInput(input.accelerate, input.brake,
-                                       input.turn, input.nitro);
+        it->second->getCar()->applyInput(car_input);
     }
 }
 void MatchSession::finishRaceAndComputeTotals() {

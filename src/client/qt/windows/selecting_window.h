@@ -17,6 +17,7 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
    public:
     explicit SelectingWindow(QWidget* parent, Connexion&);
+    ~SelectingWindow() override;
 
     // CarConfig getSelectedCar() const;
     int getSelectedCarType() const { return selectedCarIndex; }
