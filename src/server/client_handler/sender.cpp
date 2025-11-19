@@ -20,8 +20,14 @@ Sender::Sender(ProtocolSender& sender, spdlog::logger* log)
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            auto response = responses.pop();
-            sender << response << ProtocolSender::send;
+            // Try to put in the same packet as match responses as posible,
+            // blocking first response, as a packet needs at least 1 response,
+            // and adding consequent packets if there are.
+            dto::Response response = responses.pop();
+            do {
+                sender << response;
+            } while (responses.try_pop(response));
+            sender.send();
         } catch (ClosedQueue&) {
             log->debug("Sender stopped by closed queue");
             return;
