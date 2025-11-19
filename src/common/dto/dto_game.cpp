@@ -51,3 +51,11 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& r) {
 ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& r) {
     return p << r.raceTimeLeft << r.players;
 }
+
+ProtocolSender& operator<<(ProtocolSender& p, const EventPacket& r) {
+    return p << r.collision;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, EventPacket& r) {
+    return p >> r.collision;
+}

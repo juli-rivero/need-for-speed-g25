@@ -34,4 +34,5 @@ class GameController final : Receiver::Listener, GameSessionFacade::Listener {
     void on_nitro() override;
 
     void on_snapshot(const WorldSnapshot&) override;
+    void on_collision_event(const CollisionEvent&) override;
 };

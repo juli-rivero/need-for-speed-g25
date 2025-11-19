@@ -24,13 +24,13 @@ void GameSessionFacade::run() {
         match.update(dt);
 
         emitter.dispatch(&Listener::on_snapshot, match.getSnapshot());
-        /*
-        auto& cm = world.getCollisionManager();
-        if (cm.hasCollisionEvent()) {
-            CollisionPacket packet;
-            packet.events = cm.consumeEvents();
-            // TODO(juli): MANDAR ACA
-        } */
+
+        auto& collisionManager = world.getCollisionManager();
+        while (collisionManager.hasCollisionEvent()) {
+            const CollisionEvent& collision = collisionManager.consumeEvent();
+            emitter.dispatch(&Listener::on_collision_event, collision);
+        }
+
         // TODO(juli)
         //  if (match->hasPendingEndRacePacket()) {
         //      auto pkt = match->consumeEndRacePacket();

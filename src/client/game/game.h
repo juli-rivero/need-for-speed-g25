@@ -33,16 +33,21 @@ class Game final : Connexion::Responder {
 
     void on_game_snapshot(const float,
                           const std::vector<PlayerSnapshot>&) override;
+    void on_collision_event(const CollisionEvent&) override;
 
     std::mutex mutex;
     float elapsed = 0;
     std::vector<PlayerSnapshot> players;
+
+    Queue<CollisionEvent> collisions;
 
     std::list<Car> cars;
     Car* my_car{nullptr};
 
     // Metodos de actualizacion internos
     bool send_events();
+    void update_cars();
+    void manage_collisions();
     void get_state();
     void draw_state();
     void play_sounds();

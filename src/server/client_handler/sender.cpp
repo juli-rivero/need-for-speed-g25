@@ -82,3 +82,7 @@ void Sender::send_game_snapshot(float raceTimeLeft,
     log->trace("sending game snapshot");
     responses.try_push(GameSnapshot{raceTimeLeft, players});
 }
+void Sender::send_collision_event(const CollisionEvent& event) {
+    log->trace("sending collision event");
+    responses.try_push(dto_game::EventPacket{event});
+}
