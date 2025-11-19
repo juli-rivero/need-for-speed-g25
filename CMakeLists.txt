@@ -16,20 +16,18 @@ project(taller_tp
     LANGUAGES CXX
     )
 
-option(TALLER_TESTS "Enable / disable tests." OFF)
-option(TALLER_CLIENT "Enable / disable client program." OFF)
+option(TALLER_TESTS "Enable / disable tests." ON)
+option(TALLER_CLIENT "Enable / disable client program." ON)
 option(TALLER_SERVER "Enable / disable server program." ON)
-option(TALLER_EDITOR "Enable / disable editor program." OFF)
+option(TALLER_EDITOR "Enable / disable editor program." ON)
 option(TALLER_MAKE_WARNINGS_AS_ERRORS "Enable / disable warnings as errors." ON)
 
 message(CMAKE_CXX_COMPILER_ID="${CMAKE_CXX_COMPILER_ID}")
 
 # Define target: lib common between client, server and editor programs
-# HEY TODO XXX: change the name to something that you like
 add_library(taller_common STATIC)
 
 # add the source files that make the lib
-# HEY!! TODO XXX: add more subfolders here
 add_subdirectory(common/)
 
 
@@ -42,22 +40,18 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(taller_common PUBLIC .)
 
-# HEY!! TODO XXX: you need to install some runtime and dev libraries *before*
-# compiling the client/editor code.
 #
+# Install libSDL2 and libSDL2pp (for client or editor), it needs dependencies:
 # In xubuntu 24.04 these are:
 #
 # sudo apt-get install libopus-dev libopusfile-dev libxmp-dev libfluidsynth-dev fluidsynth libwavpack1 libwavpack-dev libfreetype-dev wavpack
 #
-
-# Install libSDL2 and libSDL2pp (for client or editor)
-# HEY!! TODO XXX: add more dependendies (either for client, server or editor)
-if(TALLER_CLIENT OR TALLER_EDITOR)
+if(TALLER_CLIENT)
     include(FetchContent)
     FetchContent_Declare(
         SDL2
         GIT_REPOSITORY https://github.com/libsdl-org/SDL.git
-        GIT_TAG release-2.30.8
+        GIT_TAG release-2.32.10
         GIT_SHALLOW TRUE
         GIT_PROGRESS TRUE
         OVERRIDE_FIND_PACKAGE
@@ -96,20 +90,26 @@ if(TALLER_CLIENT OR TALLER_EDITOR)
         URL https://github.com/libSDL2pp/libSDL2pp/archive/cc198c9a5657048bee67ece82de620b2d5661084.zip
     )
 
-    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp )
+    FetchContent_MakeAvailable(SDL2 SDL2_image SDL2_mixer SDL2_ttf libSDL2pp)
+endif()
+
+if(TALLER_SERVER)
+    # TODO: Sumar libreria Box2D
+endif()
+
+if(TALLER_CLIENTE OR TALLER_EDITOR)
+    # TODO: Sumar libreria Qt
 endif()
 
 # Program section
 # ---------------
 if(TALLER_CLIENT)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_client)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_client taller_common SDL2pp::SDL2pp)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(client)
 
     set_project_warnings(taller_client ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
@@ -122,57 +122,27 @@ if(TALLER_CLIENT)
 endif()
 
 if(TALLER_SERVER)
-    include(FetchContent)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_server)
 
     # Make them depend on taller_common lib
     add_dependencies(taller_server taller_common)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(server)
 
     set_project_warnings(taller_server ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
-    FetchContent_Declare(
-            box2d
-            GIT_REPOSITORY https://github.com/erincatto/box2d.git
-            GIT_TAG v3.1.1
-            GIT_SHALLOW TRUE
-            GIT_PROGRESS TRUE
-            OVERRIDE_FIND_PACKAGE
-    )
-    FetchContent_Declare(
-            yaml
-            GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
-            GIT_TAG v0.8.0
-            GIT_SHALLOW TRUE
-            GIT_PROGRESS TRUE
-            OVERRIDE_FIND_PACKAGE
-    )
 
-    FetchContent_MakeAvailable(box2d yaml)
-    target_include_directories(taller_server
-            PRIVATE
-            ${box2d_SOURCE_DIR}/include
-            ${CMAKE_BINARY_DIR}/_deps/box2d-src/include
-    )
     # Link the taller_common lib target
-    target_link_libraries(taller_server PRIVATE
-            box2d
-            taller_common
-    )
+    target_link_libraries(taller_server taller_common)
 endif()
 
 if(TALLER_EDITOR)
-    # HEY!! TODO XXX: Change the name of the executable to the one you like!
     add_executable(taller_editor)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common SDL2pp::SDL2pp)
+    add_dependencies(taller_editor taller_common)
 
     # Add source files and enable warnings
-    # HEY!! TODO XXX: add more subfolders here
     add_subdirectory(editor)
 
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
