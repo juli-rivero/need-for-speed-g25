@@ -101,7 +101,7 @@ std::vector<PlayerResult> RaceSession::makeResults() const {
         PlayerResult r;
         r.id = p.id;
         r.penalty = p.penaltyTime;
-        r.netTime = p.finished ? (p.elapsed - p.penaltyTime) : p.elapsed;
+        r.netTime = p.finished ? (p.elapsed + p.penaltyTime) : p.elapsed;
         r.dnf = (!p.finished || p.disqualified);
         out.push_back(r);
     }

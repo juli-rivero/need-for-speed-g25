@@ -9,10 +9,7 @@
 
 class UpgradeSystem {
    public:
-    explicit UpgradeSystem(const YamlGameConfig& cfg) : _cfg(cfg) {
-        (void)_cfg;
-    }
-
+    explicit UpgradeSystem(const YamlGameConfig& cfg) : _cfg(cfg) {}
     // inserta mejoras y calcula penalizaciones para la PRÓXIMA carrera
     std::unordered_map<PlayerId, float> applyForNextRace(
         const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>&
@@ -20,4 +17,5 @@ class UpgradeSystem {
 
    private:
     const YamlGameConfig& _cfg;
+    static const char* toPenaltyKey(UpgradeStat s);
 };

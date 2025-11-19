@@ -7,7 +7,6 @@
 #include "../model/Wall.h"
 void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
                                               float impact) {
-    // Car vs Wall
     if (entA->getEntityType() == EntityType::Car &&
         entB->getEntityType() == EntityType::Wall) {
         auto* car = static_cast<Car*>(entA);
@@ -28,7 +27,6 @@ void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
         return;
     }
 
-    // Car vs Car
     if (entA->getEntityType() == EntityType::Car &&
         entB->getEntityType() == EntityType::Car) {
         auto* car1 = static_cast<Car*>(entA);
@@ -47,16 +45,14 @@ void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
     }
 }
 void CollisionManager::handleHitEvents(const b2ContactEvents& events) {
-    std::cout << "[CollisionManager] hitCount = " << events.hitCount
-              << std::endl;
     for (int i = 0; i < events.hitCount; ++i) {
         const b2ContactHitEvent& ev = events.hitEvents[i];
         b2ShapeId shapeA = ev.shapeIdA;
         b2ShapeId shapeB = ev.shapeIdB;
         float impact = ev.approachSpeed;
 
-        auto itA = shapeToEntity.find(shapeA);  // Buscar en shapeToEntity
-        auto itB = shapeToEntity.find(shapeB);  // Buscar en shapeToEntity
+        auto itA = shapeToEntity.find(shapeA);
+        auto itB = shapeToEntity.find(shapeB);
         if (itA == shapeToEntity.end() || itB == shapeToEntity.end()) continue;
 
         Entity* entA = itA->second;
@@ -131,6 +127,4 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
 
 void CollisionManager::process(const b2ContactEvents& events) {
     handleHitEvents(events);
-    // handleBeginTouch(events);
-    //  handleEndTouch(events);
 }
