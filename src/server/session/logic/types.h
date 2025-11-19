@@ -38,8 +38,7 @@ struct CityDefinition {
 enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
 struct UpgradeChoice {
     UpgradeStat stat;
-    float delta;    // cuanto aumenta al stat
-    float penalty;  // cuantos segundos penaliza
+    float delta;  // cuanto aumenta al stat, +1, +2 ,..
 };
 struct EndRaceUpgradeReport {
     PlayerId id;
