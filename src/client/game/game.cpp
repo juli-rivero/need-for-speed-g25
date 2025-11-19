@@ -7,12 +7,14 @@
 #include "spdlog/spdlog.h"
 
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-           Connexion& connexion)
+           Connexion& connexion, GameSetUp& setup)
     : renderer(renderer),
       mixer(mixer),
       assets(renderer),
+      city(*assets.city_name[setup.map]),
       api(connexion.get_api()),
-      id(connexion.unique_id) {
+      id(connexion.unique_id),
+      players(setup.info.players) {
     renderer.Clear();
     Responder::subscribe(connexion);
 }

@@ -66,15 +66,10 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started() {
+void Sender::notify_game_started(const std::string& map,
+                                 const StaticSnapshot& info) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{});
-}
-
-void Sender::send_game_info(const std::string& map,
-                            const StaticSnapshot& info) {
-    log->trace("sending game info response");
-    responses.try_push(dto_game::GameInfoResponse{map, info});
+    responses.try_push(StartResponse{map, info});
 }
 
 void Sender::send_game_static_snapshot(const StaticSnapshot& info) {

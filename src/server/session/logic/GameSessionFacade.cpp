@@ -2,33 +2,28 @@
 #include "GameSessionFacade.h"
 
 #include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
 #include <vector>
-using std::chrono_literals::operator""ms;
-GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath)
-    : config(configPath) {}
 
-void GameSessionFacade::start(const std::vector<RaceDefinition>& races,
-                              const std::vector<PlayerConfig>& players) {
-    match = std::make_unique<MatchSession>(config, races, world, players);
-    match->start();
-    Thread::start();
-}
+using std::chrono_literals::operator""ms;
+
+GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
+                                     const std::vector<RaceDefinition>& races,
+                                     const std::vector<PlayerConfig>& players)
+    : world(), match(configPath, races, world, players) {}
+
 void GameSessionFacade::run() {
     const float dt = 1.f / 60.f;
 
     while (should_keep_running()) {
         std::pair<PlayerId, CarInput> input;
         while (queue_actions.try_pop(input)) {
-            match->applyInput(input.first, input.second);
+            match.applyInput(input.first, input.second);
         }
 
         world.step(dt);
-        match->update(dt);
+        match.update(dt);
 
-        emitter.dispatch(&Listener::on_snapshot, match->getSnapshot());
+        emitter.dispatch(&Listener::on_snapshot, match.getSnapshot());
         /*
         auto& cm = world.getCollisionManager();
         if (cm.hasCollisionEvent()) {

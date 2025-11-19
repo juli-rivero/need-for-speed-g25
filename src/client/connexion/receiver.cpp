@@ -48,19 +48,14 @@ void Receiver::recv(const dto_session::LeaveResponse&) {
     spdlog::trace("received leave response");
     emitter.dispatch(&Listener::on_leave_response);
 }
-void Receiver::recv(const dto_session::StartResponse&) {
+void Receiver::recv(const dto_session::StartResponse& response) {
     spdlog::trace("received start response");
-    emitter.dispatch(&Listener::on_start_game);
+    emitter.dispatch(&Listener::on_start_game, response.map, response.info);
 }
 void Receiver::recv(const dto_session::SessionSnapshot& snapshot) {
     spdlog::trace("received session snapshot");
     emitter.dispatch(&Listener::on_session_snapshot, snapshot.session,
                      snapshot.players);
-}
-void Receiver::recv(const dto_game::GameInfoResponse& response) {
-    spdlog::trace("received game info response");
-    emitter.dispatch(&Listener::on_game_info_response, response.map,
-                     response.info);
 }
 void Receiver::recv(const dto_game::GameStaticSnapshot& snapshot) {
     spdlog::trace("received game static snapshot");

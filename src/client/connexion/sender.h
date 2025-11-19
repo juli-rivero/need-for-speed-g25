@@ -17,8 +17,6 @@ struct Api {
     virtual void set_ready(bool ready) = 0;
     virtual void choose_car(const std::string& car_name) = 0;
 
-    virtual void request_game_info() = 0;
-
     virtual void start_turning(TurnDirection) = 0;
     virtual void stop_turning(TurnDirection) = 0;
     virtual void start_accelerating() = 0;
@@ -51,8 +49,6 @@ class Sender final : public Thread, public Api {
     void choose_car(const std::string& car_name) override;
 
     // Game
-    void request_game_info() override;
-
     void start_turning(TurnDirection) override;
     void stop_turning(TurnDirection) override;
     void start_accelerating() override;

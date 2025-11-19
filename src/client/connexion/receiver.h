@@ -28,12 +28,10 @@ class Receiver final : public Thread {
         virtual void on_join_response(const SessionInfo&,
                                       const std::vector<CarStaticInfo>&) {}
         virtual void on_leave_response() {}
-        virtual void on_start_game() {}
+        virtual void on_start_game(const std::string&, const StaticSnapshot&) {}
         virtual void on_session_snapshot(const SessionConfig&,
                                          const std::vector<PlayerInfo>&) {}
 
-        virtual void on_game_info_response(const std::string&,
-                                           const StaticSnapshot&) {}
         virtual void on_game_static_snapshot(const StaticSnapshot&) {}
         /**
          * This method is called to process a snapshot of the current game
@@ -62,7 +60,6 @@ class Receiver final : public Thread {
     void recv(const dto_session::LeaveResponse&);
     void recv(const dto_session::StartResponse&);
     void recv(const dto_session::SessionSnapshot&);
-    void recv(const dto_game::GameInfoResponse&);
     void recv(const dto_game::GameStaticSnapshot&);
     void recv(const dto_game::GameSnapshot&);
 };

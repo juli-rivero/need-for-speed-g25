@@ -21,7 +21,7 @@ Session::Session(const SessionConfig& config, const PlayerId creator,
     : config(config),
       log(stdout_color_mt("Session " + config.name)),
       users_setup(1),
-      game(yaml_config),
+      game(nullptr),
       yaml_config(yaml_config),
       creator(creator) {
     log->debug("Created");
@@ -64,7 +64,7 @@ void Session::remove_client(const PlayerId client_id) {
     notify_change();
 }
 
-bool Session::in_game() const { return game.is_alive(); }
+bool Session::in_game() const { return game != nullptr; }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 bool Session::empty() const { return users_setup.empty(); }
 
@@ -107,7 +107,10 @@ void Session::set_ready(const PlayerId client_id, const bool ready) {
 }
 
 Session::~Session() {
-    if (game.is_alive()) game.stop();
+    if (game != nullptr) {
+        if (game->is_alive()) game->stop();
+        game->join();
+    }
     log->debug("Destroyed");
     spdlog::drop(log->name());
 }
@@ -131,8 +134,11 @@ void Session::start_game() {
         races.push_back(all_races[index]);
     }
 
-    game.start(races, players);
-    emitter.dispatch(&Listener::on_start_game, game);
+    game = std::make_unique<GameSessionFacade>(yaml_config, races, players);
+    emitter.dispatch(&Listener::on_start_game, *game, config.city,
+                     game->getStaticSnapshot());
+    spdlog::trace("iniciando gameloop");
+    game->start();
 }
 
 bool Session::all_ready() const {

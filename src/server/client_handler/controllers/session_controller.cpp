@@ -70,10 +70,12 @@ void SessionController::on_session_updated(
     }
 }
 
-void SessionController::on_start_game(GameSessionFacade& game) {
+void SessionController::on_start_game(GameSessionFacade& game,
+                                      const std::string& map,
+                                      const StaticSnapshot& snapshot) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started();
+        api.notify_game_started(map, snapshot);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());
