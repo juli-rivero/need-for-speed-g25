@@ -1,49 +1,27 @@
-//
-// Created by elvis on 21/10/25.
-//
+#pragma once
 
-#ifndef TALLER_TP_MAPLOADER_H
-#define TALLER_TP_MAPLOADER_H
-
-
+#include <memory>
 #include <string>
 #include <vector>
-#include <memory>
+
+#include "../session/model/Checkpoint.h"
+#include "../session/physics/Box2DPhysicsWorld.h"
+#include "server/session/model/Bridge.h"
+#include "server/session/model/Wall.h"
 #include "yaml-cpp/yaml.h"
-#include "../physics/PhysicsWorld.h"
-#include "../model/Checkpoint.h"
-#include "../model/Hint.h"
-
-#include "../model/Car.h"
-
-class Wall;
-class Bridge;
-
-struct SpawnPoint {
-    int playerId;
-    float x, y, angle;
-};
-
-struct PlayerConfig {
-    int id;
-    std::string name;
-    std::string color;
-    float maxSpeed, acceleration, health, control;
-};
 
 class MapLoader {
-public:
-    static void loadFromYAML(
-        const std::string& path,
-        PhysicsWorld& world,
-        std::size_t raceIndex,
+   public:
+    struct MapInfo {
+        std::string name;
+        std::string city;
+        b2Vec2 gravity;
+    };
+
+    static MapInfo loadFromYAML(
+        const std::string& yamlPath, Box2DPhysicsWorld& world,
         std::vector<std::unique_ptr<Wall>>& walls,
         std::vector<std::unique_ptr<Bridge>>& bridges,
-        std::vector<Checkpoint>& checkpoints,
-        std::vector<Hint>& hints,
-        std::vector<SpawnPoint>& spawnPoints,
-        std::vector<PlayerConfig>& players
-    );
+        std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
+        std::vector<SpawnPoint>& spawnPoints);
 };
-
-#endif

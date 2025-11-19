@@ -1,29 +1,45 @@
+#pragma once
 
-#ifndef TALLER_TP_YAMLGAMECONFIG_H
-#define TALLER_TP_YAMLGAMECONFIG_H
-#include "../logic/IGameConfig.h"
-#include "yaml-cpp/yaml.h"
-#include <unordered_map>
 #include <string>
+#include <unordered_map>
+#include <vector>
 
-class YamlGameConfig : public IGameConfig {
-private:
+#include "../session/logic/types.h"
+#include "../session/model/CarType.h"
+#include "common/structs.h"
+#include "yaml-cpp/yaml.h"
+
+struct CityDefinition;
+
+class YamlGameConfig {
+   private:
     YAML::Node root;
-    std::unordered_map<std::string, float> penalties;
 
-public:
+    std::unordered_map<std::string, float> penalties;
+    std::vector<CityDefinition> cities;
+    std::vector<CarType> carTypes;
+
+    // Configuración global de carrera
+    int maxPlayers{};
+    float timeLimitSec{};
+    float intermissionSec{};
+
+   public:
     explicit YamlGameConfig(const std::string& filePath);
 
-    int   maxPlayers() const override;
-    float raceTimeLimitSec() const override;
-    float intermissionSec() const override;
+    // Getters
+    int getMaxPlayers() const { return maxPlayers; }
+    float getRaceTimeLimitSec() const { return timeLimitSec; }
+    float getIntermissionSec() const { return intermissionSec; }
 
-    std::optional<float> penaltyFor(const std::string& statName) const override;
+    const std::unordered_map<std::string, float>& getPenalties() const {
+        return penalties;
+    }
+    const std::vector<CityDefinition>& getCities() const { return cities; }
+    const std::vector<RaceDefinition>& getRaces(const CityId& city) const;
+    const std::vector<CarType>& getCarTypes() const { return carTypes; }
+    static CarSpriteType getCarSpriteType(const std::string& name);
+    static constexpr auto DefaultCar = "Classic";
 
-    float defaultCarHealth() const override;
-    float defaultCarMaxSpeed() const override;
-    float defaultCarAcceleration() const override;
-    float defaultCarMass() const override;
-    float defaultCarControl() const override;
+    void printSummary() const;
 };
-#endif
