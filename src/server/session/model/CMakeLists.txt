@@ -1,0 +1,10 @@
+target_sources(taller_server
+        PUBLIC
+        Bridge.h
+        Car.h
+        Checkpoint.h
+        Player.h
+        Wall.h
+        CarType.h
+        Entity.h
+)

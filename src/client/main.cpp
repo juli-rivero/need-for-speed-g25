@@ -1,39 +1,48 @@
-#include "common/foo.h"
+#include <spdlog/spdlog.h>
 
-#include <iostream>
+#include <cxxopts.hpp>
 #include <exception>
 
-#include <SDL2pp/SDL2pp.hh>
-#include <SDL2/SDL.h>
+#include "client/app.h"
+#include "client/args_parser.h"
 
-using namespace SDL2pp;
+#define HOST argv[1]
+#define SERV argv[2]
+#define FILE argv[3]
 
-int main() try {
-	// Initialize SDL library
-	SDL sdl(SDL_INIT_VIDEO);
+#define ERROR (-1)
+#define SUCCESS 0
 
-	// Create main window: 640x480 dimensions, resizable, "SDL2pp demo" title
-	Window window("SDL2pp demo",
-			SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-			0, 0,
-			SDL_WINDOW_FULLSCREEN_DESKTOP);
+int main(const int argc, const char* argv[]) {
+    try {
+        const ArgsParser args_parser(argc, argv);
 
-	// Create accelerated video renderer with default driver
-	Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
+        args_parser.activate_logging();
 
-	// Clear screen
-	renderer.Clear();
+        if (args_parser.has_help()) {
+            args_parser.print_help();
+            return SUCCESS;
+        }
 
-	// Show rendered frame
-	renderer.Present();
+        spdlog::info("Connecting to " + args_parser.get_host() + ":" +
+                     args_parser.get_port());
 
-	// 5 second delay
-	SDL_Delay(5000);
+        App app(args_parser.get_host(), args_parser.get_port());
+        app.run();
 
-	// Here all resources are automatically released and library deinitialized
-	return 0;
-} catch (std::exception& e) {
-	// If case of error, print it and exit with error
-	std::cerr << e.what() << std::endl;
-	return 1;
+        return SUCCESS;
+    } catch (const cxxopts::exceptions::parsing& e) {
+        spdlog::critical(e.what());
+        spdlog::info("Use flag --help for more info");
+
+        return ERROR;
+    } catch (const std::exception& err) {
+        spdlog::critical("Something went wrong and an exception was caught: {}",
+                         err.what());
+        return ERROR;
+    } catch (...) {
+        spdlog::critical(
+            "Something went wrong and an unknown exception was caught.");
+        return ERROR;
+    }
 }
