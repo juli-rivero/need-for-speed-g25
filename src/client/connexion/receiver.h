@@ -45,6 +45,9 @@ class Receiver final : public Thread {
          */
         virtual void on_game_snapshot(const float,
                                       const std::vector<PlayerSnapshot>&) {}
+
+        virtual void on_collision_event(const CollisionEvent&) {}
+
         ~Listener() override = default;
 
        protected:
@@ -62,4 +65,5 @@ class Receiver final : public Thread {
     void recv(const dto_session::SessionSnapshot&);
     void recv(const dto_game::GameStaticSnapshot&);
     void recv(const dto_game::GameSnapshot&);
+    void recv(const dto_game::EventPacket&);
 };

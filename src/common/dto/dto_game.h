@@ -32,6 +32,10 @@ struct GameSnapshot {
     std::vector<PlayerSnapshot> players;
 };
 
+struct EventPacket {
+    CollisionEvent collision;
+};
+
 }  // namespace dto_game
 
 #include "common/dto/macros.inl"
@@ -41,4 +45,5 @@ DECLARE_SERIALIZABLE(dto_game::AccelerateRequest)
 DECLARE_SERIALIZABLE(dto_game::UseBoostRequest)
 DECLARE_SERIALIZABLE(dto_game::ReverseRequest)
 DECLARE_SERIALIZABLE(dto_game::GameSnapshot)
+DECLARE_SERIALIZABLE(dto_game::EventPacket)
 #include "common/dto/macros_undef.inl"

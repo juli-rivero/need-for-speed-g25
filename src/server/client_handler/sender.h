@@ -29,6 +29,8 @@ struct Api {
     virtual void send_game_snapshot(float raceTimeLeft,
                                     const std::vector<PlayerSnapshot>&) = 0;
 
+    virtual void send_collision_event(const CollisionEvent&) = 0;
+
     virtual ~Api() = default;
 };
 
@@ -61,4 +63,6 @@ class Sender final : public Thread, public Api {
 
     void send_game_snapshot(float raceTimeLeft,
                             const std::vector<PlayerSnapshot>&) override;
+
+    void send_collision_event(const CollisionEvent&) override;
 };

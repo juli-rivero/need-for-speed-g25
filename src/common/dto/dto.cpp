@@ -102,6 +102,9 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
         case 7:
             e = p.get<dto_game::GameSnapshot>();
             break;
+        case 8:
+            e = p.get<dto_game::EventPacket>();
+            break;
         default:
             throw std::runtime_error("Unknown request type");
     }

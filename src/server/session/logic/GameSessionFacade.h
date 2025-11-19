@@ -28,6 +28,7 @@ class GameSessionFacade : public Thread {
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
         virtual void on_snapshot(const WorldSnapshot&) = 0;
+        virtual void on_collision_event(const CollisionEvent&) = 0;
 
        protected:
         void subscribe(GameSessionFacade&);
