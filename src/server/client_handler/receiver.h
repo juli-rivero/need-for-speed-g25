@@ -59,8 +59,6 @@ class Receiver final : public Thread {
     void recv(const dto_session::ChooseCarRequest&);
 
     // Game requests
-    void recv(const dto_game::GameInfoRequest&);
-
     void recv(const dto_game::TurnRequest&);
     void recv(const dto_game::AccelerateRequest&);
     void recv(const dto_game::UseBoostRequest&);

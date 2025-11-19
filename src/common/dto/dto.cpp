@@ -24,7 +24,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
                  dto_search::CreateRequest, dto_session::LeaveRequest,
                  dto_session::StartRequest, dto_session::ChooseCarRequest,
                  dto_game::TurnRequest, dto_game::AccelerateRequest,
-                 dto_game::UseBoostRequest>;
+                 dto_game::UseBoostRequest, dto_game::ReverseRequest>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -46,18 +46,15 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
             e = p.get<dto_session::ChooseCarRequest>();
             break;
         case 6:
-            e = p.get<dto_game::GameInfoRequest>();
-            break;
-        case 7:
             e = p.get<dto_game::TurnRequest>();
             break;
-        case 8:
+        case 7:
             e = p.get<dto_game::AccelerateRequest>();
             break;
-        case 9:
+        case 8:
             e = p.get<dto_game::UseBoostRequest>();
             break;
-        case 10:
+        case 9:
             e = p.get<dto_game::ReverseRequest>();
             break;
         default:
@@ -78,7 +75,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
     * std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
-                 dto_game::SnapshotResponse>;
+                 dto_game::GameStaticSnapshot, dto_game::GameSnapshot>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -100,12 +97,9 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             e = p.get<dto_session::SessionSnapshot>();
             break;
         case 6:
-            e = p.get<dto_game::GameInfoResponse>();
-            break;
-        case 7:
             e = p.get<dto_game::GameStaticSnapshot>();
             break;
-        case 8:
+        case 7:
             e = p.get<dto_game::GameSnapshot>();
             break;
         default:

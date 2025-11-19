@@ -12,7 +12,10 @@ struct StartRequest {
     bool ready;
 };
 
-struct StartResponse {};
+struct StartResponse {
+    std::string map;
+    StaticSnapshot info;
+};
 
 struct LeaveRequest {};
 

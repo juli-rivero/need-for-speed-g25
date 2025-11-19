@@ -17,15 +17,14 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
       _world(world),
       _playerConfigs(players),
       _races(raceDefs),
-      _upgradeSystem(cfg) {}
-
-void MatchSession::start() {
+      _upgradeSystem(cfg) {
     if (_races.empty()) {
         _state = MatchState::Finished;
         return;
     }
     _state = MatchState::Racing;
     startRace(0);
+    update(0);
 }
 
 void MatchSession::startRace(std::size_t raceIndex) {
@@ -109,7 +108,7 @@ CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     return cs;
 }
 
-WorldSnapshot MatchSession::getSnapshot() {
+WorldSnapshot MatchSession::getSnapshot() const {
     WorldSnapshot snap;
 
     if (!_race) {
@@ -144,11 +143,14 @@ WorldSnapshot MatchSession::getSnapshot() {
                               permanentlyDisqualified.end());
     return snap;
 }
-StaticSnapshot MatchSession::getStaticSnapshot() {
+StaticSnapshot MatchSession::getStaticSnapshot() const {
+    spdlog::debug("getting static snapshot");
     StaticSnapshot s;
 
     const auto& raceDef = _races[_currentRace];
-    s.race = raceDef.city;
+    s.race = raceDef.mapFile;
+
+    spdlog::trace("got race name {}", s.race);
 
     /* for (const auto& w : _walls) {
         WallInfo wi;
@@ -181,6 +183,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         ci.h = cp->getHeight();
         s.checkpoints.push_back(ci);
     }
+    spdlog::trace("got checkpoints");
 
     for (size_t i = 0; i < _race->getSpawnPoints().size(); ++i) {
         const auto& sp = _race->getSpawnPoints()[i];
@@ -191,36 +194,19 @@ StaticSnapshot MatchSession::getStaticSnapshot() {
         spi.angle = sp.angle;
         s.spawns.push_back(spi);
     }
+    spdlog::trace("got spawnpoints");
 
-    for (const auto& [playerId, player] : _players) {
-        const auto& car = player->getCar();
-        const auto& type = car->getType();
-
-        // TODO(juli): revisar con elvis, pensé en usar el CarStaticInfo para
-        // mandar info inicial para la seleccion de los autos y luego me tope
-        // con esto, pero si lo comento no sucede nada
-        CarStaticInfo ci = {
-            .type = YamlGameConfig::getCarSpriteType(type.name),
-            .name = type.name,
-            .description = type.description,
-            .maxSpeed = type.maxSpeed,
-            .acceleration = type.acceleration,
-            .mass = type.mass,
-            .control = type.control,
-            .health = type.maxHealth,
-        };
-        /*ci.id = playerId;
-        ci.playerName = player->getName();
-        ci.carType = type.name;
-        ci.width = type.width;
-        ci.height = type.height;
-        ci.maxSpeed = type.maxSpeed;
-        ci.acceleration = type.acceleration;
-        ci.control = type.control;
-        ci.friction = type.friction;
-        ci.nitroMultiplier = type.nitroMultiplier;*/
-        // s.cars.push_back(ci);
+    for (const auto& [id, player] : _players) {
+        PlayerSnapshot ps;
+        ps.id = id;
+        ps.name = player->getName();
+        ps.car = makeCarSnapshot(player->getCar());
+        ps.raceProgress = _race->getProgressForPlayer(id);
+        std::cout << "[SnapshotDBG] Player " << id
+                  << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
+        s.players.push_back(std::move(ps));
     }
+    spdlog::trace("got players");
 
     return s;
 }

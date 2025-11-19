@@ -3,7 +3,6 @@
 #include <spdlog/spdlog.h>
 
 using dto_game::AccelerateRequest;
-using dto_game::GameInfoRequest;
 using dto_game::ReverseRequest;
 using dto_game::TurnRequest;
 using dto_game::UseBoostRequest;
@@ -62,11 +61,6 @@ void Sender::choose_car(const std::string& car_name) {
 }
 
 // Game
-void Sender::request_game_info() {
-    spdlog::trace("requesting game info");
-    responses.try_push(GameInfoRequest{});
-}
-
 void Sender::start_turning(TurnDirection dir) {
     spdlog::trace("start turning {}", static_cast<int>(dir));
     responses.try_push(TurnRequest{dir, true});

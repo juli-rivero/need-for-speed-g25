@@ -7,14 +7,6 @@
 #include "common/structs.h"
 
 namespace dto_game {
-
-struct GameInfoRequest {};
-
-struct GameInfoResponse {
-    std::string map;
-    StaticSnapshot info;
-};
-
 struct GameStaticSnapshot {
     StaticSnapshot info;
 };
@@ -43,8 +35,6 @@ struct GameSnapshot {
 }  // namespace dto_game
 
 #include "common/dto/macros.inl"
-DECLARE_SERIALIZABLE(dto_game::GameInfoRequest)
-DECLARE_SERIALIZABLE(dto_game::GameInfoResponse)
 DECLARE_SERIALIZABLE(dto_game::GameStaticSnapshot)
 DECLARE_SERIALIZABLE(dto_game::TurnRequest)
 DECLARE_SERIALIZABLE(dto_game::AccelerateRequest)

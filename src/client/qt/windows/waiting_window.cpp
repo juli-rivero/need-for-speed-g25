@@ -33,9 +33,11 @@ void WaitingWindow::on_session_snapshot(
         },
         Qt::QueuedConnection);
 }
-void WaitingWindow::on_start_game() {
+void WaitingWindow::on_start_game(const std::string& map,
+                                  const StaticSnapshot& circuit) {
     QMetaObject::invokeMethod(
-        this, [this]() { emit startGameRequested(); }, Qt::QueuedConnection);
+        this, [this, map, circuit]() { emit startGameRequested(map, circuit); },
+        Qt::QueuedConnection);
 }
 
 void WaitingWindow::on_leave_response() {

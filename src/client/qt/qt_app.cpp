@@ -5,7 +5,8 @@
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
+QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit,
+                                 GameSetUp& setup)
     : stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
           setMinimumSize(1000, 700);
@@ -15,7 +16,8 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       searchingWindow(&stack, connexion),
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
-      waitingWindow(&stack, connexion) {
+      waitingWindow(&stack, connexion),
+      setup(setup) {
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -79,7 +81,12 @@ void QtWindowManager::show_waiting_window() {
     stack.setCurrentWidget(&waitingWindow);
 }
 
-void QtWindowManager::continue_game() { QCoreApplication::quit(); }
+void QtWindowManager::continue_game(const std::string& map,
+                                    const StaticSnapshot& circuit) {
+    setup.map = map;
+    setup.info = circuit;
+    QCoreApplication::quit();
+}
 
 void QtWindowManager::applyTheme() {
     const ThemeManager& theme = ThemeManager::instance();
@@ -90,13 +97,13 @@ void QtWindowManager::applyTheme() {
                             .arg(palette.cardBackgroundHover));
 }
 
-QtApp::QtApp(Connexion& connexion, bool& quit) {
+QtApp::QtApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     int argc = 0;
 
     spdlog::trace("creando qt app");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-    QtWindowManager main(connexion, quit);
+    QtWindowManager main(connexion, quit, setup);
     spdlog::trace("exec");
     app.exec();
 }

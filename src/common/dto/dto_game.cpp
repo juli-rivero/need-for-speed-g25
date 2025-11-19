@@ -4,22 +4,6 @@
 
 using namespace dto_game;
 
-// GameInfoRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, GameInfoRequest&) {
-    return p;
-}
-ProtocolSender& operator<<(ProtocolSender& p, const GameInfoRequest&) {
-    return p;
-}
-
-// GameInfoResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, GameInfoResponse& r) {
-    return p >> r.map >> r.info;
-}
-ProtocolSender& operator<<(ProtocolSender& p, const GameInfoResponse& r) {
-    return p << r.map << r.info;
-}
-
 // GameStaticSnapshot SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, GameStaticSnapshot& r) {
     return p >> r.info;

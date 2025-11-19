@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "client/connexion/connexion.h"
+#include "client/constants.h"
 #include "client/game/assets.h"
 #include "client/game/car.h"
 #include "client/game/mock_api.h"
@@ -23,6 +24,8 @@ class Game final : Connexion::Responder {
     Assets assets;
 
     uint64_t frame = 0;
+
+    SDL2pp::Texture& city;
 
     // MockApi api;
     Api& api;
@@ -62,7 +65,7 @@ class Game final : Connexion::Responder {
 
    public:
     explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-                  Connexion& connexion);
+                  Connexion& connexion, GameSetUp& setup);
     ~Game();
 
     bool start();

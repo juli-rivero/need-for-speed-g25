@@ -1,6 +1,7 @@
 #pragma once
 
 #include "client/connexion/connexion.h"
+#include "client/constants.h"
 #include "client/game/input_handler.h"
 
 class SdlApp {
@@ -8,7 +9,7 @@ class SdlApp {
     InputHandler input_handler;
 
    public:
-    explicit SdlApp(Connexion& connexion, bool& quit);
+    explicit SdlApp(Connexion& connexion, bool& quit, GameSetUp& setup);
     ~SdlApp();
 
     MAKE_FIXED(SdlApp)
