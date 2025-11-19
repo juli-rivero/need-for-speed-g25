@@ -1,8 +1,7 @@
-target_sources(taller_common
+target_sources(taller_client
     PRIVATE
     # .cpp files
-    foo.cpp
+        main.cpp
     PUBLIC
     # .h files
-    foo.h
     )
