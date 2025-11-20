@@ -23,13 +23,10 @@ void Sender::run() {
             // Try to put in the same packet as match responses as posible,
             // blocking first response, as a packet needs at least 1 response,
             // and adding consequent packets if there are.
-            spdlog::warn("Sending responses");
             dto::Response response = responses.pop();
             do {
-                spdlog::info("enviando una respuesta");
                 sender << response;
             } while (responses.try_pop(response));
-            spdlog::info("enviado");
             sender.send();
         } catch (ClosedQueue&) {
             log->debug("Sender stopped by closed queue");

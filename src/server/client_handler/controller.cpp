@@ -20,6 +20,9 @@ void Controller::run() {
 }
 void Controller::stop() {
     Thread::stop();
+    game_controller = nullptr;
+    session_controller = nullptr;
+    search_controller = nullptr;
     events.close();
 }
 

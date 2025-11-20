@@ -30,9 +30,11 @@ void Protocol::close() { socket.close(); }
 void Protocol::send() {
     try {
         if (socket.sendall(buffer.data(), buffer.size()) == 0) {
+            socket.close();
             throw ClosedProtocol();
         }
     } catch (LibError& e) {
+        socket.close();
         throw ClosedProtocol(e.what());
     }
     buffer.clear();
@@ -40,8 +42,12 @@ void Protocol::send() {
 
 void Protocol::recv_from_socket(void* const& value, const size_t sz) {
     try {
-        if (socket.recvall(value, sz) == 0) throw ClosedProtocol();
+        if (socket.recvall(value, sz) == 0) {
+            socket.close();
+            throw ClosedProtocol();
+        }
     } catch (LibError& e) {
+        socket.close();
         throw ClosedProtocol(e.what());
     }
 }
