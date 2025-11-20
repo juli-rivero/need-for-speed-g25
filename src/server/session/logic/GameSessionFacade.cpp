@@ -4,6 +4,8 @@
 #include <chrono>
 #include <vector>
 
+#include "common/timer_iterator.h"
+
 using std::chrono_literals::operator""ms;
 
 GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
@@ -12,7 +14,11 @@ GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
     : world(), match(configPath, races, world, players) {}
 
 void GameSessionFacade::run() {
-    const float dt = 1.f / 60.f;
+    constexpr std::chrono::duration<double> dt(1.f / 60.f);
+
+    TimerIterator iterator(dt);
+
+    size_t passed_iterations = 0;
 
     while (should_keep_running()) {
         std::pair<PlayerId, CarInput> input;
@@ -20,8 +26,8 @@ void GameSessionFacade::run() {
             match.applyInput(input.first, input.second);
         }
 
-        world.step(dt);
-        match.update(dt);
+        world.step(passed_iterations * dt.count());
+        match.update(passed_iterations * dt.count());
 
         emitter.dispatch(&Listener::on_snapshot, match.getSnapshot());
 
@@ -37,7 +43,7 @@ void GameSessionFacade::run() {
         //      onRaceFinished(pkt);
         //  }
 
-        std::this_thread::sleep_for(16ms);
+        passed_iterations = iterator.next();
     }
 }
 
