@@ -19,17 +19,19 @@ SessionController::SessionController(Session& session, const PlayerId client_id,
       api(api),
       dispatcher(handler),
       session(session) {
-    log->debug("controlling lobby");
     Receiver::Listener::subscribe(receiver);
     Session::Listener::subscribe(session);
+    session.add_client(client_id);
     api.reply_joined(session.get_info(), session.get_types_of_static_cars());
+    log->debug("controlling session");
 }
 
 SessionController::~SessionController() {
     Receiver::Listener::unsubscribe();
     Session::Listener::unsubscribe();
-    log->trace("left session");
     api.reply_left();
+    session.remove_client(client_id);
+    log->trace("left session");
 }
 
 void SessionController::on_start_request(const bool ready) {
@@ -52,7 +54,6 @@ void SessionController::on_choose_car(const std::string& car_name) {
 }
 void SessionController::on_leave_request() {
     try {
-        session.remove_client(client_id);
         dispatcher.on_leave_session();
     } catch (std::exception& e) {
         log->warn("could not send session snapshot: {}", e.what());
