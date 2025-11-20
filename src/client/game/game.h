@@ -23,8 +23,6 @@ class Game final : Connexion::Responder {
     SDL2pp::Mixer& mixer;
     Assets assets;
 
-    uint64_t frame = 0;
-
     SDL2pp::Texture& city;
 
     // MockApi api;
@@ -51,7 +49,6 @@ class Game final : Connexion::Responder {
     void get_state();
     void draw_state();
     void play_sounds();
-    void wait_next_frame();
 
     // Auxiliar: dibujar una textura (o texto) en la ubicacion dada.
     // Con in_world == true, se dibuja relativo al mundo, no relativo a la
@@ -70,7 +67,7 @@ class Game final : Connexion::Responder {
 
    public:
     explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-                  Connexion& connexion, GameSetUp& setup);
+                  Connexion& connexion, const GameSetUp& setup);
     ~Game();
 
     bool start();

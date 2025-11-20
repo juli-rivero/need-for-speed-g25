@@ -4,10 +4,11 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-           Connexion& connexion, GameSetUp& setup)
+           Connexion& connexion, const GameSetUp& setup)
     : renderer(renderer),
       mixer(mixer),
       assets(renderer),
@@ -170,24 +171,18 @@ void Game::play_sounds() {
     // }
 }
 
-void Game::wait_next_frame() {
-    // TODO(crook): hacer 60 FPS verdaderos.
-    SDL_Delay(1000 / 60);
-}
-
 bool Game::start() {
-    while (1) {
-        frame += 1;
+    constexpr std::chrono::duration<double> dt(1.f / 60.f);
+    TimerIterator iterator(dt);
 
+    while (1) {
         bool quit = send_events();
         get_state();
         draw_state();
         play_sounds();
 
-        if (quit) {
-            return true;
-        } else {
-            wait_next_frame();
-        }
+        if (quit) return true;
+
+        iterator.next();
     }
 }

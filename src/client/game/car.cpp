@@ -52,7 +52,7 @@ int Car::get_vol() const {
 
 void Car::sound_crash() {
     // Atenuar el sonido basado en que tan lejos esta de la camara.
-    if (game.frame % 120 != 0) return;
+    // if (game.frame % 120 != 0) return;
 
     game.mixer.PlayChannel(id, game.assets.sound_crash);
     game.mixer.SetVolume(id, get_vol());
