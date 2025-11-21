@@ -47,6 +47,12 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     std::vector<CarStaticInfo> carTypes;
     int selectedCarIndex;
 
+    QLabel* speedValueLabel;
+    QLabel* accelValueLabel;
+    QLabel* healthValueLabel;
+    QLabel* massValueLabel;
+    QLabel* controlValueLabel;
+
     // UI Components
     QVBoxLayout* mainLayout;
     QWidget* carCardsContainer;
@@ -64,4 +70,26 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
     QPushButton* confirmButton;
     QPushButton* cancelButton;
+
+    QString getCarImagePath(CarSpriteType carType) {
+        // Mapear tipos de auto a números de imagen
+        std::unordered_map<CarSpriteType, int> carImageMap = {
+            {CarSpriteType::Speedster, 1}, {CarSpriteType::Tank, 2},
+            {CarSpriteType::Drifter, 3},   {CarSpriteType::Rocket, 4},
+            {CarSpriteType::Classic, 5},   {CarSpriteType::Offroad, 6},
+            {CarSpriteType::Ghost, 7}};
+
+        int imageNumber = 1;  // Default
+
+        auto it = carImageMap.find(carType);
+        if (it != carImageMap.end()) {
+            imageNumber = it->second;
+        }
+
+        // Ruta a las imágenes - asumiendo que están en assets/cars/
+        return QString("assets/cars/car%1.png").arg(imageNumber);
+    }
+
+    QProgressBar* createMiniStatBar(float value);
+    QLabel* carDetailImageLabel;
 };

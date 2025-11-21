@@ -3,6 +3,7 @@
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <vector>
 
 #include "client/qt/theme_manager.h"
 #include "client/qt/ui/CarSprite.h"
@@ -191,14 +192,16 @@ void WaitingWindow::updateStatusMessage() {
     // Verificar si todos están listos
     bool allReady = true;
     for (const auto& p : currentPlayers) {
-        if (!p.isReady) allReady = false;
+        if (!p.isReady) {
+            allReady = false;
+        }
     }
 
     if (allReady && currentPlayers.size() >= 2) {
-        statusLabel->setText(
-            "🏁 ¡Todos listos! La carrera comenzará pronto...");
+        statusLabel->setText("🏁 ¡Todos listos! La carrera comenzará pronto...");
         statusLabel->setStyleSheet(
-            "color: #27ae60; font-size: 14px; font-weight: bold;");
+            QString("color: #27ae60; font-size: 14px; ") +
+            "font-weight: bold;");
 
         // Emitir señal para que el padre inicie el juego
         // emit startGameRequested();

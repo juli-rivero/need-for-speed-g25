@@ -5,15 +5,17 @@
 
 #include "editor/map_item.h"
 
+class QGraphicsSceneWheelEvent;
+
 // Claves para almacenar datos en QGraphicsItem
 enum ItemDataKey {
-    ItemTypeKey = 0,       // Tipo de item (checkpoint/hint)
+    ItemTypeKey = 0,       // Tipo de item (checkpoint)
     ItemIdKey = 1,         // ID del item
     CheckpointTypeKey = 2  // Tipo de checkpoint (start/normal/finish)
 };
 
 // Valores para ItemTypeKey
-enum ItemTypeValue { CheckpointItemType = 100, HintItemType = 101 };
+enum ItemTypeValue { CheckpointItemType = 100 };
 
 class CheckpointItem : public MapItem {
    public:
@@ -44,6 +46,7 @@ class CheckpointItem : public MapItem {
     void mousePressEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseMoveEvent(QGraphicsSceneMouseEvent* event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent* event) override;
+    void wheelEvent(QGraphicsSceneWheelEvent* event) override;
 
    private:
     int checkpointId;
@@ -52,6 +55,9 @@ class CheckpointItem : public MapItem {
     float width;     // Ancho de la franja
     bool dragging;
     QPointF dragStartPos;
+    bool rotating;
+    QPointF mouseStart;
+    float rotationStart;
 
     QColor getColor() const;
     QString getLabel() const;
