@@ -45,9 +45,7 @@ class GameSessionFacade : public Thread {
     void useNitro(PlayerId id);
 
 #if OFFLINE
-    WorldSnapshot getSnapshot() const {
-        return match ? match->getSnapshot() : WorldSnapshot{};
-    }
+    WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
 #endif
     StaticSnapshot getStaticSnapshot() const {
         return match.getStaticSnapshot();

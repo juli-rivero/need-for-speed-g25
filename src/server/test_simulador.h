@@ -178,7 +178,7 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
                      [&](const PlayerSnapshot& p) { return p.id == localId; });
     if (it == players.end()) return;
 
-    int nextCP = it->raceProgress.nextCheckpoint;
+    uint32_t nextCP = it->raceProgress.nextCheckpoint;
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
@@ -222,7 +222,7 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
 // }
 
 static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
-                     const CarStaticInfo& carStat) {
+                     const float maxSpeed) {
     float uiX = 20.0f;
     float uiY = 20.0f;
 
@@ -238,7 +238,7 @@ static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
     SDL_RenderDrawRectF(r, &bgH);
 
     // velocidad
-    float speedRatio = std::clamp(carDyn.speed / carStat.maxSpeed, 0.0f, 1.0f);
+    float speedRatio = std::clamp(carDyn.speed / maxSpeed, 0.0f, 1.0f);
     SDL_FRect bgS = {uiX, uiY + 30.0f, 200.0f, 20.0f};
     SDL_FRect fgS = {uiX, uiY + 30.0f, 200.0f * speedRatio, 20.0f};
     SDL_SetRenderDrawColor(r, 60, 60, 60, 255);
@@ -249,7 +249,7 @@ static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
     SDL_RenderDrawRectF(r, &bgS);
 }
 
-int test() {
+inline int test(const YamlGameConfig& cfg) {
     try {
         if (SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER) != 0) {
             std::cerr << "SDL_Init error: " << SDL_GetError() << "\n";
@@ -265,22 +265,18 @@ int test() {
         SDL_Renderer* renderer =
             SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
-        // --- configuración INICIAL y crear partida simple ---
-        YamlGameConfig cfg("assets/config.yaml");
-
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         RaceDefinition race{"LibertyCity",
                             "assets/liberty_city_circuito1.yaml"};
-        PlayerConfig player{1, "Tester", "Speedster"};
-        PlayerConfig player2{2, "Ghost", "Ghost"};
+        PlayerConfig player{1, "Tester", CarType::Speedster};
+        PlayerConfig player2{2, "Ghost", CarType::Ghost};
         std::vector<RaceDefinition> races{race};
         std::vector<PlayerConfig> players{player, player2};
 
-        GameSessionFacade game(cfg);
-        game.start(races,
-                   players);  // EMPEZAR PARTIDA EN EL LOBBY -> CAMBIAR A SDL
-
+        GameSessionFacade game(cfg, races, players);
         auto stat = game.getStaticSnapshot();
+        game.start();  // EMPEZAR PARTIDA EN EL LOBBY -> CAMBIAR A SDL
+
         bool running = true;
 
         TTF_Font* font = TTF_OpenFont("assets/fonts/OpenSans-Regular.ttf", 16);
@@ -377,13 +373,8 @@ int test() {
             for (const auto& ps : dyn.players) {
                 const auto& carDyn = ps.car;
 
-                // Buscar info estática del auto correspondiente
-                auto itStat = std::find_if(stat.cars.begin(), stat.cars.end(),
-                                           [&](const CarStaticInfo& c) {
-                                               return carDyn.type == c.type;
-                                           });
-                if (itStat == stat.cars.end()) continue;
-                const auto& carStat = *itStat;
+                const auto& carStat =
+                    cfg.getCarStaticStatsMap().at(ps.car.type);
 
                 float px = carDyn.x * PPM - camX;
                 float py = carDyn.y * PPM - camY;
@@ -485,14 +476,9 @@ int test() {
                 }
             }
 
-            // Dibujar UI (vida y velocidad) del jugador local
-            auto itStatLocal = std::find_if(stat.cars.begin(), stat.cars.end(),
-                                            [&](const CarStaticInfo& c) {
-                                                return c.type == local.car.type;
-                                            });
-            if (itStatLocal != stat.cars.end()) {
-                renderUI(renderer, local.car, *itStatLocal);
-            }
+            auto localCarStat = cfg.getCarStaticStatsMap().at(local.car.type);
+
+            renderUI(renderer, local.car, localCarStat.maxSpeed);
             renderMiniHUD(renderer, font, dyn);
             SDL_RenderPresent(renderer);
             SDL_Delay(static_cast<int>((DT * 1000)));

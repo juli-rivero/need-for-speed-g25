@@ -9,8 +9,7 @@
 using spdlog::stdout_color_mt;
 
 UserSetup::UserSetup(const std::string& name, const PlayerId id)
-    : game_config(static_cast<PlayerId>(id), name, YamlGameConfig::DefaultCar) {
-}
+    : game_config(id, name, YamlGameConfig::DefaultCar) {}
 
 void Session::Listener::subscribe(Session& s) {
     common::Listener<Session::Listener>::subscribe(s.emitter);
@@ -68,30 +67,12 @@ bool Session::in_game() const { return game != nullptr; }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 bool Session::empty() const { return users_setup.empty(); }
 
-std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
-    const auto cars = yaml_config.getCarTypes();
-    std::vector<CarStaticInfo> types_of_static_cars;
-    for (const auto& car : cars) {
-        types_of_static_cars.push_back({
-            .type = YamlGameConfig::getCarSpriteType(car.name),
-            .name = car.name,
-            .description = car.description,
-            .maxSpeed = car.maxSpeed,
-            .acceleration = car.acceleration,
-            .mass = car.mass,
-            .control = car.control,
-            .health = car.maxHealth,
-        });
-    }
-    return types_of_static_cars;
-}
-
-void Session::set_car(const PlayerId client_id, const std::string& car_name) {
+void Session::set_car(const PlayerId client_id, const CarType& car_name) {
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
     if (not users_setup.contains(client_id))
         throw std::runtime_error("Client have not configuration");
-    users_setup.at(client_id).game_config.carTypeName = car_name;
+    users_setup.at(client_id).game_config.carType = car_name;
     notify_change();
 }
 
@@ -155,8 +136,7 @@ void Session::notify_change() {
         players.push_back({
             .id = id,
             .name = player.game_config.name,
-            .carType = YamlGameConfig::getCarSpriteType(
-                player.game_config.carTypeName),
+            .carType = player.game_config.carType,
             .isReady = player.ready,
             .isHost = id == creator,
         });

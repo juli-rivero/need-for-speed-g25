@@ -12,20 +12,6 @@ struct PlayerInput {
     TurnDirection turn{TurnDirection::None};
 };
 
-struct WallInfo {
-    int id;
-    float x, y;
-    float w, h;
-};
-
-struct BridgeInfo {
-    int id;
-    float lowerX, lowerY;
-    float upperX, upperY;
-    float w, h;
-    bool driveable;
-};
-
 /*
 // snapshot estático (solo al empezar la partida)
 struct StaticSnapshot {

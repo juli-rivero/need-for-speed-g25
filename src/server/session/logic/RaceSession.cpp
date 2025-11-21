@@ -10,7 +10,6 @@
 RaceSession::RaceSession(
     const YamlGameConfig& cfg, CityId city,
     std::vector<std::unique_ptr<Checkpoint>> checkpoints,
-    const std::vector<std::shared_ptr<Car>>& playersCars,
     const std::vector<PlayerId>& playerIds,
     std::vector<SpawnPoint> spawn_points,
     std::unordered_map<PlayerId, float> initialPenaltiesForThisRace)
@@ -18,12 +17,11 @@ RaceSession::RaceSession(
       _city(city),
       _checkpoints(std::move(checkpoints)),
       _spawnPoints(std::move(spawn_points)) {
-    _players.reserve(playersCars.size());
-    for (size_t i = 0; i < playersCars.size(); ++i) {
+    _players.reserve(playerIds.size());
+    for (const PlayerId id : playerIds) {
         PlayerRaceData prd;
-        prd.id = playerIds[i];
-        prd.car = playersCars[i];
-        prd.penaltyTime = initialPenaltiesForThisRace[prd.id];
+        prd.id = id;
+        prd.penaltyTime = initialPenaltiesForThisRace[id];
         _players.push_back(std::move(prd));
     }
     orderCheckpointsByOrder();

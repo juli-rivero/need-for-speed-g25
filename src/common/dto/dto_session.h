@@ -22,7 +22,7 @@ struct LeaveRequest {};
 struct LeaveResponse {};
 
 struct ChooseCarRequest {
-    std::string car_name;
+    CarType car_type;
 };
 
 struct SessionSnapshot {

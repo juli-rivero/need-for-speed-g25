@@ -12,9 +12,9 @@ struct SpawnPoint {
     float x, y, angle;
 };
 struct PlayerConfig {
-    PlayerId id;              // id único del jugador
-    std::string name;         // nombre visible
-    std::string carTypeName;  // nombre del tipo de auto (Speedster, Tank, etc.)
+    PlayerId id;       // id único del jugador
+    std::string name;  // nombre visible
+    CarType carType;   // nombre del tipo de auto (Speedster, Tank, etc.)
 };
 
 struct PlayerResult {

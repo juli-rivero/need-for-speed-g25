@@ -27,6 +27,13 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, SessionInfo& s) {
     p >> s.currentPlayers >> s.status;
     return p;
 }
+ProtocolSender& operator<<(ProtocolSender& p, const CarDisplayInfo& s) {
+    return p << s.name << s.description;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CarDisplayInfo& s) {
+    return p >> s.name >> s.description;
+}
 
 ProtocolSender& operator<<(ProtocolSender& p, const PlayerInfo& s) {
     p << s.id;
@@ -46,28 +53,30 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, PlayerInfo& s) {
     return p;
 }
 
-ProtocolSender& operator<<(ProtocolSender& p, const CarStaticInfo& s) {
-    p << s.type;
-    p << s.name;
-    p << s.description;
-    p << s.maxSpeed;
-    p << s.acceleration;
-    p << s.mass;
-    p << s.control;
-    p << s.health;
+ProtocolSender& operator<<(ProtocolSender& p, const CarStaticStats& s) {
+    p << s.maxSpeed << s.acceleration << s.mass << s.control << s.maxHealth;
+    p << s.nitroMultiplier << s.nitroDuration << s.nitroCooldown;
+    p << s.width << s.height;
+    p << s.density << s.friction << s.restitution << s.linearDamping
+      << s.angularDamping;
     return p;
 }
 
-ProtocolReceiver& operator>>(ProtocolReceiver& p, CarStaticInfo& s) {
-    p >> s.type;
-    p >> s.name;
-    p >> s.description;
-    p >> s.maxSpeed;
-    p >> s.acceleration;
-    p >> s.mass;
-    p >> s.control;
-    p >> s.health;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CarStaticStats& s) {
+    p >> s.maxSpeed >> s.acceleration >> s.mass >> s.control >> s.maxHealth;
+    p >> s.nitroMultiplier >> s.nitroDuration >> s.nitroCooldown;
+    p >> s.width >> s.height;
+    p >> s.density >> s.friction >> s.restitution >> s.linearDamping >>
+        s.angularDamping;
     return p;
+}
+
+ProtocolSender& operator<<(ProtocolSender& p, const CarInfo& s) {
+    return p << s.type << s.display << s.stats;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CarInfo& s) {
+    return p >> s.type >> s.display >> s.stats;
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const CollisionSimple& s) {
@@ -214,18 +223,38 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CheckpointInfo& s) {
     return p;
 }
 
+ProtocolSender& operator<<(ProtocolSender& p, const WallInfo& s) {
+    return p << s.x << s.y << s.w << s.h;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, WallInfo& s) {
+    return p >> s.x >> s.y >> s.w >> s.h;
+}
+
+ProtocolSender& operator<<(ProtocolSender& p, const BridgeInfo& s) {
+    p << s.lowerX << s.lowerY << s.upperX << s.upperY;
+    p << s.w << s.h;
+    p << s.driveable;
+    return p;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, BridgeInfo& s) {
+    p >> s.lowerX >> s.lowerY >> s.upperX >> s.upperY;
+    p >> s.w >> s.h;
+    p >> s.driveable;
+    return p;
+}
+
 ProtocolSender& operator<<(ProtocolSender& p, const StaticSnapshot& s) {
     p << s.race;
-    p << s.checkpoints;
-    p << s.spawns;
+    p << s.checkpoints << s.spawns << s.walls << s.bridges;
     p << s.players;
     return p;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StaticSnapshot& s) {
     p >> s.race;
-    p >> s.checkpoints;
-    p >> s.spawns;
+    p >> s.checkpoints >> s.spawns >> s.walls >> s.bridges;
     p >> s.players;
     return p;
 }

@@ -15,8 +15,6 @@
 struct SpawnPoint;
 struct PlayerRaceData {
     PlayerId id{};
-    std::shared_ptr<Car>
-        car;  // modelo lógico del auto (compartido con GameWorld)
     std::size_t nextCheckpoint{0};
     bool finished{false};
     bool disqualified{false};
@@ -29,7 +27,6 @@ class RaceSession {
     RaceSession(
         const YamlGameConfig& cfg, CityId city,
         std::vector<std::unique_ptr<Checkpoint>> checkpoints,
-        const std::vector<std::shared_ptr<Car>>& playersCars,
         const std::vector<PlayerId>& playerIds,
         std::vector<SpawnPoint> spawn_points,
         std::unordered_map<PlayerId, float> initialPenaltiesForThisRace);
@@ -60,16 +57,7 @@ class RaceSession {
         return _players;
     }
     RaceProgressSnapshot getProgressForPlayer(PlayerId id) const;
-    const std::vector<std::shared_ptr<Car>>& getCars() const {
-        static std::vector<std::shared_ptr<Car>> carsCache;
-        carsCache.clear();
-        for (const auto& p : _players) {
-            if (p.car) {
-                carsCache.push_back(p.car);
-            }
-        }
-        return carsCache;
-    }
+
     const std::vector<SpawnPoint>& getSpawnPoints() const {
         return _spawnPoints;
     }

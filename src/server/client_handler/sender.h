@@ -15,7 +15,7 @@
 struct Api {
     virtual void reply_search(const std::vector<SessionInfo>&) = 0;
     virtual void reply_joined(const SessionInfo& session,
-                              const std::vector<CarStaticInfo>& carTypes) = 0;
+                              const std::vector<CarInfo>& carTypes) = 0;
     virtual void reply_left() = 0;
     virtual void reply_error(const std::string&) = 0;
 
@@ -50,7 +50,7 @@ class Sender final : public Thread, public Api {
 
     void reply_search(const std::vector<SessionInfo>&) override;
     void reply_joined(const SessionInfo& session,
-                      const std::vector<CarStaticInfo>& carTypes) override;
+                      const std::vector<CarInfo>& carTypes) override;
     void reply_left() override;
     void reply_error(const std::string&) override;
 
