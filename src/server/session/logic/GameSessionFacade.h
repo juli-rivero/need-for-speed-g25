@@ -1,7 +1,5 @@
 #pragma once
 
-#include <memory>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -15,25 +13,22 @@
 class GameSessionFacade : public Thread {
    private:
     Box2DPhysicsWorld world;
-    const YamlGameConfig& config;
-    std::unique_ptr<MatchSession> match;
-    std::unordered_map<PlayerId, PlayerInput> inputStates;
-    using Thread::start;
+    MatchSession match;
 
     Queue<std::pair<PlayerId, CarInput>> queue_actions;
 
    public:
-    void start(const std::vector<RaceDefinition>& races,
-               const std::vector<PlayerConfig>& players);
-
     void run() override;
 
     void stop() override;
 
-    explicit GameSessionFacade(const YamlGameConfig& configPath);
+    explicit GameSessionFacade(const YamlGameConfig& configPath,
+                               const std::vector<RaceDefinition>& races,
+                               const std::vector<PlayerConfig>& players);
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
         virtual void on_snapshot(const WorldSnapshot&) = 0;
+        virtual void on_collision_event(const CollisionEvent&) = 0;
 
        protected:
         void subscribe(GameSessionFacade&);
@@ -50,13 +45,11 @@ class GameSessionFacade : public Thread {
     void useNitro(PlayerId id);
 
 #if OFFLINE
-    WorldSnapshot getSnapshot() const {
-        return match ? match->getSnapshot() : WorldSnapshot{};
-    }
-    StaticSnapshot getStaticSnapshot() const {
-        return match ? match->getStaticSnapshot() : StaticSnapshot{};
-    }
+    WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
 #endif
+    StaticSnapshot getStaticSnapshot() const {
+        return match.getStaticSnapshot();
+    }
 
    private:
     common::Emitter<GameSessionFacade::Listener> emitter;

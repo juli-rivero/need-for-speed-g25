@@ -2,46 +2,48 @@
 #include "GameSessionFacade.h"
 
 #include <chrono>
-#include <iostream>
-#include <memory>
-#include <string>
 #include <vector>
-using std::chrono_literals::operator""ms;
-GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath)
-    : config(configPath) {}
 
-void GameSessionFacade::start(const std::vector<RaceDefinition>& races,
-                              const std::vector<PlayerConfig>& players) {
-    match = std::make_unique<MatchSession>(config, races, world, players);
-    match->start();
-    Thread::start();
-}
+#include "common/timer_iterator.h"
+
+using std::chrono_literals::operator""ms;
+
+GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
+                                     const std::vector<RaceDefinition>& races,
+                                     const std::vector<PlayerConfig>& players)
+    : world(), match(configPath, races, world, players) {}
+
 void GameSessionFacade::run() {
-    const float dt = 1.f / 60.f;
+    constexpr std::chrono::duration<double> dt(1.f / 60.f);
+
+    TimerIterator iterator(dt);
+
+    size_t passed_iterations = 0;
 
     while (should_keep_running()) {
         std::pair<PlayerId, CarInput> input;
         while (queue_actions.try_pop(input)) {
-            match->applyInput(input.first, input.second);
+            match.applyInput(input.first, input.second);
         }
 
-        world.step(dt);
-        match->update(dt);
+        world.step(passed_iterations * dt.count());
+        match.update(passed_iterations * dt.count());
 
-        emitter.dispatch(&Listener::on_snapshot, match->getSnapshot());
-        auto& cm = world.getCollisionManager();
-        if (cm.hasCollisionEvent()) {
-            CollisionPacket packet;
-            packet.events = cm.consumeEvents();
-            // TODO(juli): MANDAR ACA
+        emitter.dispatch(&Listener::on_snapshot, match.getSnapshot());
+
+        auto& collisionManager = world.getCollisionManager();
+        while (collisionManager.hasCollisionEvent()) {
+            const CollisionEvent& collision = collisionManager.consumeEvent();
+            emitter.dispatch(&Listener::on_collision_event, collision);
         }
+
         // TODO(juli)
         //  if (match->hasPendingEndRacePacket()) {
         //      auto pkt = match->consumeEndRacePacket();
         //      onRaceFinished(pkt);
         //  }
 
-        std::this_thread::sleep_for(16ms);
+        passed_iterations = iterator.next();
     }
 }
 

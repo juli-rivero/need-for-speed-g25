@@ -134,7 +134,7 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
 }
 
 void SearchingWindow::on_join_response(const SessionInfo&,
-                                       const std::vector<CarStaticInfo>&) {
+                                       const std::vector<CarInfo>&) {
     spdlog::trace("unido a partida");
 
     QMetaObject::invokeMethod(

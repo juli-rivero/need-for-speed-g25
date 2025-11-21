@@ -1,21 +1,23 @@
 #include "common/dto/dto_session.h"
 
-namespace dto_session {
+#include "common/dto/structs_serializable.h"
+
+using namespace dto_session;
 
 // StartRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StartRequest& e) {
-    p >> e.ready;
-    return p;
+    return p >> e.ready;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const StartRequest& e) {
-    p << e.ready;
-    return p;
+    return p << e.ready;
 }
 
 // StartResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, StartResponse&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const StartResponse&) {
-    return p;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, StartResponse& r) {
+    return p >> r.map >> r.info;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const StartResponse& r) {
+    return p << r.map << r.info;
 }
 
 // LeaveRequest SERIALIZABLE
@@ -29,40 +31,16 @@ ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
 
 // ChooseCarRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, ChooseCarRequest& r) {
-    p >> r.car_name;
-    return p;
+    return p >> r.car_type;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const ChooseCarRequest& r) {
-    p << r.car_name;
-    return p;
+    return p << r.car_type;
 }
 
 // SessionSnapshot SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, SessionSnapshot& r) {
-    SessionConfig& session = r.session;
-    p >> session.city >> session.maxPlayers >> session.name >>
-        session.raceCount;
-
-    auto& players = r.players;
-    players.resize(p.get<size_t>());
-    for (auto& player : players) {
-        player.carType = static_cast<CarSpriteType>(p.get<uint8_t>());
-        p >> player.id >> player.name >> player.isHost >> player.isReady;
-    }
-    return p;
+    return p >> r.session >> r.players;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const SessionSnapshot& r) {
-    const SessionConfig& session = r.session;
-    p << session.city << session.maxPlayers << session.name
-      << session.raceCount;
-
-    const auto& players = r.players;
-    p << players.size();
-    for (const auto& player : players) {
-        p << static_cast<uint8_t>(player.carType);
-        p << player.id << player.name << player.isHost << player.isReady;
-    }
-    return p;
+    return p << r.session << r.players;
 }
-
-}  // namespace dto_session

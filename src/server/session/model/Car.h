@@ -2,16 +2,14 @@
 
 #include <algorithm>
 #include <cmath>
-#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
 
 #include "../physics/IPhysicalBody.h"
 #include "Entity.h"
-#include "common/structs.h"
 #include "server/session/logic/types.h"
-#include "server/session/model/CarType.h"
+#include "server/session/physics/IPhysicalBody.h"
 #include "spdlog/spdlog.h"
 
 enum class CarInput {
@@ -35,7 +33,6 @@ struct UpgradeStats {
 
 class Car : public Entity {
    private:
-    std::string name;
     RenderLayer layer = RenderLayer::UNDER;
 
     bool accelerating{false};
@@ -46,47 +43,139 @@ class Car : public Entity {
     float nitroTimeRemaining = 0.0f;
     float nitroCooldownRemaining = 0.0f;
 
-    const CarType& carType;
+    const CarStaticStats staticStats;
 
     float health;
-    float maxHealth;
 
     mutable UpgradeStats upgrades;
 
     std::shared_ptr<IPhysicalBody> body;
 
+    const CarType carType;
+
    public:
-    Car(int id, const std::string& name, const CarType& type,
+    Car(const int id, const CarType carType, const CarStaticStats& staticStats,
         std::shared_ptr<IPhysicalBody> body)
         : Entity(id, EntityType::Car),
-          name(name),
-          carType(type),
-          health(type.maxHealth),
-          maxHealth(type.maxHealth),
-          body(std::move(body)) {}
-    UpgradeStats& getUpgrades() const { return upgrades; }
-    const CarType& getType() const { return carType; }  // acceso seguro
-    Vec2 getPosition() const { return body->getPosition(); }
-    float getAngle() const { return body->getAngle(); }
-    Vec2 getVelocity() const { return body->getLinearVelocity(); }
-    float getHealth() const { return health; }
-    float getMaxHealth() const { return maxHealth; }
+          staticStats(staticStats),
+          health(staticStats.maxHealth),
+          body(std::move(body)),
+          carType(carType) {}
     RenderLayer getLayer() const { return layer; }
     void setLayer(RenderLayer l) { layer = l; }
-    void setHealth(float h) { health = std::clamp(h, 0.0f, maxHealth); }
 
-    void addHealth(float delta) {
-        health = std::clamp(health + delta, 0.0f, maxHealth);
+   private:
+    Vec2 getDirection() const {
+        return {std::cos(body->getAngle()), std::sin(body->getAngle())};
     }
 
-    void setMaxHealth(float h) {
-        maxHealth = h;
-        if (health > maxHealth) health = maxHealth;
+    void accelerate() {
+        float accel = staticStats.acceleration + upgrades.bonusAcceleration;
+        float force =
+            accel * (nitroActive ? staticStats.nitroMultiplier : 1.0f);
+        Vec2 dir = getDirection();
+        body->applyForce(dir.x * force, dir.y * force);
+
+        Vec2 vel = body->getLinearVelocity();
+        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+        float maxSpeed = staticStats.maxSpeed + upgrades.bonusMaxSpeed;
+        if (speed > maxSpeed) {
+            float scale = staticStats.maxSpeed / speed;
+            body->setLinearVelocity(vel.x * scale, vel.y * scale);
+        }
     }
 
-    void increaseMaxHealth(float delta) {
-        maxHealth += delta;
-        health = std::min(health + delta, maxHealth);
+    void brake() {
+        Vec2 dir = getDirection();
+        float force = staticStats.acceleration *
+                      0.5f;  // la mitad que acelerar hacia adelante
+        body->applyForce(-dir.x * force, -dir.y * force);
+    }
+
+    void activateNitro() {
+        if (!nitroActive && nitroCooldownRemaining <= 0.0f) {
+            nitroActive = true;
+            nitroTimeRemaining = staticStats.nitroDuration;
+        }
+    }
+
+    void killLateralVelocity() {
+        Vec2 vel = body->getLinearVelocity();
+        Vec2 dir = getDirection();
+        Vec2 lateralNormal = {-dir.y, dir.x};
+
+        float lateralSpeed = vel.x * lateralNormal.x + vel.y * lateralNormal.y;
+
+        Vec2 lateralVel = {lateralNormal.x * lateralSpeed,
+                           lateralNormal.y * lateralSpeed};
+
+        body->setLinearVelocity(vel.x - lateralVel.x, vel.y - lateralVel.y);
+    }
+
+    void turn() {
+        // la magnitud de giro depende de la velocidad
+        Vec2 vel = body->getLinearVelocity();
+        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+
+        if (speed < 0.5f) return;  // NO girasi está casi quieto
+
+        float steerStrength = staticStats.control;
+        float turnRate = steerStrength * (speed / staticStats.maxSpeed);
+
+        if (turning == TurnDirection::Left)
+            body->setAngularVelocity(-turnRate * 5.0f);
+        else if (turning == TurnDirection::Right)
+            body->setAngularVelocity(turnRate * 5.0f);
+        else
+            body->setAngularVelocity(0.0f);
+    }
+
+    void updateNitro(const float dt) {
+        if (nitroActive) nitroTimeRemaining -= dt;
+        if (nitroActive && nitroTimeRemaining <= 0.0f) {
+            nitroActive = false;
+            nitroCooldownRemaining = staticStats.nitroCooldown;
+        }
+        if (nitroCooldownRemaining >= 0.0f) {
+            nitroCooldownRemaining -= dt;
+        }
+    }
+
+   public:
+    void damage(float amount) { health -= std::max(0.0f, amount); }
+
+    bool isDestroyed() const { return health <= 0; }
+
+    void update(float dt) {
+        updateNitro(dt);
+
+        if (accelerating) accelerate();
+        if (braking) brake();
+
+        killLateralVelocity();
+        // para simular traccion delantera de un auto
+        turn();
+    }
+
+    const CarStaticStats& getStaticStats() const { return staticStats; }
+
+    CarSnapshot getSnapshot() const {
+        const auto [x, y] = body->getPosition();
+        const auto [vx, vy] = body->getLinearVelocity();
+        return {
+            .type = carType,
+            .layer = layer,
+            .x = x,
+            .y = y,
+            .vx = vx,
+            .vy = vy,
+            .angle = body->getAngle(),
+            .speed = std::sqrt(vx * vx + vy * vy),
+            .health = health,
+            .nitroActive = nitroActive,
+            .braking = braking,
+            .accelerating = accelerating,
+        };
     }
 
     void applyInput(const CarInput action) {
@@ -118,100 +207,41 @@ class Car : public Entity {
                 braking = false;
                 break;
             case CarInput::StartUsingNitro:
-                nitroActive = !nitroActive;
+                activateNitro();
                 break;
             default:
                 throw std::runtime_error("Invalid CarActionType");
         }
     }
 
-    bool isAccelerating() const { return accelerating; }
-    bool isBraking() const { return braking; }
-    void accelerate() {
-        float accel = carType.acceleration + upgrades.bonusAcceleration;
-        float force = accel * (nitroActive ? carType.nitroMultiplier : 1.0f);
-        Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
-        body->applyForce(dir.x * force, dir.y * force);
+    // TODO(elvis): esto no es de upgrades?
+    // Fijate si te gusta mas usar upgradeStats como valores o directamente
+    // modificar el CarStaticStats (hacerlo no const) para no andar sumando los
+    // upgrades todo el tiempo, y utilizar los tiempos de penalizacion de otra
+    // manera, por ejemplo, una sola variable que suma los tiempos de
+    // penalizacion para casos rapidos como los snapshots o comparacion entre
+    // los atributos del coche con los del yaml para casos aislados como el fin
+    // de partida en caso de que se quiera mostrar cada penalizacion (¿se quiere
+    // eso?)
+    void upgrade(const UpgradeChoice up) {
+        switch (up.stat) {
+            case UpgradeStat::MaxSpeed:
+                upgrades.bonusMaxSpeed += up.delta;
+                break;
 
-        Vec2 vel = body->getLinearVelocity();
-        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
-        float maxSpeed = carType.maxSpeed + upgrades.bonusMaxSpeed;
-        if (speed > maxSpeed) {
-            float scale = carType.maxSpeed / speed;
-            body->setLinearVelocity(vel.x * scale, vel.y * scale);
+            case UpgradeStat::Acceleration:
+                upgrades.bonusAcceleration += up.delta;
+                break;
+
+            case UpgradeStat::Health:
+                upgrades.bonusHealth += up.delta;
+                health += up.delta;  // TODO(elvis): no se resetea la vida en
+                                     // cada carrera?
+                break;
+
+            case UpgradeStat::Nitro:
+                upgrades.bonusNitro += up.delta;
+                break;
         }
-    }
-
-    void brake() {
-        Vec2 dir = {std::cos(getAngle()), std::sin(getAngle())};
-        float force = carType.acceleration *
-                      0.5f;  // la mitad que acelerar hacia adelante
-        body->applyForce(-dir.x * force, -dir.y * force);
-    }
-
-    void turnLeft() { body->applyTorque(-carType.control * 20.0f); }
-
-    void turnRight() { body->applyTorque(carType.control * 20.0f); }
-
-    void damage(float amount) { setHealth(health - amount); }
-    void activateNitro(bool active) {
-        if (active) {
-            if (!nitroActive && nitroCooldownRemaining <= 0.0f) {
-                nitroActive = true;
-                nitroTimeRemaining = carType.nitroDuration;
-            }
-        } else {
-            nitroActive = false;
-        }
-    }
-    bool isDestroyed() const { return health <= 0; }
-    bool isNitroActive() const { return nitroActive; }
-    void killLateralVelocity() {
-        Vec2 vel = body->getLinearVelocity();
-        Vec2 rightNormal = {-std::sin(getAngle()), std::cos(getAngle())};
-
-        float lateralSpeed = vel.x * rightNormal.x + vel.y * rightNormal.y;
-
-        Vec2 lateralVel = {rightNormal.x * lateralSpeed,
-                           rightNormal.y * lateralSpeed};
-
-        body->setLinearVelocity(vel.x - lateralVel.x, vel.y - lateralVel.y);
-    }
-    void turn() {
-        // la magnitud de giro depende de la velocidad
-        Vec2 vel = body->getLinearVelocity();
-        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
-
-        if (speed < 0.5f) return;  // NO girasi está casi quieto
-
-        float steerStrength = carType.control;
-        float turnRate = steerStrength * (speed / carType.maxSpeed);
-
-        if (turning == TurnDirection::Left)
-            body->setAngularVelocity(-turnRate * 5.0f);
-        else if (turning == TurnDirection::Right)
-            body->setAngularVelocity(turnRate * 5.0f);
-        else
-            body->setAngularVelocity(0.0f);
-    }
-    void update(float dt) {
-        if (nitroActive) {
-            nitroTimeRemaining -= dt;
-            if (nitroTimeRemaining <= 0.0f) {
-                nitroActive = false;
-                nitroCooldownRemaining = carType.nitroCooldown;
-            }
-        } else {
-            if (nitroCooldownRemaining > 0.0f) {
-                nitroCooldownRemaining -= dt;
-            }
-        }
-
-        if (accelerating) accelerate();
-        if (braking) brake();
-
-        killLateralVelocity();
-        // para simular traccion delantera de un auto
-        turn();
     }
 };
