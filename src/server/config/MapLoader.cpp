@@ -4,8 +4,10 @@
 #include <iostream>
 #include <utility>
 
+#include "../session/model/BridgeSensor.h"
 #include "../session/physics/Box2DBodyAdapter.h"
 #include "../session/physics/EntityFactory.h"
+
 static constexpr float MAP_SCALE = 0.1f;
 
 MapLoader::MapInfo MapLoader::loadFromYAML(
@@ -13,7 +15,8 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     std::vector<std::unique_ptr<Wall>>& walls,
     std::vector<std::unique_ptr<Bridge>>& bridges,
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
-    std::vector<SpawnPoint>& spawnPoints
+    std::vector<SpawnPoint>& spawnPoints,
+    std::vector<std::unique_ptr<BridgeSensor>>& bridgeSensors
 
 ) {
     std::cout << "[MapLoader] Cargando mapa desde " << yamlPath << "...\n";
@@ -93,9 +96,30 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
 
             auto bridge = factory.createBridge(world, x, y, w, h, driveable);
             bridges.push_back(std::move(bridge));
+            // Sensores
+            if (driveable && n["sensors"]) {
+                const auto& sen = n["sensors"];
 
-            std::cout << " Bridge id=" << id << " driveable=" << driveable
-                      << " pos=(" << x << "," << y << ")\n";
+                auto mk = [&](const YAML::Node& node, BridgeSensorType t) {
+                    float sx = node["x"].as<float>();
+                    float sy = node["y"].as<float>();
+                    float sw = node["w"].as<float>();
+                    float sh = node["h"].as<float>();
+
+                    auto sensor =
+                        factory.createBridgeSensor(world, t, sx, sy, sw, sh);
+                    bridgeSensors.push_back(std::move(sensor));
+                };
+
+                if (sen["enter_upper"])
+                    mk(sen["enter_upper"], BridgeSensorType::EnterUpper);
+
+                if (sen["leave_upper"])
+                    mk(sen["leave_upper"], BridgeSensorType::LeaveUpper);
+            }
+
+            std::cout << "Bridge id=" << id << " driveable=" << driveable
+                      << "\n";
         }
     }
 

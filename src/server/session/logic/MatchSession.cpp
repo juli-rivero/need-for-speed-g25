@@ -35,9 +35,10 @@ void MatchSession::startRace(std::size_t raceIndex) {
     std::vector<std::unique_ptr<Bridge>> bridges;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
+    std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
     std::vector<PlayerId> playerIds;
     MapLoader::loadFromYAML(_races[raceIndex].mapFile, _world, walls, bridges,
-                            checkpoints, spawnPoints);
+                            checkpoints, spawnPoints, bridgeSensors);
 
     // Si es la primera carrera, guardá muros/puentes
     if (_walls.empty()) _walls = std::move(walls);
@@ -105,6 +106,7 @@ CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
     cs.nitroActive = car->isNitroActive();
     cs.accelerating = car->isAccelerating();
     cs.braking = car->isBraking();
+    cs.layer = car->getLayer();
 
     return cs;
 }
