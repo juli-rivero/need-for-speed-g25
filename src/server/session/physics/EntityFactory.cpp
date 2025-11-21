@@ -61,3 +61,17 @@ std::unique_ptr<Bridge> EntityFactory::createBridge(Box2DPhysicsWorld& world,
                                                bridge.get());
     return bridge;
 }
+std::unique_ptr<BridgeSensor> EntityFactory::createBridgeSensor(
+    Box2DPhysicsWorld& world, BridgeSensorType type, float x, float y, float w,
+    float h) {
+    auto phys =
+        Box2DPhysicsFactory::createBridgeSensor(world.getWorldId(), x, y, w, h);
+
+    auto body = std::make_shared<Box2DBodyAdapter>(phys);
+
+    auto sensor = std::make_unique<BridgeSensor>(nextId(), type, body);
+
+    world.getCollisionManager().registerEntity(phys->getShapeId(),
+                                               sensor.get());
+    return sensor;
+}

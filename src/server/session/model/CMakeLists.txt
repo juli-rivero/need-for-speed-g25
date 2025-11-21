@@ -1,6 +1,7 @@
 target_sources(taller_server
         PUBLIC
         Bridge.h
+        BridgeSensor.h
         Car.h
         Checkpoint.h
         Player.h

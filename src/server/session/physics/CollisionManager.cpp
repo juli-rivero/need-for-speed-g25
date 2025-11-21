@@ -5,6 +5,8 @@
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
 #include "../model/Wall.h"
+#include "server/session/model/BridgeSensor.h"
+
 void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
                                               float impact) {
     if (entA->getEntityType() == EntityType::Car &&
@@ -120,6 +122,25 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
             if (raceSession && itOwner != carToPlayer.end()) {
                 PlayerId pid = itOwner->second;
                 raceSession->onCheckpointCrossed(pid, cp->getOrder());
+            }
+        } else if (eA->getEntityType() == EntityType::BridgeSensor &&
+                   eB->getEntityType() == EntityType::Car) {
+            auto* sensor = static_cast<BridgeSensor*>(eA);
+            auto* car = static_cast<Car*>(eB);
+
+            if (sensor->getType() == BridgeSensorType::EnterUpper) {
+                car->setLayer(RenderLayer::OVER);
+            } else if (sensor->getType() == BridgeSensorType::LeaveUpper) {
+                car->setLayer(RenderLayer::UNDER);
+            }
+        } else if (eA->getEntityType() == EntityType::Car &&
+                   eB->getEntityType() == EntityType::BridgeSensor) {
+            auto* car = static_cast<Car*>(eA);
+            auto* sensor = static_cast<BridgeSensor*>(eB);
+            if (sensor->getType() == BridgeSensorType::EnterUpper) {
+                car->setLayer(RenderLayer::OVER);
+            } else if (sensor->getType() == BridgeSensorType::LeaveUpper) {
+                car->setLayer(RenderLayer::UNDER);
             }
         }
     }

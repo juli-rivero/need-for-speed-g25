@@ -6,6 +6,7 @@
 #include <vector>
 
 enum class SessionStatus { Waiting, Playing, Full };
+enum class RenderLayer { UNDER = 0, OVER = 1 };
 
 #define SESSION_CONFIG_FIELDS \
     std::string name;         \
@@ -88,6 +89,7 @@ enum class RaceState { Countdown, Running, Finished };
 
 struct CarSnapshot {
     CarSpriteType type;
+    RenderLayer layer;
     float x, y;         // posición actual
     float vx, vy;       // velocidad lineal
     float angle;        // orientación (radianes)

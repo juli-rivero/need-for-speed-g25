@@ -21,4 +21,7 @@ class Box2DPhysicsFactory {
                                                           float x, float y,
                                                           float w, float h,
                                                           bool driveable);
+
+    static std::shared_ptr<Box2dPhysicsBody> createBridgeSensor(
+        b2WorldId world, float x, float y, float w, float h);
 };

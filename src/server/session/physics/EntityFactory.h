@@ -6,6 +6,7 @@
 #include "../model/Checkpoint.h"
 #include "../model/Wall.h"
 #include "Box2DPhysicsWorld.h"
+#include "server/session/model/BridgeSensor.h"
 
 class EntityFactory {
    private:
@@ -27,4 +28,8 @@ class EntityFactory {
     static std::unique_ptr<Bridge> createBridge(Box2DPhysicsWorld& world,
                                                 float x, float y, float w,
                                                 float h, bool driveable);
+    std::unique_ptr<BridgeSensor> createBridgeSensor(Box2DPhysicsWorld& world,
+                                                     BridgeSensorType type,
+                                                     float x, float y, float w,
+                                                     float h);
 };

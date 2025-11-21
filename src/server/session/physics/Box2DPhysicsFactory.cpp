@@ -84,3 +84,20 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridge(
     body->setShapeId(shape);
     return body;
 }
+std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridgeSensor(
+    b2WorldId world, float x, float y, float w, float h) {
+    b2BodyDef def = b2DefaultBodyDef();
+    def.type = b2_staticBody;
+    def.position = {x, y};
+
+    auto body = std::make_shared<Box2dPhysicsBody>(world, def);
+
+    b2Polygon box = b2MakeBox(w / 2.0f, h / 2.0f);
+    b2ShapeDef sdef = b2DefaultShapeDef();
+    sdef.isSensor = true;
+    sdef.enableSensorEvents = true;
+
+    b2ShapeId sh = b2CreatePolygonShape(body->getId(), &sdef, &box);
+    body->setShapeId(sh);
+    return body;
+}

@@ -9,7 +9,7 @@
 
 #include "../physics/IPhysicalBody.h"
 #include "Entity.h"
-#include "server/session/logic/NetworkTypes.h"
+#include "common/structs.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/CarType.h"
 #include "spdlog/spdlog.h"
@@ -36,6 +36,7 @@ struct UpgradeStats {
 class Car : public Entity {
    private:
     std::string name;
+    RenderLayer layer = RenderLayer::UNDER;
 
     bool accelerating{false};
     bool braking{false};
@@ -70,7 +71,8 @@ class Car : public Entity {
     Vec2 getVelocity() const { return body->getLinearVelocity(); }
     float getHealth() const { return health; }
     float getMaxHealth() const { return maxHealth; }
-
+    RenderLayer getLayer() const { return layer; }
+    void setLayer(RenderLayer l) { layer = l; }
     void setHealth(float h) { health = std::clamp(h, 0.0f, maxHealth); }
 
     void addHealth(float delta) {
