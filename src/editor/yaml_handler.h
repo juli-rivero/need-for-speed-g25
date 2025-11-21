@@ -6,7 +6,6 @@
 
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
-#include "editor/hint_item.h"
 
 class YamlHandler : public QObject {
     Q_OBJECT
@@ -16,10 +15,9 @@ class YamlHandler : public QObject {
 
     bool saveMap(const QString& filename,
                  const QList<CheckpointItem*>& checkpoints,
-                 const QList<HintItem*>& hints,
                  const QList<BuildingItem*>& buildings);
 
     bool loadMap(const QString& filename, QString& backgroundImagePath,
-                 QList<CheckpointItem*>& checkpoints, QList<HintItem*>& hints,
+                 QList<CheckpointItem*>& checkpoints,
                  QList<BuildingItem*>& buildings);
 };
