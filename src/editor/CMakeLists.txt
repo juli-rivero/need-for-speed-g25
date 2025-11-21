@@ -7,7 +7,6 @@ target_sources(taller_editor
     map_canvas.cpp
     yaml_handler.cpp
     checkpoint_item.cpp
-    hint_item.cpp
     building_item.cpp
 
     PUBLIC
@@ -18,7 +17,6 @@ target_sources(taller_editor
     yaml_handler.h
     map_item.h
     checkpoint_item.h
-    hint_item.h
     building_item.h
 )
 

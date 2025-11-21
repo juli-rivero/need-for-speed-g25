@@ -40,7 +40,6 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
     QLineEdit* nameEdit;
     QSpinBox* playersSpin;
     QSpinBox* racesSpin;
-    QSpinBox* lapsSpin;
     QComboBox* cityCombo;
     QPushButton* createButton;
     QPushButton* cancelButton;

@@ -120,7 +120,6 @@ void BuildingItem::paint(QPainter* painter,
         lineColor = Qt::yellow;
     }
 
-    painter->setRenderHint(QPainter::Antialiasing);
     painter->setPen(QPen(lineColor, finished ? 2 : 1));
     painter->setBrush(QBrush(fillColor));
 
