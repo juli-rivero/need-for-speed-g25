@@ -9,7 +9,7 @@
 static constexpr float MAP_SCALE = 0.1f;
 
 MapLoader::MapInfo MapLoader::loadFromYAML(
-    const std::string& yamlPath, Box2DPhysicsWorld& world,
+    const std::string& yamlPath, EntityFactory& factory,
     std::vector<std::unique_ptr<Wall>>& walls,
     std::vector<std::unique_ptr<Bridge>>& bridges,
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
@@ -48,8 +48,6 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
               << " | Gravedad: [" << info.gravity.x << ", " << info.gravity.y
               << "]\n";
 
-    EntityFactory factory;
-
     if (mapNode["walls"]) {
         for (const auto& n : mapNode["walls"]) {
             const auto& verts = n["vertices"];
@@ -77,7 +75,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             float cx = (minX + maxX) * 0.5f * MAP_SCALE;
             float cy = (minY + maxY) * 0.5f * MAP_SCALE;
 
-            auto wall = factory.createWall(world, cx, cy, w, h);
+            auto wall = factory.createWall(cx, cy, w, h);
             walls.push_back(std::move(wall));
         }
     }
@@ -91,7 +89,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             float h = n["h"].as<float>();
             bool driveable = n["driveable"] ? n["driveable"].as<bool>() : true;
 
-            auto bridge = factory.createBridge(world, x, y, w, h, driveable);
+            auto bridge = factory.createBridge(x, y, w, h, driveable);
             bridges.push_back(std::move(bridge));
 
             std::cout << " Bridge id=" << id << " driveable=" << driveable
@@ -102,8 +100,8 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     if (mapNode["checkpoints"]) {
         for (const auto& n : mapNode["checkpoints"]) {
             auto cp = factory.createCheckpoint(
-                world, n["x"].as<float>(), n["y"].as<float>(),
-                n["w"].as<float>(), n["h"].as<float>(), n["angle"].as<float>(),
+                n["x"].as<float>(), n["y"].as<float>(), n["w"].as<float>(),
+                n["h"].as<float>(), n["angle"].as<float>(),
                 n["order"].as<int>());
 
             checkpoints.push_back(std::move(cp));

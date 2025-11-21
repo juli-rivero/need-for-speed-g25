@@ -4,10 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "../session/model/Checkpoint.h"
-#include "../session/physics/Box2DPhysicsWorld.h"
 #include "server/session/model/Bridge.h"
+#include "server/session/model/Checkpoint.h"
 #include "server/session/model/Wall.h"
+#include "server/session/physics/Box2DPhysicsWorld.h"
+#include "server/session/physics/EntityFactory.h"
 #include "yaml-cpp/yaml.h"
 
 class MapLoader {
@@ -19,7 +20,7 @@ class MapLoader {
     };
 
     static MapInfo loadFromYAML(
-        const std::string& yamlPath, Box2DPhysicsWorld& world,
+        const std::string& yamlPath, EntityFactory& factory,
         std::vector<std::unique_ptr<Wall>>& walls,
         std::vector<std::unique_ptr<Bridge>>& bridges,
         std::vector<std::unique_ptr<Checkpoint>>& checkpoints,

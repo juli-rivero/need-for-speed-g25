@@ -1,19 +1,19 @@
 #include "CarSprite.h"
-std::string CarSprite::getSprite(const CarSpriteType car) {
+std::string CarSprite::getSprite(const CarType car) {
     switch (car) {
-        case CarSpriteType::Classic:
+        case CarType::Classic:
             return "🚗";
-        case CarSpriteType::Drifter:
+        case CarType::Drifter:
             return "💨";
-        case CarSpriteType::Ghost:
+        case CarType::Ghost:
             return "👻";
-        case CarSpriteType::Offroad:
+        case CarType::Offroad:
             return "🚜";
-        case CarSpriteType::Rocket:
+        case CarType::Rocket:
             return "🚀";
-        case CarSpriteType::Speedster:
+        case CarType::Speedster:
             return "🏎️";
-        case CarSpriteType::Tank:
+        case CarType::Tank:
             return "🛡️";
     }
     return "";

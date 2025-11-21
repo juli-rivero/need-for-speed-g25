@@ -61,9 +61,9 @@ void Sender::set_ready(const bool ready) {
     spdlog::trace("setting ready to {}", ready);
     requests.try_push(StartRequest{ready});
 }
-void Sender::choose_car(const std::string& car_name) {
-    spdlog::trace("choosing car {}", car_name);
-    requests.try_push(ChooseCarRequest{car_name});
+void Sender::choose_car(const CarType& car_type) {
+    spdlog::trace("choosing car {}", static_cast<int>(car_type));
+    requests.try_push(ChooseCarRequest{car_type});
 }
 
 // Game

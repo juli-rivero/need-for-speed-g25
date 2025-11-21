@@ -24,7 +24,7 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     void reset();
 
     void on_join_response(const SessionInfo&,
-                          const std::vector<CarStaticInfo>&) override;
+                          const std::vector<CarInfo>&) override;
     void on_leave_response() override;
 
    signals:
@@ -40,11 +40,11 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
    private:
     void setupUI();
-    QWidget* createCarCard(const CarStaticInfo& car, int index);
+    QWidget* createCarCard(const CarInfo& car, int index);
     QProgressBar* createStatBar(float value);
     void updateCarDetails(int carIndex);
 
-    std::vector<CarStaticInfo> carTypes;
+    std::vector<CarInfo> carTypes;
     int selectedCarIndex;
 
     // UI Components

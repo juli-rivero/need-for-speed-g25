@@ -27,7 +27,7 @@ struct SessionInfo {
 
 using PlayerId = std::uint32_t;
 
-enum class CarSpriteType {
+enum class CarType {
     Speedster,
     Tank,
     Drifter,
@@ -37,26 +37,48 @@ enum class CarSpriteType {
     Ghost
 };
 
+struct CarDisplayInfo {
+    std::string name;
+    std::string description;
+};
+
 // Estructura para representar un jugador en la sala de espera
 struct PlayerInfo {
     PlayerId id;
     std::string name;
-    CarSpriteType carType;
+    CarType carType;
     bool isReady;
     bool isHost;
 };
 
-struct CarStaticInfo {
-    CarSpriteType type;
-
-    std::string name;
-    std::string description;
-
+struct CarStaticStats {
+    // --- atributos de rendimiento ---
     float maxSpeed;
     float acceleration;
     float mass;
     float control;
-    float health;
+    float maxHealth;
+
+    // --- nitro ---
+    float nitroMultiplier;
+    float nitroDuration;
+    float nitroCooldown;
+
+    // --- físicas ---
+    float width;
+    float height;
+
+    float density;
+    float friction;
+    float restitution;
+    float linearDamping;
+    float angularDamping;
+};
+
+struct CarInfo {
+    CarType type;
+    CarDisplayInfo display;
+    CarStaticStats stats;
 };
 
 // Game
@@ -81,7 +103,7 @@ enum class MatchState { Starting, Racing, Intermission, Finished };
 enum class RaceState { Countdown, Running, Finished };
 
 struct CarSnapshot {
-    CarSpriteType type;
+    CarType type;
     float x, y;         // posición actual
     float vx, vy;       // velocidad lineal
     float angle;        // orientación (radianes)
@@ -123,10 +145,24 @@ struct CheckpointInfo {
     float h;
 };
 
+struct WallInfo {
+    float x, y;
+    float w, h;
+};
+
+struct BridgeInfo {
+    float lowerX, lowerY;
+    float upperX, upperY;
+    float w, h;
+    bool driveable;
+};
+
 struct StaticSnapshot {
     std::string race;
 
     std::vector<CheckpointInfo> checkpoints;
     std::vector<SpawnPointInfo> spawns;
+    std::vector<WallInfo> walls;
+    std::vector<BridgeInfo> bridges;
     std::vector<PlayerSnapshot> players;
 };

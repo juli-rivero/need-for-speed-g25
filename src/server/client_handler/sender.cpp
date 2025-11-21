@@ -53,7 +53,7 @@ void Sender::reply_search(const vector<SessionInfo>& info) {
 }
 
 void Sender::reply_joined(const SessionInfo& session,
-                          const vector<CarStaticInfo>& carTypes) {
+                          const vector<CarInfo>& carTypes) {
     log->trace("sending join response");
     responses.try_push(JoinResponse{session, carTypes});
 }
@@ -83,7 +83,7 @@ void Sender::send_game_static_snapshot(const StaticSnapshot& info) {
     responses.try_push(dto_game::GameStaticSnapshot{info});
 }
 
-void Sender::send_game_snapshot(float raceTimeLeft,
+void Sender::send_game_snapshot(const float raceTimeLeft,
                                 const std::vector<PlayerSnapshot>& players) {
     log->trace("sending game snapshot");
     responses.try_push(GameSnapshot{raceTimeLeft, players});

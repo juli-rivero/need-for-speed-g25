@@ -31,10 +31,10 @@ ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
 
 // ChooseCarRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, ChooseCarRequest& r) {
-    return p >> r.car_name;
+    return p >> r.car_type;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const ChooseCarRequest& r) {
-    return p << r.car_name;
+    return p << r.car_type;
 }
 
 // SessionSnapshot SERIALIZABLE

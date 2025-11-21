@@ -211,7 +211,7 @@ el widget statusLabel->setText("✅ Conectado al servidor");
 }*/
 
 void SearchingWindow::on_join_response(const SessionInfo&,
-                                       const std::vector<CarStaticInfo>&) {
+                                       const std::vector<CarInfo>&) {
     // Guardar el ID de la partida a la que nos unimos
     // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
     // request para pedirlo

@@ -63,7 +63,6 @@ class MatchSession {
     }
     MatchState state() const { return _state; }
 
-    static CarSnapshot makeCarSnapshot(const std::shared_ptr<Car>& car);
     // acceso a resultados de la última carrera
     const std::vector<PlayerResult>& lastRaceResults() const {
         return _lastResults;
