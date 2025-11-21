@@ -133,7 +133,7 @@ void CreatingWindow::validateInput() {
 void CreatingWindow::onSubmitClicked() {
     api.request_create_and_join_session({
         .name = nameEdit->text().trimmed().toUtf8().constData(),
-        .maxPlayers = static_castuint8_t(playersSpin->value()),
+        .maxPlayers = static_cast<uint8_t>(playersSpin->value()),
         .raceCount = static_cast<uint8_t>(racesSpin->value()),
         .city = cityCombo->currentData().toString().toUtf8().constData(),
     });
