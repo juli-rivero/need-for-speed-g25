@@ -50,11 +50,10 @@ class MatchSession {
                  std::vector<RaceDefinition> raceDefs, Box2DPhysicsWorld& world,
                  std::vector<PlayerConfig> players);
 
-    void start();           // Lobby → Racing (carrera 0)
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&);
-    WorldSnapshot getSnapshot();
-    StaticSnapshot getStaticSnapshot();
+    WorldSnapshot getSnapshot() const;
+    StaticSnapshot getStaticSnapshot() const;
     // upgrades propuestos por jugadores (se aplicarán a la próxima carrera)
     void queueUpgrades(
         const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups);
@@ -64,7 +63,6 @@ class MatchSession {
     }
     MatchState state() const { return _state; }
 
-    static CarSnapshot makeCarSnapshot(const std::shared_ptr<Car>& car);
     // acceso a resultados de la última carrera
     const std::vector<PlayerResult>& lastRaceResults() const {
         return _lastResults;

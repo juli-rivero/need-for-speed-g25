@@ -6,19 +6,34 @@
 
 #include "../logic/NetworkTypes.h"
 #include "Car.h"
+#include "server/session/logic/RaceSession.h"
 
 class Player {
-   private:
-    PlayerId id;
-    std::string name;
-    std::shared_ptr<Car> car;  // su auto actual
+    const PlayerId id;
+    const std::string name;
+    const std::unique_ptr<Car> car;  // su auto actual
+    RaceSession const* raceSession;
 
    public:
-    Player(PlayerId id, const std::string& name, std::shared_ptr<Car> car)
-        : id(id), name(name), car(std::move(car)) {}
+    Player(const PlayerId id, const std::string& name,
+           std::unique_ptr<Car>&& car)
+        : id(id), name(name), car(std::move(car)), raceSession(nullptr) {}
 
-    bool isAlive() const { return car && car->getHealth() > 0; }
-    PlayerId getId() const { return id; }
-    const std::string& getName() const { return name; }
-    std::shared_ptr<Car> getCar() const { return car; }
+    void setRace(RaceSession const* race) { this->raceSession = race; }
+
+    PlayerSnapshot get_snapshot() const {
+        assert(raceSession != nullptr);
+        return {.id = id,
+                .name = name,
+                .car = car->getSnapshot(),
+                .raceProgress = raceSession->getProgressForPlayer(id)};
+    }
+
+    void update(const float dt) { car->update(dt); }
+
+    bool idDead() const { return car->isDestroyed(); }
+
+    void applyInput(const CarInput input) { car->applyInput(input); }
+
+    void upgradeCar(const UpgradeChoice choice) { car->upgrade(choice); }
 };

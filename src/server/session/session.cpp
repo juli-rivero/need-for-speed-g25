@@ -9,8 +9,7 @@
 using spdlog::stdout_color_mt;
 
 UserSetup::UserSetup(const std::string& name, const PlayerId id)
-    : game_config(static_cast<PlayerId>(id), name, YamlGameConfig::DefaultCar) {
-}
+    : game_config(id, name, YamlGameConfig::DefaultCar) {}
 
 void Session::Listener::subscribe(Session& s) {
     common::Listener<Session::Listener>::subscribe(s.emitter);
@@ -21,7 +20,7 @@ Session::Session(const SessionConfig& config, const PlayerId creator,
     : config(config),
       log(stdout_color_mt("Session " + config.name)),
       users_setup(1),
-      game(yaml_config),
+      game(nullptr),
       yaml_config(yaml_config),
       creator(creator) {
     log->debug("Created");
@@ -64,36 +63,16 @@ void Session::remove_client(const PlayerId client_id) {
     notify_change();
 }
 
-bool Session::in_game() const { return game.is_alive(); }
+bool Session::in_game() const { return game != nullptr; }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 bool Session::empty() const { return users_setup.empty(); }
 
-std::vector<CarStaticInfo> Session::get_types_of_static_cars() const {
-    const auto cars = yaml_config.getCarTypes();
-    std::vector<CarStaticInfo> types_of_static_cars;
-    for (const auto& car : cars) {
-        types_of_static_cars.push_back({
-            .type = YamlGameConfig::getCarSpriteType(car.name),
-            .name = car.name,
-            .description = car.description,
-            .height = car.height,
-            .width = car.width,
-            .maxSpeed = car.maxSpeed,
-            .acceleration = car.acceleration,
-            .mass = car.mass,
-            .control = car.control,
-            .health = car.maxHealth,
-        });
-    }
-    return types_of_static_cars;
-}
-
-void Session::set_car(const PlayerId client_id, const std::string& car_name) {
+void Session::set_car(const PlayerId client_id, const CarType& car_name) {
     std::lock_guard lock(mtx);
     if (in_game()) throw std::runtime_error("Game already started");
     if (not users_setup.contains(client_id))
         throw std::runtime_error("Client have not configuration");
-    users_setup.at(client_id).game_config.carTypeName = car_name;
+    users_setup.at(client_id).game_config.carType = car_name;
     notify_change();
 }
 
@@ -109,7 +88,10 @@ void Session::set_ready(const PlayerId client_id, const bool ready) {
 }
 
 Session::~Session() {
-    if (game.is_alive()) game.stop();
+    if (game != nullptr) {
+        if (game->is_alive()) game->stop();
+        game->join();
+    }
     log->debug("Destroyed");
     spdlog::drop(log->name());
 }
@@ -133,8 +115,11 @@ void Session::start_game() {
         races.push_back(all_races[index]);
     }
 
-    game.start(races, players);
-    emitter.dispatch(&Listener::on_start_game, game);
+    game = std::make_unique<GameSessionFacade>(yaml_config, races, players);
+    emitter.dispatch(&Listener::on_start_game, *game, config.city,
+                     game->getStaticSnapshot());
+    spdlog::trace("iniciando gameloop");
+    game->start();
 }
 
 bool Session::all_ready() const {
@@ -151,8 +136,7 @@ void Session::notify_change() {
         players.push_back({
             .id = id,
             .name = player.game_config.name,
-            .carType = YamlGameConfig::getCarSpriteType(
-                player.game_config.carTypeName),
+            .carType = player.game_config.carType,
             .isReady = player.ready,
             .isHost = id == creator,
         });

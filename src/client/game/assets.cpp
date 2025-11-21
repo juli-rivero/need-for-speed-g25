@@ -1,7 +1,5 @@
 #include "client/game/assets.h"
 
-#include <SDL2pp/SDL2pp.hh>
-
 Assets::Assets(SDL2pp::Renderer& renderer)
     : car1(renderer, "assets/cars/car1.png"),
       car2(renderer, "assets/cars/car2.png"),
@@ -15,11 +13,11 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
       font("assets/fonts/OpenSans-Regular.ttf", 20) {
-    car_name.insert({CarSpriteType::Speedster, &car1});
-    car_name.insert({CarSpriteType::Tank, &car2});
-    car_name.insert({CarSpriteType::Drifter, &car3});
-    car_name.insert({CarSpriteType::Rocket, &car4});
-    car_name.insert({CarSpriteType::Classic, &car5});
-    car_name.insert({CarSpriteType::Offroad, &car6});
-    car_name.insert({CarSpriteType::Ghost, &car7});
+    car_name.insert({CarType::Speedster, &car1});
+    car_name.insert({CarType::Tank, &car2});
+    car_name.insert({CarType::Drifter, &car3});
+    car_name.insert({CarType::Rocket, &car4});
+    car_name.insert({CarType::Classic, &car5});
+    car_name.insert({CarType::Offroad, &car6});
+    car_name.insert({CarType::Ghost, &car7});
 }

@@ -1,5 +1,6 @@
 #include "server/client_handler/controllers/session_controller.h"
 
+#include <ranges>
 #include <vector>
 
 using dto::ErrorResponse;
@@ -13,23 +14,34 @@ using std::vector;
 SessionController::SessionController(Session& session, const PlayerId client_id,
                                      Api& api, Receiver& receiver,
                                      ISessionEvents& handler,
-                                     spdlog::logger* log)
+                                     spdlog::logger* log,
+                                     const YamlGameConfig& game_config)
     : log(log),
       client_id(client_id),
       api(api),
       dispatcher(handler),
       session(session) {
-    log->debug("controlling lobby");
     Receiver::Listener::subscribe(receiver);
     Session::Listener::subscribe(session);
-    api.reply_joined(session.get_info(), session.get_types_of_static_cars());
+    session.add_client(client_id);
+    const auto& toDisplayInfo = game_config.getCarDisplayInfoMap();
+    const auto& toStats = game_config.getCarStaticStatsMap();
+
+    std::vector<CarInfo> cars;
+    cars.reserve(toDisplayInfo.size());
+    for (const auto type : toDisplayInfo | std::views::keys) {
+        cars.push_back({type, toDisplayInfo.at(type), toStats.at(type)});
+    }
+    api.reply_joined(session.get_info(), cars);
+    log->debug("controlling session");
 }
 
 SessionController::~SessionController() {
     Receiver::Listener::unsubscribe();
     Session::Listener::unsubscribe();
-    log->trace("left session");
     api.reply_left();
+    session.remove_client(client_id);
+    log->trace("left session");
 }
 
 void SessionController::on_start_request(const bool ready) {
@@ -42,9 +54,9 @@ void SessionController::on_start_request(const bool ready) {
         api.reply_error(e.what());
     }
 }
-void SessionController::on_choose_car(const std::string& car_name) {
+void SessionController::on_choose_car(const CarType& car_type) {
     try {
-        session.set_car(client_id, car_name);
+        session.set_car(client_id, car_type);
     } catch (std::exception& e) {
         log->warn("could not set car: {}", e.what());
         api.reply_error(e.what());
@@ -52,7 +64,6 @@ void SessionController::on_choose_car(const std::string& car_name) {
 }
 void SessionController::on_leave_request() {
     try {
-        session.remove_client(client_id);
         dispatcher.on_leave_session();
     } catch (std::exception& e) {
         log->warn("could not send session snapshot: {}", e.what());
@@ -70,10 +81,12 @@ void SessionController::on_session_updated(
     }
 }
 
-void SessionController::on_start_game(GameSessionFacade& game) {
+void SessionController::on_start_game(GameSessionFacade& game,
+                                      const std::string& map,
+                                      const StaticSnapshot& snapshot) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started();
+        api.notify_game_started(map, snapshot);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());

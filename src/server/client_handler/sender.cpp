@@ -20,8 +20,14 @@ Sender::Sender(ProtocolSender& sender, spdlog::logger* log)
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            auto response = responses.pop();
-            sender << response << ProtocolSender::send;
+            // Try to put in the same packet as match responses as posible,
+            // blocking first response, as a packet needs at least 1 response,
+            // and adding consequent packets if there are.
+            dto::Response response = responses.pop();
+            do {
+                sender << response;
+            } while (responses.try_pop(response));
+            sender.send();
         } catch (ClosedQueue&) {
             log->debug("Sender stopped by closed queue");
             return;
@@ -47,7 +53,7 @@ void Sender::reply_search(const vector<SessionInfo>& info) {
 }
 
 void Sender::reply_joined(const SessionInfo& session,
-                          const vector<CarStaticInfo>& carTypes) {
+                          const vector<CarInfo>& carTypes) {
     log->trace("sending join response");
     responses.try_push(JoinResponse{session, carTypes});
 }
@@ -66,12 +72,23 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started() {
+void Sender::notify_game_started(const std::string& map,
+                                 const StaticSnapshot& info) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{});
+    responses.try_push(StartResponse{map, info});
 }
-void Sender::send_game_snapshot(float raceTimeLeft,
+
+void Sender::send_game_static_snapshot(const StaticSnapshot& info) {
+    log->trace("sending game static snapshot");
+    responses.try_push(dto_game::GameStaticSnapshot{info});
+}
+
+void Sender::send_game_snapshot(const float raceTimeLeft,
                                 const std::vector<PlayerSnapshot>& players) {
     log->trace("sending game snapshot");
     responses.try_push(GameSnapshot{raceTimeLeft, players});
+}
+void Sender::send_collision_event(const CollisionEvent& event) {
+    log->trace("sending collision event");
+    responses.try_push(dto_game::EventPacket{event});
 }

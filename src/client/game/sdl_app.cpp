@@ -1,8 +1,12 @@
 #include "client/game/sdl_app.h"
 
+#include <SDL2/SDL.h>
+
+#include <SDL2pp/SDL2pp.hh>
+
 #include "client/game/game.h"
 
-SdlApp::SdlApp(Connexion& connexion, bool& quit)
+SdlApp::SdlApp(Connexion& connexion, bool& quit, GameSetUp& setup)
     : connexion(connexion), input_handler(connexion) {
     // Evitar que SDL intente usar políticas/valores RT inválidos en Linux.
     // SDL_HINT_THREAD_PRIORITY_POLICY acepta: "current", "other", "fifo", "rr".
@@ -26,7 +30,7 @@ SdlApp::SdlApp(Connexion& connexion, bool& quit)
                         MIX_DEFAULT_CHANNELS, 4096);
 
     // Iniciar partida
-    Game game(renderer, mixer, connexion);
+    Game game(renderer, mixer, connexion, setup);
     // connexion.control(game);
     quit = game.start();
 

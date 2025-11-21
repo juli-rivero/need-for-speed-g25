@@ -3,8 +3,10 @@
 #include <QApplication>
 #include <QMainWindow>
 #include <QStackedWidget>
+#include <string>
 
 #include "client/connexion/connexion.h"
+#include "client/constants.h"
 #include "client/qt/windows/creating_window.h"
 #include "client/qt/windows/searching_window.h"
 #include "client/qt/windows/selecting_window.h"
@@ -21,8 +23,10 @@ class QtWindowManager final : public QMainWindow {
     SelectingWindow selectingWindow;
     WaitingWindow waitingWindow;
 
+    GameSetUp& setup;
+
    public:
-    QtWindowManager(Connexion& connexion, bool& quit);
+    QtWindowManager(Connexion& connexion, bool& quit, GameSetUp& setup);
 
     MAKE_FIXED(QtWindowManager)
 
@@ -32,12 +36,12 @@ class QtWindowManager final : public QMainWindow {
     void show_selecting_window();
     void show_waiting_window();
 
-    void continue_game();
+    void continue_game(const std::string& map, const StaticSnapshot& circuit);
 
     void applyTheme();
 };
 
 class QtApp final {
    public:
-    QtApp(Connexion& connexion, bool& quit);
+    QtApp(Connexion& connexion, bool& quit, GameSetUp& setup);
 };

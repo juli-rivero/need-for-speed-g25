@@ -38,7 +38,6 @@ add_library(taller_common STATIC)
 # HEY!! TODO XXX: add more subfolders here
 add_subdirectory(src/common)
 
-
 # set compiler warnings to the targets
 include(cmake/CompilerWarnings.cmake)
 set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
@@ -48,9 +47,7 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(taller_common PUBLIC ${CMAKE_SOURCE_DIR}/src/)
 
-include(cmake/FetchContent_Declare.cmake)
-
-include(cmake/FindPackage.cmake)
+include(cmake/Dependencies.cmake)
 
 include(cmake/Executables.cmake)
 

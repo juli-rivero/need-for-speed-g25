@@ -34,9 +34,11 @@ void WaitingWindow::on_session_snapshot(
         },
         Qt::QueuedConnection);
 }
-void WaitingWindow::on_start_game() {
+void WaitingWindow::on_start_game(const std::string& map,
+                                  const StaticSnapshot& circuit) {
     QMetaObject::invokeMethod(
-        this, [this]() { emit startGameRequested(); }, Qt::QueuedConnection);
+        this, [this, map, circuit]() { emit startGameRequested(map, circuit); },
+        Qt::QueuedConnection);
 }
 
 void WaitingWindow::on_leave_response() {
@@ -198,7 +200,8 @@ void WaitingWindow::updateStatusMessage() {
     }
 
     if (allReady && currentPlayers.size() >= 2) {
-        statusLabel->setText("🏁 ¡Todos listos! La carrera comenzará pronto...");
+        statusLabel->setText(
+            "🏁 ¡Todos listos! La carrera comenzará pronto...");
         statusLabel->setStyleSheet(
             QString("color: #27ae60; font-size: 14px; ") +
             "font-weight: bold;");

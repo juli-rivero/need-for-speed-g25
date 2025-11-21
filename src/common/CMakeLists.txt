@@ -6,6 +6,7 @@ target_sources(taller_common
         resolver.cpp
         resolvererror.cpp
         socket.cpp
+        timer_iterator.cpp
         PUBLIC
         buffer.h
         emitter.h
@@ -16,4 +17,5 @@ target_sources(taller_common
         resolvererror.h
         socket.h
         thread.h
+        timer_iterator.h
 )

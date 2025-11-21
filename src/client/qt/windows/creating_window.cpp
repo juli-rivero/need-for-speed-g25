@@ -22,7 +22,7 @@ CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
 CreatingWindow::~CreatingWindow() { Responder::unsubscribe(); }
 
 void CreatingWindow::on_join_response(const SessionInfo&,
-                                      const std::vector<CarStaticInfo>&) {
+                                      const std::vector<CarInfo>&) {
     QMetaObject::invokeMethod(
         this, [this]() { emit sessionCreated(); }, Qt::QueuedConnection);
 }

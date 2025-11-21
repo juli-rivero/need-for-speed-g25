@@ -6,6 +6,5 @@ target_sources(taller_server
         Checkpoint.h
         Player.h
         Wall.h
-        CarType.h
         Entity.h
 )

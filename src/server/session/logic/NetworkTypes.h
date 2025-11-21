@@ -12,39 +12,7 @@ struct PlayerInput {
     TurnDirection turn{TurnDirection::None};
 };
 
-struct WallInfo {
-    int id;
-    float x, y;
-    float w, h;
-};
-
-struct CheckpointInfo {
-    int id;
-    int order;
-    float x, y;
-    float w;
-    float h;
-};
-
-struct HintInfo {
-    int id;
-    float x, y;
-};
-
-struct SpawnPointInfo {
-    int id;
-    float x, y;
-    float angle;
-};
-
-struct BridgeInfo {
-    int id;
-    float lowerX, lowerY;
-    float upperX, upperY;
-    float w, h;
-    bool driveable;
-};
-
+/*
 // snapshot estático (solo al empezar la partida)
 struct StaticSnapshot {
     std::string mapName;
@@ -53,7 +21,26 @@ struct StaticSnapshot {
     std::vector<WallInfo> walls;
     std::vector<BridgeInfo> bridges;
     std::vector<CheckpointInfo> checkpoints;
-    std::vector<HintInfo> hints;
     std::vector<SpawnPointInfo> spawns;
     std::vector<CarStaticInfo> cars;
+};
+*/
+
+struct WorldSnapshot {
+    float time{0.0f};  // tiempo global simulado
+    std::string raceCity;
+    std::string raceMapFile;
+
+    // estado de MatchSession
+    MatchState matchState{MatchState::Starting};
+    uint32_t currentRaceIndex{0};
+
+    // estado de RaceSession
+    RaceState raceState{RaceState::Countdown};
+    float raceElapsed{0.0f};
+    float raceCountdown{0.0f};
+
+    float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
+    std::vector<PlayerSnapshot> players;
+    std::vector<PlayerId> permanentlyDQ;
 };

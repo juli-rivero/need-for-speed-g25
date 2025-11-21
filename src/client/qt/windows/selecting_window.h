@@ -6,6 +6,7 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "client/connexion/connexion.h"
@@ -24,7 +25,7 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     void reset();
 
     void on_join_response(const SessionInfo&,
-                          const std::vector<CarStaticInfo>&) override;
+                          const std::vector<CarInfo>&) override;
     void on_leave_response() override;
 
    signals:
@@ -40,11 +41,11 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
    private:
     void setupUI();
-    QWidget* createCarCard(const CarStaticInfo& car, int index);
+    QWidget* createCarCard(const CarInfo& car, int index);
     QProgressBar* createStatBar(float value);
     void updateCarDetails(int carIndex);
 
-    std::vector<CarStaticInfo> carTypes;
+    std::vector<CarInfo> carTypes;
     int selectedCarIndex;
 
     QLabel* speedValueLabel;
@@ -71,13 +72,13 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     QPushButton* confirmButton;
     QPushButton* cancelButton;
 
-    QString getCarImagePath(CarSpriteType carType) {
+    QString getCarImagePath(CarType carType) {
         // Mapear tipos de auto a números de imagen
-        std::unordered_map<CarSpriteType, int> carImageMap = {
-            {CarSpriteType::Speedster, 1}, {CarSpriteType::Tank, 2},
-            {CarSpriteType::Drifter, 3},   {CarSpriteType::Rocket, 4},
-            {CarSpriteType::Classic, 5},   {CarSpriteType::Offroad, 6},
-            {CarSpriteType::Ghost, 7}};
+        std::unordered_map<CarType, int> carImageMap = {
+            {CarType::Speedster, 1}, {CarType::Tank, 2},
+            {CarType::Drifter, 3},   {CarType::Rocket, 4},
+            {CarType::Classic, 5},   {CarType::Offroad, 6},
+            {CarType::Ghost, 7}};
 
         int imageNumber = 1;  // Default
 
