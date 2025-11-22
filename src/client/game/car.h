@@ -20,6 +20,7 @@ class Car final {
     float angle;
     float speed;
     float health;
+    uint32_t next_checkpoint;
     SDL2pp::Texture& sprite;
 
     int get_vol() const;
@@ -34,6 +35,7 @@ class Car final {
     size_t get_id() const;
     float get_health() const;
     float get_speed() const;
+    uint32_t get_next_checkpoint() const;
 
     MAKE_FIXED(Car)
 };

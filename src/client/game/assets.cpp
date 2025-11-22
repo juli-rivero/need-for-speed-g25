@@ -20,4 +20,7 @@ Assets::Assets(SDL2pp::Renderer& renderer)
     car_name.insert({CarSpriteType::Classic, &car5});
     car_name.insert({CarSpriteType::Offroad, &car6});
     car_name.insert({CarSpriteType::Ghost, &car7});
+
+    city_name.insert({"LibertyCity", &city_liberty});
+    // TODO(franco): sumar mapeos a otras ciudades
 }

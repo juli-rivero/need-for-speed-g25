@@ -25,6 +25,7 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       angle(radians_to_sdl_degrees(base.car.angle)),
       speed(base.car.speed),
       health(base.car.health),
+      next_checkpoint(base.raceProgress.nextCheckpoint),
       sprite(*game.assets.car_name.at(base.car.type)) {}
 
 void Car::set_camera() {
@@ -52,8 +53,6 @@ int Car::get_vol() const {
 
 void Car::sound_crash() {
     // Atenuar el sonido basado en que tan lejos esta de la camara.
-    // if (game.frame % 120 != 0) return;
-
     game.mixer.PlayChannel(id, game.assets.sound_crash);
     game.mixer.SetVolume(id, get_vol());
 }
@@ -61,3 +60,4 @@ void Car::sound_crash() {
 size_t Car::get_id() const { return id; }
 float Car::get_health() const { return health; }
 float Car::get_speed() const { return speed; }
+uint32_t Car::get_next_checkpoint() const { return next_checkpoint; }
