@@ -12,11 +12,20 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
     : renderer(renderer),
       mixer(mixer),
       assets(renderer),
-      city(*assets.city_name[setup.map]),
+      city(*assets.city_name.at(setup.map)),
       api(connexion.get_api()),
-      id(connexion.unique_id),
-      players(setup.info.players) {
+      my_id(connexion.unique_id),
+      setup(setup) {
+    player_snapshots = setup.info.players;
+
+    spdlog::info("map: {}", setup.map);
+    for (const CheckpointInfo& c : setup.info.checkpoints) {
+        spdlog::info("check: x {} | y {} | w {} | h {}", c.x, c.y, c.w, c.h);
+    }
+
     renderer.Clear();
+    renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
@@ -48,21 +57,24 @@ void Game::render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
 }
 
 //
-// PRINCIPAL
+// DATOS SERVIDOR
 //
-
 void Game::on_game_snapshot(
     const float time_elapsed,
     const std::vector<PlayerSnapshot>& player_snapshots) {
-    std::lock_guard lock(mutex);
-    elapsed = time_elapsed;
-    players = player_snapshots;
+    std::lock_guard lock(snapshot_mutex);
+
+    this->time_elapsed = time_elapsed;
+    this->player_snapshots = player_snapshots;
 }
 
 void Game::on_collision_event(const CollisionEvent& collision_event) {
     collisions.try_push(collision_event);
 }
 
+//
+// PRINCIPAL
+//
 bool Game::send_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -97,19 +109,19 @@ bool Game::send_events() {
 
     return false;
 }
-void Game::update_cars() {
-    std::lock_guard lock(mutex);
+void Game::update_state() {
+    std::lock_guard lock(snapshot_mutex);
+
     cars.clear();
-    for (auto& player : players) {
+    for (auto& player : player_snapshots) {
         cars.emplace_back(*this, player);
-        if (player.id == id) my_car = &cars.back();
+        if (player.id == my_id) my_car = &cars.back();
     }
 }
 
 void Game::manage_collisions() {
     CollisionEvent collision;
     while (collisions.try_pop(collision)) {
-        // TODO(franco): cambiar, dejo las herramientas que tenes como ejemplo
         std::visit(
             [](auto& collision) {
                 spdlog::debug("collision on player {} with intensity {}",
@@ -127,23 +139,25 @@ void Game::manage_collisions() {
     }
 }
 
-void Game::get_state() {
-    update_cars();
-    manage_collisions();
-}
-
 void Game::draw_state() {
     renderer.Clear();
 
     // Ciudad
-    spdlog::trace("cargando ciudad");
     render(assets.city_liberty, 0, 0);
 
+    // Checkpoints
+    if (my_car &&
+        my_car->get_next_checkpoint() < setup.info.checkpoints.size()) {
+        const CheckpointInfo& c =
+            setup.info.checkpoints[my_car->get_next_checkpoint()];
+        render_rect({static_cast<int>(c.x * 10), static_cast<int>(c.y * 10),
+                     static_cast<int>(c.w * 10), static_cast<int>(c.h * 10)},
+                    {0, 0, 255, 128});
+    }
+
     // Coches
-    spdlog::trace("poniendo camara");
     if (my_car) my_car->set_camera();
 
-    spdlog::trace("dibujando coches");
     for (Car& car : cars) {
         if (&car == my_car) continue;
         car.draw(true);
@@ -152,8 +166,7 @@ void Game::draw_state() {
     if (my_car) my_car->draw(false);
 
     // HUD
-    spdlog::trace("mostrando HUD");
-    // render("Hola, mundo!", 10, 10, false);
+    render(std::to_string(time_elapsed), 10, 50, false);
     if (my_car) {
         render_rect({10, 10, static_cast<int>(my_car->get_health()), 10},
                     {0, 255, 0, 255}, false);
@@ -177,7 +190,8 @@ bool Game::start() {
 
     while (1) {
         bool quit = send_events();
-        get_state();
+        update_state();
+        manage_collisions();
         draw_state();
         play_sounds();
 

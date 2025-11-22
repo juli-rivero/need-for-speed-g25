@@ -24,27 +24,31 @@ class Game final : Connexion::Responder {
 
     SDL2pp::Texture& city;
 
+    // Componentes de conexion
     Api& api;
-    const PlayerId id;
+    const PlayerId my_id;
+    const GameSetUp& setup;
 
-    void on_game_snapshot(const float,
-                          const std::vector<PlayerSnapshot>&) override;
-    void on_collision_event(const CollisionEvent&) override;
+    // Componentes de snapshot update
+    std::mutex snapshot_mutex;
 
-    std::mutex mutex;
-    float elapsed = 0;
-    std::vector<PlayerSnapshot> players;
-
-    Queue<CollisionEvent> collisions;
+    float time_elapsed = 0;
+    std::vector<PlayerSnapshot> player_snapshots;
+    void on_game_snapshot(
+        const float time_elapsed,
+        const std::vector<PlayerSnapshot>& player_snapshots) override;
 
     std::list<Car> cars;
     Car* my_car{nullptr};
 
+    // Componentes de colisiones
+    Queue<CollisionEvent> collisions;
+    void on_collision_event(const CollisionEvent& collision_event) override;
+
     // Metodos de actualizacion internos
     bool send_events();
-    void update_cars();
+    void update_state();
     void manage_collisions();
-    void get_state();
     void draw_state();
     void play_sounds();
 
