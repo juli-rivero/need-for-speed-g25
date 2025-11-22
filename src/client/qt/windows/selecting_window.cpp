@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "client/qt/theme_manager.h"
-#include "client/qt/ui/CarSprite.h"
+#include "client/qt/windows/car_assets.h"
 #include "spdlog/spdlog.h"
 
 SelectingWindow::SelectingWindow(QWidget* parent, Connexion& connexion)
@@ -177,7 +177,6 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
                                      Qt::SmoothTransformation);
         carImageLabel->setPixmap(carPixmap);
     } else {
-        carImageLabel->setText(CarSprite::getSprite(car.type).c_str());
         carImageLabel->setStyleSheet(
             "font-size: 24px; border: none; background: none;");
     }
