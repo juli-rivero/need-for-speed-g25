@@ -3,7 +3,6 @@
 #include <QLabel>
 #include <QProgressBar>
 
-#include "client/qt/lobby_client.h"
 #include "common/structs.h"
 
 class GameCardWidget : public QFrame {

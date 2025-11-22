@@ -251,8 +251,8 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
 QProgressBar* SelectingWindow::createMiniStatBar(float value) {
     QProgressBar* bar = new QProgressBar();
     bar->setFixedSize(20, 6);
-    bar->setRange(0, 100);  // El rango máximo sigue siendo 100
-    bar->setValue(static_cast<int>(value));  // ✅ Valor real sin multiplicar
+    bar->setRange(0, 100);
+    bar->setValue(static_cast<int>(value));
     bar->setTextVisible(false);
 
     // Estilo simple
@@ -350,19 +350,13 @@ void SelectingWindow::updateCarDetails(int carIndex) {
     carNameLabel->setText(car.name.c_str());
     carDescLabel->setText(car.description.c_str());
 
-    speedBar->setValue(static_cast<int>(car.maxSpeed));
-    accelBar->setValue(static_cast<int>(car.acceleration));
-    healthBar->setValue(static_cast<int>(car.health));
-    massBar->setValue(static_cast<int>(car.mass));
-    controlBar->setValue(static_cast<int>(car.control));
+    speedValueLabel->setText(QString::number(car.maxSpeed));
+    accelValueLabel->setText(QString::number(car.acceleration));
+    healthValueLabel->setText(QString::number(car.health));
+    massValueLabel->setText(QString::number(car.mass));
+    controlValueLabel->setText(QString::number(car.control));
 
-    // Aplicar estilos del tema
-    ThemeManager& theme = ThemeManager::instance();
-    speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
-    accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
-    healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
-    massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-    controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
+    // No hay barras, así que no aplicar estilos a barras inexistentes
 }
 
 void SelectingWindow::applyTheme() {
