@@ -7,17 +7,17 @@
 #include <string>
 #include <utility>
 
-#include "../../config/MapLoader.h"  // para cargar CP/Hints desde YAML
-#include "../physics/EntityFactory.h"  // para crear entidades (si generás autos aquí)
+#include "../../config/MapLoader.h"
+#include "../physics/EntityFactory.h"
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
                            std::vector<RaceDefinition> raceDefs,
                            Box2DPhysicsWorld& world,
-                           std::vector<PlayerConfig> players)
+                           std::vector<PlayerConfig> playersCfg)
     : _cfg(cfg),
       _world(world),
-      _playerConfigs(players),
-      _races(raceDefs),
+      _races(std::move(raceDefs)),
+      _playerConfigs(std::move(playersCfg)),
       _upgradeSystem(cfg) {
     if (_races.empty()) {
         _state = MatchState::Finished;
@@ -25,60 +25,59 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
     }
     _state = MatchState::Racing;
     startRace(0);
-    update(0);
 }
 
 void MatchSession::startRace(std::size_t raceIndex) {
     _currentRace = raceIndex;
 
-    std::vector<std::unique_ptr<Wall>> walls;
-    std::vector<std::unique_ptr<Bridge>> bridges;
+    std::vector<std::unique_ptr<Wall>> Walls;
+    std::vector<std::unique_ptr<Bridge>> Bridges;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
-    // std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
-    std::vector<PlayerId> playerIds;
 
     EntityFactory factory(_world, _cfg);
 
-    MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, walls, bridges,
+    MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, Walls, Bridges,
                             checkpoints, spawnPoints);
 
-    // Si es la primera carrera, guardá muros/puentes
-    if (_walls.empty()) _walls = std::move(walls);
-    if (_bridges.empty()) _bridges = std::move(bridges);
+    if (_walls.empty()) _walls = std::move(Walls);
+    if (_bridges.empty()) _bridges = std::move(Bridges);
 
     _players.clear();
+    std::vector<Player*> racePlayers;
 
-    // se crea los jugadores aqui
-    for (size_t i = 0; i < _playerConfigs.size(); ++i) {
-        const auto& p = _playerConfigs[i];
+    for (std::size_t i = 0; i < _playerConfigs.size(); ++i) {
+        const auto& pc = _playerConfigs[i];
         if (i >= spawnPoints.size()) break;
-        if (permanentlyDisqualified.count(p.id)) {
-            continue;
-        }
+
         const auto& sp = spawnPoints[i];
 
-        auto car = factory.createCar(p.carType, sp.x, sp.y);
-        _world.getCollisionManager().registerCar(car.get(), p.id);
-        playerIds.push_back(p.id);
-        _players[p.id] = std::make_unique<Player>(p.id, p.name, std::move(car));
+        auto car = factory.createCar(pc.carType, sp.x, sp.y);
+        _world.getCollisionManager().registerCar(car.get(), pc.id);
 
-        std::cout << " Jugador " << p.name << " usa auto tipo '"
-                  << _cfg.getCarDisplayInfoMap().at(p.carType).name
-                  << "' en posición (" << sp.x << "," << sp.y << ")\n";
+        auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
+
+        player->resetRaceState(0.0f);
+
+        racePlayers.push_back(player.get());
+        _players[pc.id] = std::move(player);
+
+        std::cout << " Jugador " << pc.name << " entra en carrera "
+                  << " con carType=" << static_cast<int>(pc.carType)
+                  << " en pos (" << sp.x << "," << sp.y << ")\n";
     }
 
-    _race = std::make_unique<RaceSession>(
-        _cfg, _races[raceIndex].city, std::move(checkpoints), playerIds,
-        std::move(spawnPoints), _penaltiesForNextRace);
-
-    for (auto& player : _players | std::views::values)
-        player->setRace(_race.get());
+    _race = std::make_unique<RaceSession>(_cfg, _races[raceIndex].city,
+                                          std::move(checkpoints),
+                                          std::move(spawnPoints), racePlayers);
 
     _world.getCollisionManager().setRaceSession(_race.get());
-    _race->start();
-    _penaltiesForNextRace.clear();
 
+    _race->start();
+
+    _world.getCollisionManager().setRaceSession(_race.get());
+
+    _race->start();
     std::cout << "Carrera " << (raceIndex + 1) << " iniciada en "
               << _races[raceIndex].city << std::endl;
 }
@@ -97,18 +96,15 @@ WorldSnapshot MatchSession::getSnapshot() const {
     snap.raceMapFile = rd.mapFile;
     snap.matchState = _state;
     snap.currentRaceIndex = _currentRace;
-    snap.raceState = _race->state();
+    snap.raceState = _race->getState();
     snap.raceElapsed = _race->elapsedRaceTime();
     snap.raceCountdown = _race->countdownRemaining();
     snap.raceTimeLeft =
         std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
 
     for (const auto& player : _players | std::views::values) {
-        snap.players.push_back(player->get_snapshot());
+        snap.players.push_back(player->buildSnapshot());
     }
-    // snap.collisions = _world.getCollisionManager().consumeEvents();
-    snap.permanentlyDQ.assign(permanentlyDisqualified.begin(),
-                              permanentlyDisqualified.end());
     return snap;
 }
 StaticSnapshot MatchSession::getStaticSnapshot() const {
@@ -161,7 +157,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() const {
     spdlog::trace("got spawnpoints");
 
     for (const auto& player : _players | std::views::values) {
-        s.players.push_back(player->get_snapshot());
+        s.players.push_back(player->buildSnapshot());
     }
     spdlog::trace("got players");
 
@@ -170,15 +166,12 @@ StaticSnapshot MatchSession::getStaticSnapshot() const {
 void MatchSession::update(float dt) {
     switch (_state) {
         case MatchState::Starting:
-            // TODO(elvis)
+            // TODO(elvis): alguna configuracion inicial?
         case MatchState::Racing:
-            // Actualizar cada coche según su input persistente
+
             for (auto& [id, player] : _players) {
+                (void)id;
                 player->update(dt);
-                if (player->idDead()) {
-                    _race->onCarDestroyed(id);
-                    permanentlyDisqualified.insert(id);
-                }
             }
             _race->update(dt);
             if (_race->isFinished()) {
@@ -198,31 +191,34 @@ void MatchSession::update(float dt) {
 }
 
 void MatchSession::applyInput(const PlayerId id, const CarInput& car_input) {
-    if (_race && _race->state() != RaceState::Countdown) {
+    if (_race && _race->getState() != RaceState::Countdown) {
         _players.at(id)->applyInput(car_input);
     }
 }
 EndRaceSummaryPacket MatchSession::finishRaceAndComputeTotals() {
-    _lastResults = _race->makeResults();
-    for (const auto& r : _lastResults) {
-        if (!r.dnf) {
-            _totalTime[r.id] += r.netTime;  // acumulado por partida
-        }
-    }
-    // ← crear paquete para el cliente
+    auto results = _race->makeResults();
     EndRaceSummaryPacket summary;
-    summary.raceIndex = _currentRace;
-    for (const auto& r : _lastResults) {
+    summary.raceIndex = static_cast<uint32_t>(_currentRace);
+    for (auto& r : results) {
+        auto itPlayer = _players.find(r.id);
+        if (itPlayer == _players.end()) continue;
+
+        auto& player = itPlayer->second;
+        player->setPenalty(r.penalty);
+        player->accumulateTotal();
+
         EndRaceUpgradeReport rep;
         rep.id = r.id;
         rep.penaltyTime = r.penalty;
-        auto it = _queuedUpgrades.find(r.id);
-        if (it != _queuedUpgrades.end()) rep.upgrades = it->second;
+
+        auto itUp = _queuedUpgrades.find(r.id);
+        if (itUp != _queuedUpgrades.end()) {
+            rep.upgrades = itUp->second;
+        }
 
         summary.results.push_back(rep);
     }
-
-    return summary;  // ← antes no retornabas nada!
+    return summary;
 }
 
 void MatchSession::startIntermission() {
@@ -236,12 +232,24 @@ void MatchSession::queueUpgrades(
 }
 
 void MatchSession::endIntermissionAndPrepareNextRace() {
-    _penaltiesForNextRace = _upgradeSystem.applyForNextRace(_queuedUpgrades);
+    // se aplica upgrades + genera penalizaciones para próxima carrera
+    auto penalties = _upgradeSystem.applyForNextRace(_queuedUpgrades);
+    for (auto& [pid, ups] : _queuedUpgrades) {
+        auto itP = _players.find(pid);
+        if (itP == _players.end()) continue;
 
-    for (auto& [pid, upgrades] : _queuedUpgrades) {
-        auto& player = _players.at(pid);
-        for (const auto& up : upgrades) player->upgradeCar(up);
+        auto& player = itP->second;
+        player->setUpgrades(ups);
+        player->applyUpgrades();
     }
+
+    // se setea penalizaciones iniciales en Player para la próxima carrera
+    for (auto& [pid, pen] : penalties) {
+        auto itP = _players.find(pid);
+        if (itP == _players.end()) continue;
+        itP->second->resetRaceState(pen);
+    }
+
     _queuedUpgrades.clear();
 
     if (_currentRace + 1 < _races.size()) {

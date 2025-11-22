@@ -19,26 +19,23 @@ class MatchSession {
    private:
     const YamlGameConfig& _cfg;
     Box2DPhysicsWorld& _world;
-    std::vector<std::unique_ptr<Wall>> _walls;
-    std::vector<std::unique_ptr<Bridge>> _bridges;
-    const std::vector<PlayerConfig> _playerConfigs;
-    std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
-    MatchState _state{MatchState::Starting};
+
     const std::vector<RaceDefinition> _races;  // N carreras planificadas
     std::size_t _currentRace{0};
 
+    const std::vector<PlayerConfig> _playerConfigs;
+    std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
+
+    std::vector<std::unique_ptr<Wall>> _walls;
+    std::vector<std::unique_ptr<Bridge>> _bridges;
+
     std::unique_ptr<RaceSession> _race;  // carrera en curso
+    MatchState _state{MatchState::Starting};
     float _intermissionClock{0.0f};
 
-    std::unordered_map<PlayerId, float> _totalTime;  // acumulado por jugador
-    std::unordered_map<PlayerId, std::vector<UpgradeChoice>> _queuedUpgrades;
-    std::unordered_map<PlayerId, float> _penaltiesForNextRace;
-    std::unordered_set<PlayerId> permanentlyDisqualified;
-
-    std::optional<EndRaceSummaryPacket> pendingEndRacePacket;
-    std::vector<PlayerResult> _lastResults;
-
     UpgradeSystem _upgradeSystem;
+    std::unordered_map<PlayerId, std::vector<UpgradeChoice>> _queuedUpgrades;
+    std::optional<EndRaceSummaryPacket> pendingEndRacePacket;
 
     void startRace(std::size_t raceIndex);
     EndRaceSummaryPacket finishRaceAndComputeTotals();
@@ -52,21 +49,16 @@ class MatchSession {
 
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&);
+
     WorldSnapshot getSnapshot() const;
     StaticSnapshot getStaticSnapshot() const;
-    // upgrades propuestos por jugadores (se aplicarán a la próxima carrera)
+    // upgrades propuestos por jugadores ( que se aplicarán a la próxima
+    // carrera)
     void queueUpgrades(
         const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups);
 
-    const std::unordered_map<PlayerId, float>& totals() const {
-        return _totalTime;
-    }
     MatchState state() const { return _state; }
 
-    // acceso a resultados de la última carrera
-    const std::vector<PlayerResult>& lastRaceResults() const {
-        return _lastResults;
-    }
     const std::vector<std::unique_ptr<Wall>>& getWalls() const {
         return _walls;
     }

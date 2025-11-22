@@ -16,6 +16,15 @@ struct PlayerConfig {
     std::string name;  // nombre visible
     CarType carType;   // nombre del tipo de auto (Speedster, Tank, etc.)
 };
+// esto estaba en racesession, lo muevo aca
+struct PlayerRaceData {
+    PlayerId id{};
+    std::size_t nextCheckpoint{0};
+    bool finished{false};
+    bool disqualified{false};
+    float elapsed{0.0f};      // tiempo crudo
+    float penaltyTime{0.0f};  // penalización a aplicar en esta carrera
+};
 
 struct PlayerResult {
     PlayerId id{};

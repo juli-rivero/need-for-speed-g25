@@ -4,7 +4,6 @@
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QPushButton>
-#include <vector>
 
 #include "client/qt/theme_manager.h"
 
@@ -30,23 +29,23 @@ void CreatingWindow::on_join_response(const SessionInfo&,
 void CreatingWindow::setupUI() {
     // Layout principal
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
-    mainLayout->setContentsMargins(40, 20, 40, 20);  // Menos márgenes
+    mainLayout->setContentsMargins(50, 30, 50, 30);
 
     // Título
     QLabel* titleLabel = new QLabel("🎮 Crear Nueva Partida", this);
     QFont titleFont = titleLabel->font();
-    titleFont.setPointSize(20);  // Título más pequeño
+    titleFont.setPointSize(24);
     titleFont.setBold(true);
     titleLabel->setFont(titleFont);
     titleLabel->setAlignment(Qt::AlignCenter);
     mainLayout->addWidget(titleLabel);
 
-    mainLayout->addSpacing(15);
+    mainLayout->addSpacing(20);
 
     // Formulario de configuración
     QFormLayout* formLayout = new QFormLayout();
-    formLayout->setSpacing(12);  // Menos spacing
-    formLayout->setContentsMargins(15, 15, 15, 15);
+    formLayout->setSpacing(15);
+    formLayout->setContentsMargins(20, 20, 20, 20);
 
     // Nombre de la partida
     nameEdit = new QLineEdit(this);
@@ -76,7 +75,19 @@ void CreatingWindow::setupUI() {
     QLabel* racesLabel = new QLabel("🏁 Cantidad de carreras:", this);
     formLayout->addRow(racesLabel, racesSpin);
 
+    // Número de vueltas
+    // TODO(nico): borrar, el numero vueltas en un circuito siempre es 1
+    lapsSpin = new QSpinBox(this);
+    lapsSpin->setMinimum(1);
+    lapsSpin->setMaximum(10);
+    lapsSpin->setValue(3);
+    lapsSpin->setSuffix(" vueltas");
+    lapsSpin->setMinimumHeight(35);
+    QLabel* lapsLabel = new QLabel("🔄 Vueltas por carrera:", this);
+    formLayout->addRow(lapsLabel, lapsSpin);
+
     // Ciudad/Mapa
+    // TODO(juli): hacer que el cliente obtenga los mapas del servidor
     cityCombo = new QComboBox(this);
     cityCombo->addItem("🏙️  Liberty City", "LibertyCity");
     cityCombo->addItem("🏙️  San Andreas", "SanAndreas");
@@ -86,23 +97,24 @@ void CreatingWindow::setupUI() {
     formLayout->addRow(cityLabel, cityCombo);
 
     mainLayout->addLayout(formLayout);
+
     mainLayout->addStretch();
 
-    // Botones - más compactos
+    // Botones
     QHBoxLayout* buttonsLayout = new QHBoxLayout();
     buttonsLayout->addStretch();
 
     cancelButton = new QPushButton("❌ Cancelar", this);
-    cancelButton->setMinimumHeight(40);  // Más compacto
-    cancelButton->setMinimumWidth(120);
+    cancelButton->setMinimumHeight(45);
+    cancelButton->setMinimumWidth(150);
     connect(cancelButton, &QPushButton::clicked, this,
             &CreatingWindow::onCancelClicked);
     buttonsLayout->addWidget(cancelButton);
 
     createButton = new QPushButton("✅ Crear Partida", this);
-    createButton->setMinimumHeight(40);
-    createButton->setMinimumWidth(120);
-    createButton->setEnabled(false);
+    createButton->setMinimumHeight(45);
+    createButton->setMinimumWidth(150);
+    createButton->setEnabled(false);  // Deshabilitado hasta que haya nombre
     connect(createButton, &QPushButton::clicked, this,
             &CreatingWindow::onSubmitClicked);
     buttonsLayout->addWidget(createButton);
@@ -113,21 +125,33 @@ void CreatingWindow::setupUI() {
     connect(nameEdit, &QLineEdit::textChanged, this,
             &CreatingWindow::validateInput);
 
+    // Foco inicial en el nombre
     nameEdit->setFocus();
-}
-
-void CreatingWindow::reset() {
-    nameEdit->clear();
-    playersSpin->setValue(4);
-    racesSpin->setValue(3);
-    cityCombo->setCurrentIndex(0);
-    createButton->setEnabled(false);
 }
 
 void CreatingWindow::validateInput() {
     // Habilitar botón crear solo si hay nombre
     QString name = nameEdit->text().trimmed();
     createButton->setEnabled(!name.isEmpty());
+}
+
+/*CreatingWindow::GameConfig CreatingWindow::getConfig() const {
+    GameConfig config;
+    config.name = nameEdit->text().trimmed();
+    config.maxPlayers = playersSpin->value();
+    config.raceCount = racesSpin->value();
+    config.lapCount = lapsSpin->value();
+    config.city = cityCombo->currentData().toString();
+    return config;
+}*/
+
+void CreatingWindow::reset() {
+    nameEdit->clear();
+    playersSpin->setValue(4);
+    racesSpin->setValue(3);
+    lapsSpin->setValue(3);
+    cityCombo->setCurrentIndex(0);
+    createButton->setEnabled(false);
 }
 
 void CreatingWindow::onSubmitClicked() {
