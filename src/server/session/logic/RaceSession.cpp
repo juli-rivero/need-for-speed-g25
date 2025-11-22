@@ -7,28 +7,20 @@
 
 #include "../../config/MapLoader.h"
 
-RaceSession::RaceSession(
-    const YamlGameConfig& cfg, CityId city,
-    std::vector<std::unique_ptr<Checkpoint>> checkpoints,
-    const std::vector<PlayerId>& playerIds,
-    std::vector<SpawnPoint> spawn_points,
-    std::unordered_map<PlayerId, float> initialPenaltiesForThisRace)
-    : _cfg(cfg),
-      _city(city),
-      _checkpoints(std::move(checkpoints)),
-      _spawnPoints(std::move(spawn_points)) {
-    _players.reserve(playerIds.size());
-    for (const PlayerId id : playerIds) {
-        PlayerRaceData prd;
-        prd.id = id;
-        prd.penaltyTime = initialPenaltiesForThisRace[id];
-        _players.push_back(std::move(prd));
-    }
+RaceSession::RaceSession(const YamlGameConfig& cfg, CityId city,
+                         std::vector<std::unique_ptr<Checkpoint>> checkpoints,
+                         std::vector<SpawnPoint> spawnPoints,
+                         const std::vector<Player*>& racePlayers)
+    : cfg(cfg),
+      city(std::move(city)),
+      players(racePlayers.begin(), racePlayers.end()),
+      checkpoints(std::move(checkpoints)),
+      spawnPoints(std::move(spawnPoints)) {
     orderCheckpointsByOrder();
 }
 
 void RaceSession::orderCheckpointsByOrder() {
-    std::sort(_checkpoints.begin(), _checkpoints.end(),
+    std::sort(checkpoints.begin(), checkpoints.end(),
               [](const std::unique_ptr<Checkpoint>& a,
                  const std::unique_ptr<Checkpoint>& b) {
                   return a->getOrder() < b->getOrder();
@@ -38,24 +30,10 @@ void RaceSession::orderCheckpointsByOrder() {
 void RaceSession::start() {
     _state = RaceState::Countdown;
     _raceClock = 0.0f;
-}
-
-bool RaceSession::everyoneDoneOrDQ() const {
-    for (const auto& p : _players) {
-        if (!p.finished && !p.disqualified) return false;
-    }
-    return true;
-}
-
-void RaceSession::applyTimeLimitIfNeeded() {
-    if (_raceClock >= _cfg.getRaceTimeLimitSec()) {
-        // tiempo agotado marcar DNF a quienes no terminaron
-        for (auto& p : _players) {
-            if (!p.finished && !p.disqualified) {
-                p.disqualified = true;  // DNF por timeout
-            }
-        }
-        _state = RaceState::Finished;
+    // se reinicia el estado de carrera en cada Player
+    for (auto* p : players) {
+        // No se setea penalidad aquí porque ya la maneja MatchSession/Player
+        p->resetRaceState(/*initialPenaltyTime*/ p->getPenalty());
     }
 }
 
@@ -65,98 +43,108 @@ void RaceSession::update(float dt) {
     _raceClock += dt;
 
     if (_state == RaceState::Countdown) {
-        if (_raceClock >= _countdownTime) {
+        if (_raceClock >= countdownTime) {
             _state = RaceState::Running;
-            // reinicia reloj de carrera efectiva
             _raceClock = 0.0f;
         }
         return;
     }
 
-    // Running
-    for (auto& p : _players) {
-        if (!p.finished && !p.disqualified) {
-            p.elapsed += dt;  // acumula tiempo crudo
-            // Llegó a meta?
-            if (p.nextCheckpoint >= _checkpoints.size()) {
-                p.finished = true;
-            }
+    // aca esta en running: avanza el tiempo de cada jugador
+    bool everyoneDoneOrDQ = true;
+    for (auto& p : players) {
+        if (!p->isFinished() && !p->isDQ()) {
+            p->tickTime(dt);
+            everyoneDoneOrDQ = false;
         }
     }
 
-    if (everyoneDoneOrDQ()) {
+    // Límite global de tiempo de carrera
+    if (_raceClock >= cfg.getRaceTimeLimitSec()) {
+        for (auto& p : players) {
+            if (!p->isFinished() && !p->isDQ()) {
+                p->markDQ();
+            }
+        }
         _state = RaceState::Finished;
         return;
     }
 
-    applyTimeLimitIfNeeded();
+    if (everyoneDoneOrDQ) {
+        _state = RaceState::Finished;
+    }
+}
+
+void RaceSession::onCheckpointCrossed(PlayerId id, int order) const {
+    for (auto* p : players) {
+        PlayerSnapshot snap = p->buildSnapshot();
+        if (snap.id != id) continue;
+
+        if (p->getNextCheckpoint() < checkpoints.size() &&
+            checkpoints[p->getNextCheckpoint()]->getOrder() == order) {
+            p->onCheckpoint(static_cast<std::size_t>(order));
+        }
+
+        if (p->getNextCheckpoint() >= checkpoints.size()) {
+            p->markFinished();
+            std::cout << "Player " << id << " terminó la carrera!\n";
+        }
+        return;
+    }
+}
+
+void RaceSession::onCarDestroyed(PlayerId player) {
+    for (auto* p : players) {
+        PlayerSnapshot snap = p->buildSnapshot();
+        if (snap.id == player) {
+            p->markDQ();
+            return;
+        }
+    }
+}
+
+float RaceSession::countdownRemaining() const {
+    if (_state != RaceState::Countdown) return 0.f;
+    return std::max(0.f, countdownTime - _raceClock);
+}
+
+std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(
+    PlayerId id) const {
+    for (auto* p : players) {
+        PlayerSnapshot snap = p->buildSnapshot();
+        if (snap.id != id) continue;
+
+        std::size_t next = p->getNextCheckpoint();
+        if (next >= checkpoints.size()) return std::nullopt;
+
+        return checkpoints[next].get();
+    }
+    return std::nullopt;
 }
 
 std::vector<PlayerResult> RaceSession::makeResults() const {
     std::vector<PlayerResult> out;
-    out.reserve(_players.size());
-    for (const auto& p : _players) {
+    out.reserve(players.size());
+
+    for (auto* p : players) {
+        PlayerSnapshot snap = p->buildSnapshot();
+
         PlayerResult r;
-        r.id = p.id;
-        r.penalty = p.penaltyTime;
-        r.netTime = p.finished ? (p.elapsed + p.penaltyTime) : p.elapsed;
-        r.dnf = (!p.finished || p.disqualified);
+        r.id = snap.id;
+        r.rawTime = p->getRawTime();
+        r.penalty = p->getPenalty();
+        r.netTime = p->getNetTime();
+        r.dnf = p->isDQ() || !p->isFinished();
+
         out.push_back(r);
     }
 
-    std::sort(out.begin(), out.end(),
-              [](const PlayerResult& a, const PlayerResult& b) {
-                  // Los que completaron la carrera primero, luego por tiempo
-                  if (a.dnf != b.dnf) {
-                      return !a.dnf;  // false (no DNF) < true (DNF)
-                  }
-                  return a.netTime < b.netTime;
-              });
+    std::sort(
+        out.begin(), out.end(),
+        [](const PlayerResult& a, const PlayerResult& b) {
+            if (a.dnf != b.dnf)
+                return !a.dnf;  // los que NO son DNF(did not finish) primero
+            return a.netTime < b.netTime;
+        });
     return out;
-}
-
-// Visibilidad: siguiente CP e hints asociados
-std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(
-    PlayerId p) const {
-    auto it = std::find_if(_players.begin(), _players.end(),
-                           [&](const auto& pr) { return pr.id == p; });
-    if (it == _players.end()) return std::nullopt;
-    if (it->nextCheckpoint >= _checkpoints.size()) return std::nullopt;
-    return _checkpoints[it->nextCheckpoint].get();
-}
-
-// IRaceEvents desde colisiones/sensores
-void RaceSession::onCheckpointCrossed(PlayerId player, int checkpointOrder) {
-    auto itP = std::find_if(_players.begin(), _players.end(),
-                            [&](const auto& pr) { return pr.id == player; });
-    if (itP == _players.end() || itP->finished || itP->disqualified) return;
-
-    if (itP->nextCheckpoint < _checkpoints.size() &&
-        _checkpoints[itP->nextCheckpoint]->getOrder() == checkpointOrder) {
-        ++(itP->nextCheckpoint);
-    }
-    if (itP->nextCheckpoint >= _checkpoints.size()) {
-        itP->finished = true;
-        std::cout << " Player " << player << " completó la carrera!\n";
-    }
-}
-RaceProgressSnapshot RaceSession::getProgressForPlayer(PlayerId id) const {
-    RaceProgressSnapshot rp{};
-    auto it = std::find_if(_players.begin(), _players.end(),
-                           [&](const auto& p) { return p.id == id; });
-    if (it != _players.end()) {
-        rp.playerId = it->id;
-        rp.nextCheckpoint = it->nextCheckpoint;
-        rp.finished = it->finished;
-        rp.disqualified = it->disqualified;
-        rp.elapsedTime = it->elapsed;
-    }
-    return rp;
-}
-
-void RaceSession::onCarDestroyed(PlayerId player) {
-    auto itP = std::find_if(_players.begin(), _players.end(),
-                            [&](const auto& pr) { return pr.id == player; });
-    if (itP == _players.end()) return;
-    itP->disqualified = true;
 }

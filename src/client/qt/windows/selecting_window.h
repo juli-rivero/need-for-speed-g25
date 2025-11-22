@@ -6,7 +6,6 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "client/connexion/connexion.h"
@@ -48,12 +47,6 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     std::vector<CarInfo> carTypes;
     int selectedCarIndex;
 
-    QLabel* speedValueLabel;
-    QLabel* accelValueLabel;
-    QLabel* healthValueLabel;
-    QLabel* massValueLabel;
-    QLabel* controlValueLabel;
-
     // UI Components
     QVBoxLayout* mainLayout;
     QWidget* carCardsContainer;
@@ -71,26 +64,4 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
     QPushButton* confirmButton;
     QPushButton* cancelButton;
-
-    QString getCarImagePath(CarType carType) {
-        // Mapear tipos de auto a números de imagen
-        std::unordered_map<CarType, int> carImageMap = {
-            {CarType::Speedster, 1}, {CarType::Tank, 2},
-            {CarType::Drifter, 3},   {CarType::Rocket, 4},
-            {CarType::Classic, 5},   {CarType::Offroad, 6},
-            {CarType::Ghost, 7}};
-
-        int imageNumber = 1;  // Default
-
-        auto it = carImageMap.find(carType);
-        if (it != carImageMap.end()) {
-            imageNumber = it->second;
-        }
-
-        // Ruta a las imágenes - asumiendo que están en assets/cars/
-        return QString("assets/cars/car%1.png").arg(imageNumber);
-    }
-
-    QProgressBar* createMiniStatBar(float value);
-    QLabel* carDetailImageLabel;
 };
