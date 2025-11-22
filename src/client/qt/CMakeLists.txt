@@ -1,5 +1,4 @@
 add_subdirectory(windows)
-add_subdirectory(ui)
 
 target_sources(taller_client
     PRIVATE
