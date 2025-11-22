@@ -9,7 +9,6 @@
 #include "client/constants.h"
 #include "client/game/assets.h"
 #include "client/game/car.h"
-#include "client/game/mock_api.h"
 #include "common/macros.h"
 
 class Car;
@@ -25,7 +24,6 @@ class Game final : Connexion::Responder {
 
     SDL2pp::Texture& city;
 
-    // MockApi api;
     Api& api;
     const PlayerId id;
 
