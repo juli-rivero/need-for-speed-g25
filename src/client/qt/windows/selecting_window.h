@@ -6,6 +6,7 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "client/connexion/connexion.h"
