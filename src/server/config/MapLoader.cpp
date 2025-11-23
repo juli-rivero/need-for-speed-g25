@@ -12,11 +12,11 @@ static constexpr float MAP_SCALE = 0.1f;
 
 MapLoader::MapInfo MapLoader::loadFromYAML(
     const std::string& yamlPath, EntityFactory& factory,
-    std::vector<std::unique_ptr<Wall>>& walls,
-    std::vector<std::unique_ptr<Bridge>>& bridges,
+    std::vector<std::unique_ptr<Wall>>& buildings,
+    std::vector<BridgeInfo>& bridges, std::vector<OverpassInfo>& overpasses,
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
-    std::vector<SpawnPoint>& spawnPoints
-    // std::vector<std::unique_ptr<BridgeSensor>>& bridgeSensors
+    std::vector<SpawnPoint>& spawnPoints,
+    std::vector<std::unique_ptr<BridgeSensor>>& sensors
 
 ) {
     std::cout << "[MapLoader] Cargando mapa desde " << yamlPath << "...\n";
@@ -51,16 +51,15 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
               << " | Gravedad: [" << info.gravity.x << ", " << info.gravity.y
               << "]\n";
 
-    if (mapNode["walls"]) {
-        for (const auto& n : mapNode["walls"]) {
+    // 1) BUILDINGS
+    if (mapNode["buildings"]) {
+        for (const auto& n : mapNode["buildings"]) {
             const auto& verts = n["vertices"];
             std::vector<b2Vec2> poly;
-
             for (const auto& v : verts) {
                 poly.push_back({v["x"].as<float>(), v["y"].as<float>()});
             }
 
-            // calcular bounding box
             float minX = poly[0].x;
             float maxX = minX;
             float minY = poly[0].y;
@@ -78,46 +77,26 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             float cx = (minX + maxX) * 0.5f * MAP_SCALE;
             float cy = (minY + maxY) * 0.5f * MAP_SCALE;
 
-            auto wall = factory.createWall(cx, cy, w, h);
-            walls.push_back(std::move(wall));
-        }
-    }
+            std::string btype =
+                n["type"] ? n["type"].as<std::string>() : "residential";
 
-    if (mapNode["bridges"]) {
-        for (const auto& n : mapNode["bridges"]) {
-            auto id = n["id"].as<int>();
-            float x = n["x"].as<float>();
-            float y = n["y"].as<float>();
-            float w = n["w"].as<float>();
-            float h = n["h"].as<float>();
-            bool driveable = n["driveable"] ? n["driveable"].as<bool>() : true;
+            if (btype == "bridge") {
+                BridgeInfo bi{cx, cy, w, h};
+                bridges.push_back(bi);
+                continue;
+            }
 
-            auto bridge = factory.createBridge(x, y, w, h, driveable);
-            bridges.push_back(std::move(bridge));
-            // // Sensores
-            // if (driveable && n["sensors"]) {
-            //     const auto& sen = n["sensors"];
-            //
-            //     auto mk = [&](const YAML::Node& node, BridgeSensorType t) {
-            //         float sx = node["x"].as<float>();
-            //         float sy = node["y"].as<float>();
-            //         float sw = node["w"].as<float>();
-            //         float sh = node["h"].as<float>();
-            //
-            //         auto sensor =
-            //             factory.createBridgeSensor(world, t, sx, sy, sw, sh);
-            //         bridgeSensors.push_back(std::move(sensor));
-            //     };
-            //
-            //     if (sen["enter_upper"])
-            //         mk(sen["enter_upper"], BridgeSensorType::EnterUpper);
-            //
-            //     if (sen["leave_upper"])
-            //         mk(sen["leave_upper"], BridgeSensorType::LeaveUpper);
-            // }
+            if (btype == "overpass") {
+                OverpassInfo oi{cx, cy, w, h};
+                overpasses.push_back(oi);
+                continue;
+            }
 
-            std::cout << "Bridge id=" << id << " driveable=" << driveable
-                      << "\n";
+            EntityType et = EntityType::Wall;
+            if (btype == "railing") et = EntityType::Railing;
+
+            auto wall = factory.createBuilding(cx, cy, w, h, et);
+            buildings.push_back(std::move(wall));
         }
     }
 
@@ -137,7 +116,29 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                       << ")\n";
         }
     }
+    // 4) BRIDGE SENSORS
+    if (mapNode["sensors"]) {
+        const auto& sn = mapNode["sensors"];
 
+        auto mkList = [&](const YAML::Node& arr, BridgeSensorType mode) {
+            for (const auto& s : arr) {
+                float x = s["x"].as<float>() * MAP_SCALE;
+                float y = s["y"].as<float>() * MAP_SCALE;
+                float w = s["w"].as<float>() * MAP_SCALE;
+                float h = s["h"].as<float>() * MAP_SCALE;
+
+                auto sensor = factory.createBridgeSensor(mode, x, y, w, h);
+                sensors.push_back(std::move(sensor));
+            }
+        };
+
+        if (sn["upper"] && sn["upper"].IsSequence()) {
+            mkList(sn["upper"], BridgeSensorType::SetUpper);
+        }
+        if (sn["lower"] && sn["lower"].IsSequence()) {
+            mkList(sn["lower"], BridgeSensorType::SetLower);
+        }
+    }
     if (mapNode["spawn_points"]) {
         for (const auto& n : mapNode["spawn_points"]) {
             SpawnPoint sp(n["x"].as<float>(), n["y"].as<float>(),
@@ -148,9 +149,9 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
         }
     }
 
-    std::cout << "Mapa cargado correctamente con " << walls.size() << " walls, "
-              << bridges.size() << " bridges, " << checkpoints.size()
-              << spawnPoints.size() << " spawn points.\n";
+    std::cout << "Mapa cargado correctamente con " << buildings.size()
+              << " walls, " << bridges.size() << " bridges, "
+              << checkpoints.size() << spawnPoints.size() << " spawn points.\n";
 
     return info;
 }

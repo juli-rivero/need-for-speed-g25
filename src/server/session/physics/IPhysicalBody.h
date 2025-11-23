@@ -22,4 +22,5 @@ class IPhysicalBody {
     virtual void setLinearVelocity(float vx, float vy) = 0;
     virtual Vec2 getLinearVelocity() const = 0;
     virtual b2BodyId getId() const = 0;
+    virtual b2ShapeId getShapeId() const = 0;
 };

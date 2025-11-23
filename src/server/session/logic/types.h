@@ -8,6 +8,13 @@
 
 using CityId = std::string;
 
+enum CollisionCategory : uint32_t {
+    CATEGORY_CAR = 0x0001,
+    CATEGORY_WALL = 0x0002,
+    CATEGORY_RAILING = 0x0004,
+    CATEGORY_SENSOR = 0x0008
+};
+
 struct SpawnPoint {
     float x, y, angle;
 };

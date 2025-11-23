@@ -1,6 +1,7 @@
 #include "CollisionManager.h"
 
 #include <cmath>
+#include <iostream>
 
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
@@ -105,6 +106,7 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
         Entity* eA = itA->second;
         Entity* eB = itB->second;
 
+        // CHECKPOINTS
         if (eA->getEntityType() == EntityType::Checkpoint &&
             eB->getEntityType() == EntityType::Car) {
             auto* car = static_cast<Car*>(eB);
@@ -128,19 +130,27 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
             auto* sensor = static_cast<BridgeSensor*>(eA);
             auto* car = static_cast<Car*>(eB);
 
-            if (sensor->getType() == BridgeSensorType::EnterUpper) {
+            if (sensor->getType() == BridgeSensorType::SetUpper) {
                 car->setLayer(RenderLayer::OVER);
-            } else if (sensor->getType() == BridgeSensorType::LeaveUpper) {
+                std::cout << "[DEBUG] Car " << car->getId()
+                          << " → Set LAYER = OVER (upper sensor)\n";
+            } else if (sensor->getType() == BridgeSensorType::SetLower) {
                 car->setLayer(RenderLayer::UNDER);
+                std::cout << "[DEBUG] Car " << car->getId()
+                          << " → Set LAYER = UNDER (lower sensor)\n";
             }
         } else if (eA->getEntityType() == EntityType::Car &&
                    eB->getEntityType() == EntityType::BridgeSensor) {
             auto* car = static_cast<Car*>(eA);
             auto* sensor = static_cast<BridgeSensor*>(eB);
-            if (sensor->getType() == BridgeSensorType::EnterUpper) {
+            if (sensor->getType() == BridgeSensorType::SetUpper) {
                 car->setLayer(RenderLayer::OVER);
-            } else if (sensor->getType() == BridgeSensorType::LeaveUpper) {
+                std::cout << "[DEBUG] Car " << car->getId()
+                          << " → Set LAYER = OVER (upper sensor)\n";
+            } else if (sensor->getType() == BridgeSensorType::SetLower) {
                 car->setLayer(RenderLayer::UNDER);
+                std::cout << "[DEBUG] Car " << car->getId()
+                          << " → Set LAYER = UNDER (lower sensor)\n";
             }
         }
     }

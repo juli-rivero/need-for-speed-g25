@@ -4,6 +4,7 @@
 
 #include "Box2dPhysicsBody.h"
 #include "common/structs.h"
+#include "server/session/logic/types.h"
 
 // FABRICA DE CUERPOS FISICOS DE BOX2D
 class Box2DPhysicsFactory {
@@ -14,10 +15,12 @@ class Box2DPhysicsFactory {
 
     std::shared_ptr<Box2dPhysicsBody> createCar(float x, float y,
                                                 const CarStaticStats& type);
-    std::shared_ptr<Box2dPhysicsBody> createBuilding(float x, float y, float w,
-                                                     float h);
+    std::shared_ptr<Box2dPhysicsBody> createBuilding(
+        float x, float y, float w, float h, CollisionCategory category);
+    std::shared_ptr<Box2dPhysicsBody> createRailing(float x, float y, float w,
+                                                    float h);
     std::shared_ptr<Box2dPhysicsBody> createCheckpoint(float x, float y,
                                                        float w, float h);
-    std::shared_ptr<Box2dPhysicsBody> createBridge(float x, float y, float w,
-                                                   float h, bool driveable);
+    std::shared_ptr<Box2dPhysicsBody> createBridgeSensor(float x, float y,
+                                                         float w, float h);
 };

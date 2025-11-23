@@ -19,15 +19,19 @@ std::unique_ptr<Car> EntityFactory::createCar(const CarType& type, float x,
     auto body = std::make_shared<Box2DBodyAdapter>(phys);
     auto car = std::make_unique<Car>(nextId(), type, stats, body);
 
-    world.getCollisionManager().registerEntity(phys->getShapeId(), car.get());
+    car->setLayer(RenderLayer::UNDER);
+    world.getCollisionManager().registerEntity(body->getShapeId(), car.get());
     return car;
 }
 
-std::unique_ptr<Wall> EntityFactory::createWall(float x, float y, float w,
-                                                float h) {
-    auto phys = physicsFactory.createBuilding(x, y, w, h);
+std::unique_ptr<Wall> EntityFactory::createBuilding(float x, float y, float w,
+                                                    float h, EntityType type) {
+    CollisionCategory cat =
+        (type == EntityType::Railing) ? CATEGORY_RAILING : CATEGORY_WALL;
+
+    auto phys = physicsFactory.createBuilding(x, y, w, h, cat);
     auto body = std::make_shared<Box2DBodyAdapter>(phys);
-    auto wall = std::make_unique<Wall>(nextId(), w, h, body);
+    auto wall = std::make_unique<Wall>(nextId(), w, h, body, type);
 
     world.getCollisionManager().registerEntity(phys->getShapeId(), wall.get());
     return wall;
@@ -44,35 +48,14 @@ std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(float x, float y,
     return cp;
 }
 
-std::unique_ptr<Bridge> EntityFactory::createBridge(float x, float y, float w,
-                                                    float h, bool driveable) {
-    auto lower = physicsFactory.createBridge(x, y - h, w, h, false);
-    auto upper = physicsFactory.createBridge(x, y, w, h, driveable);
+std::unique_ptr<BridgeSensor> EntityFactory::createBridgeSensor(
+    BridgeSensorType type, float x, float y, float w, float h) {
+    auto phys = physicsFactory.createBridgeSensor(x, y, w, h);
+    auto body = std::make_shared<Box2DBodyAdapter>(phys);
 
-    auto lowerBody = std::make_shared<Box2DBodyAdapter>(lower);
-    auto upperBody = std::make_shared<Box2DBodyAdapter>(upper);
+    auto sensor = std::make_unique<BridgeSensor>(nextId(), type, body, w, h);
 
-    auto bridge = std::make_unique<Bridge>(nextId(), w, h, lowerBody, upperBody,
-                                           driveable);
-
-    world.getCollisionManager().registerEntity(lower->getShapeId(),
-                                               bridge.get());
-    world.getCollisionManager().registerEntity(upper->getShapeId(),
-                                               bridge.get());
-    return bridge;
+    world.getCollisionManager().registerEntity(body->getShapeId(),
+                                               sensor.get());
+    return sensor;
 }
-// std::unique_ptr<BridgeSensor>
-// EntityFactory::createBridgeSensor(BridgeSensorType type, float x, float y,
-// float w,
-//     float h) {
-//     auto phys =
-//         Box2DPhysicsFactory::createBridgeSensor(x, y, w, h);
-//
-//     auto body = std::make_shared<Box2DBodyAdapter>(phys);
-//
-//     auto sensor = std::make_unique<BridgeSensor>(nextId(), type, body);
-//
-//     world.getCollisionManager().registerEntity(phys->getShapeId(),
-//                                                sensor.get());
-//     return sensor;
-// }

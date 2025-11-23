@@ -12,7 +12,7 @@
 #include "RaceSession.h"
 #include "UpgradeSystem.h"
 #include "server/session/logic/types.h"
-#include "server/session/model/Bridge.h"
+#include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Wall.h"
 
 class MatchSession {
@@ -26,8 +26,9 @@ class MatchSession {
     const std::vector<PlayerConfig> _playerConfigs;
     std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
 
-    std::vector<std::unique_ptr<Wall>> _walls;
-    std::vector<std::unique_ptr<Bridge>> _bridges;
+    std::vector<std::unique_ptr<Wall>> _buildings;
+    std::vector<BridgeInfo> _bridges;
+    std::vector<OverpassInfo> _overpasses;
 
     std::unique_ptr<RaceSession> _race;  // carrera en curso
     MatchState _state{MatchState::Starting};
@@ -60,10 +61,7 @@ class MatchSession {
     MatchState state() const { return _state; }
 
     const std::vector<std::unique_ptr<Wall>>& getWalls() const {
-        return _walls;
-    }
-    const std::vector<std::unique_ptr<Bridge>>& getBridges() const {
-        return _bridges;
+        return _buildings;
     }
     bool hasPendingEndRacePacket() const {
         return pendingEndRacePacket.has_value();
@@ -73,4 +71,9 @@ class MatchSession {
         pendingEndRacePacket.reset();
         return p;
     }
+#if OFFLINE
+    const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
+        return _race->getSensors();
+    }
+#endif
 };

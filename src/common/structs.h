@@ -5,8 +5,16 @@
 #include <variant>
 #include <vector>
 
+#include "server/session/model/Entity.h"
+
 enum class SessionStatus { Waiting, Playing, Full };
-enum class RenderLayer { UNDER = 0, OVER = 1 };
+
+enum class RenderLayer { UNDER, OVER };
+
+enum class BridgeSensorType {
+    SetUpper,  // cuando lo toca → car pasa a layer OVER
+    SetLower   // cuando lo toca → car pasa a layer UNDER
+};
 
 #define SESSION_CONFIG_FIELDS \
     std::string name;         \
@@ -150,13 +158,18 @@ struct CheckpointInfo {
 struct WallInfo {
     float x, y;
     float w, h;
+    EntityType type;
 };
 
 struct BridgeInfo {
-    float lowerX, lowerY;
-    float upperX, upperY;
+    float x, y;  // centro del puente
+    float w, h;  // área de renderización
+};
+
+// Deck de overpass (siempre arriba de todo)
+struct OverpassInfo {
+    float x, y;
     float w, h;
-    bool driveable;
 };
 
 struct StaticSnapshot {
@@ -164,7 +177,9 @@ struct StaticSnapshot {
 
     std::vector<CheckpointInfo> checkpoints;
     std::vector<SpawnPointInfo> spawns;
+    // incluye residential y railings
     std::vector<WallInfo> walls;
     std::vector<BridgeInfo> bridges;
+    std::vector<OverpassInfo> overpasses;
     std::vector<PlayerSnapshot> players;
 };

@@ -79,20 +79,23 @@ void RaceSession::onCheckpointCrossed(PlayerId id, int order) const {
     for (auto* p : players) {
         PlayerSnapshot snap = p->buildSnapshot();
         if (snap.id != id) continue;
+        size_t idx = p->getNextCheckpoint();
+        if (idx >= checkpoints.size()) return;
 
-        if (p->getNextCheckpoint() < checkpoints.size() &&
-            checkpoints[p->getNextCheckpoint()]->getOrder() == order) {
-            p->onCheckpoint(static_cast<std::size_t>(order));
+        if (checkpoints[idx]->getOrder() != order) {
+            return;
         }
+
+        p->onCheckpoint(idx);
 
         if (p->getNextCheckpoint() >= checkpoints.size()) {
             p->markFinished();
-            std::cout << "Player " << id << " terminó la carrera!\n";
+            std::cout << "Player " << id << " terminó la carrera!" << std::endl;
         }
+
         return;
     }
 }
-
 void RaceSession::onCarDestroyed(PlayerId player) {
     for (auto* p : players) {
         PlayerSnapshot snap = p->buildSnapshot();
