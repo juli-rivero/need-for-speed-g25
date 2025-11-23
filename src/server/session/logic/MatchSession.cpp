@@ -30,18 +30,22 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
 void MatchSession::startRace(std::size_t raceIndex) {
     _currentRace = raceIndex;
 
-    std::vector<std::unique_ptr<Wall>> Walls;
-    std::vector<std::unique_ptr<Bridge>> Bridges;
+    std::vector<std::unique_ptr<Wall>> buildings;
+    std::vector<BridgeInfo> bridges;
+    std::vector<OverpassInfo> overpasses;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
+    std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
 
     EntityFactory factory(_world, _cfg);
 
-    MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, Walls, Bridges,
-                            checkpoints, spawnPoints);
+    MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, buildings,
+                            bridges, overpasses, checkpoints, spawnPoints,
+                            bridgeSensors);
 
-    if (_walls.empty()) _walls = std::move(Walls);
-    if (_bridges.empty()) _bridges = std::move(Bridges);
+    if (_buildings.empty()) _buildings = std::move(buildings);
+    if (_bridges.empty()) _bridges = std::move(bridges);
+    if (_overpasses.empty()) _overpasses = std::move(overpasses);
 
     _players.clear();
     std::vector<Player*> racePlayers;
@@ -71,6 +75,9 @@ void MatchSession::startRace(std::size_t raceIndex) {
                                           std::move(checkpoints),
                                           std::move(spawnPoints), racePlayers);
 
+#if OFFLINE
+    _race->setSensors(std::move(bridgeSensors));
+#endif
     _world.getCollisionManager().setRaceSession(_race.get());
 
     _race->start();
@@ -114,24 +121,20 @@ StaticSnapshot MatchSession::getStaticSnapshot() const {
     const auto& raceDef = _races[_currentRace];
     s.race = raceDef.mapFile;
 
-    for (const auto& w : _walls) {
+    for (const auto& w : _buildings) {
         WallInfo wi;
         wi.x = w->getPosition().x;
         wi.y = w->getPosition().y;
         wi.w = w->getWidth();
         wi.h = w->getHeight();
+        wi.type = w->getEntityType();
         s.walls.push_back(wi);
     }
     for (const auto& br : _bridges) {
-        BridgeInfo bi;
-        bi.lowerX = br->getLowerPosition().x;
-        bi.lowerY = br->getLowerPosition().y;
-        bi.upperX = br->getUpperPosition().x;
-        bi.upperY = br->getUpperPosition().y;
-        bi.w = br->getWidth();
-        bi.h = br->getHeight();
-        bi.driveable = br->isDriveable();
-        s.bridges.push_back(bi);
+        s.bridges.push_back(br);
+    }
+    for (const auto& op : _overpasses) {
+        s.overpasses.push_back(op);
     }
     for (const auto& cp : _race->getCheckpoints()) {
         CheckpointInfo ci;

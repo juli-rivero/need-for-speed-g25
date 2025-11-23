@@ -8,6 +8,8 @@
 
 #include "../physics/IPhysicalBody.h"
 #include "Entity.h"
+#include "box2d/box2d.h"
+#include "box2d/types.h"
 #include "server/session/logic/types.h"
 #include "server/session/physics/IPhysicalBody.h"
 #include "spdlog/spdlog.h"
@@ -62,7 +64,24 @@ class Car : public Entity {
           body(std::move(body)),
           carType(carType) {}
     RenderLayer getLayer() const { return layer; }
-    void setLayer(RenderLayer l) { layer = l; }
+    void setLayer(RenderLayer l) {
+        layer = l;
+
+        b2ShapeId shape = body->getShapeId();
+        b2Filter filter = b2Shape_GetFilter(shape);
+
+        filter.categoryBits = CATEGORY_CAR;
+
+        if (layer == RenderLayer::UNDER) {
+            filter.maskBits = CATEGORY_WALL |  // edificios normales
+                              CATEGORY_SENSOR | CATEGORY_CAR;  // otros autos
+            // NO colisiona con CATEGORY_RAILING
+        } else {
+            filter.maskBits = CATEGORY_WALL | CATEGORY_CAR | CATEGORY_RAILING |
+                              CATEGORY_SENSOR;
+        }
+        b2Shape_SetFilter(shape, filter);
+    }
 
    private:
     Vec2 getDirection() const {

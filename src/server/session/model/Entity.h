@@ -1,6 +1,6 @@
 #pragma once
 
-enum class EntityType { Car, Wall, Checkpoint, Hint, Bridge, BridgeSensor };
+enum class EntityType { Car, Wall, Checkpoint, BridgeSensor, Railing };
 
 class Entity {
    protected:

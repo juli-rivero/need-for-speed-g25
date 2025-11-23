@@ -4,6 +4,7 @@
 #include <memory>
 #include <optional>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include "../../config/YamlGameConfig.h"
@@ -11,6 +12,7 @@
 #include "../model/Checkpoint.h"
 #include "NetworkTypes.h"
 #include "server/session/logic/types.h"
+#include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Player.h"
 
 struct SpawnPoint;
@@ -56,5 +58,16 @@ class RaceSession {
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
 
+#if OFFLINE
+    std::vector<std::unique_ptr<BridgeSensor>> _sensors;
+
+   public:
+    const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
+        return _sensors;
+    }
+    void setSensors(std::vector<std::unique_ptr<BridgeSensor>> sensors) {
+        _sensors = std::move(sensors);
+    }
+#endif
     void orderCheckpointsByOrder();
 };

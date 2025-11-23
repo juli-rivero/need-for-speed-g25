@@ -4,6 +4,8 @@
 #include <iostream>
 #include <memory>
 
+#include "server/session/logic/types.h"
+
 Box2DPhysicsFactory::Box2DPhysicsFactory(const b2WorldId world)
     : world(world) {}
 // --- Auto ---
@@ -26,16 +28,17 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
     sdef.enableContactEvents = true;
     sdef.enableHitEvents = true;
 
+    // Filtro inicial → UNDER
+    sdef.filter.categoryBits = CATEGORY_CAR;
+    sdef.filter.maskBits = 0;
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
     body->setShapeId(shape);
     return body;
 }
 
 // --- MURO ESTÁTICO ---
-std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(float x,
-                                                                      float y,
-                                                                      float w,
-                                                                      float h) {
+std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(
+    float x, float y, float w, float h, CollisionCategory category) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};
@@ -47,12 +50,37 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(float x,
     sdef.enableContactEvents = true;
     sdef.enableHitEvents = true;
 
+    sdef.filter.categoryBits = category;
+    sdef.filter.maskBits = CATEGORY_CAR;
+
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
     body->setShapeId(shape);
     return body;
 }
 
-// --- Checkpoint  ---
+// --- MURO BARANDA ---
+std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createRailing(float x,
+                                                                     float y,
+                                                                     float w,
+                                                                     float h) {
+    b2BodyDef def = b2DefaultBodyDef();
+    def.type = b2_staticBody;
+    def.position = {x, y};
+
+    auto body = std::make_shared<Box2dPhysicsBody>(world, def);
+    b2Polygon box = b2MakeBox(w / 2.0f, h / 2.0f);
+    b2ShapeDef sdef = b2DefaultShapeDef();
+    sdef.material.friction = 1.0f;
+    sdef.enableContactEvents = true;
+    sdef.enableHitEvents = true;
+    sdef.filter.categoryBits = CATEGORY_RAILING;
+    sdef.filter.maskBits = CATEGORY_CAR | CATEGORY_WALL;
+
+    b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
+    body->setShapeId(shape);
+    return body;
+}
+
 // --- CHECKPOINT (sensor) ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCheckpoint(
     float x, float y, float w, float h) {
@@ -65,15 +93,17 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCheckpoint(
     b2ShapeDef sdef = b2DefaultShapeDef();
     sdef.isSensor = true;
     sdef.enableSensorEvents = true;
+    sdef.filter.categoryBits = CATEGORY_SENSOR;
+    sdef.filter.maskBits = CATEGORY_CAR;
 
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
     body->setShapeId(shape);
     return body;
 }
 
-// --- PUENTE (doble cuerpo, arriba/abajo) ---
-std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridge(
-    float x, float y, float w, float h, bool driveable) {
+// --- BridgeSensor ---
+std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridgeSensor(
+    float x, float y, float w, float h) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};
@@ -81,27 +111,13 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridge(
     auto body = std::make_shared<Box2dPhysicsBody>(world, def);
     b2Polygon box = b2MakeBox(w / 2.0f, h / 2.0f);
     b2ShapeDef sdef = b2DefaultShapeDef();
-    sdef.material.friction = driveable ? 0.7f : 1.0f;
-    sdef.isSensor = !driveable;
+    sdef.isSensor = true;
+    sdef.enableSensorEvents = true;
 
-    b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
-    body->setShapeId(shape);
+    sdef.filter.categoryBits = CATEGORY_SENSOR;
+    sdef.filter.maskBits = CATEGORY_CAR;
+
+    b2ShapeId sh = b2CreatePolygonShape(body->getId(), &sdef, &box);
+    body->setShapeId(sh);
     return body;
 }
-// std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridgeSensor(
-//     b2WorldId world, float x, float y, float w, float h) {
-//     b2BodyDef def = b2DefaultBodyDef();
-//     def.type = b2_staticBody;
-//     def.position = {x, y};
-//
-//     auto body = std::make_shared<Box2dPhysicsBody>(world, def);
-//
-//     b2Polygon box = b2MakeBox(w / 2.0f, h / 2.0f);
-//     b2ShapeDef sdef = b2DefaultShapeDef();
-//     sdef.isSensor = true;
-//     sdef.enableSensorEvents = true;
-//
-//     b2ShapeId sh = b2CreatePolygonShape(body->getId(), &sdef, &box);
-//     body->setShapeId(sh);
-//     return body;
-// }

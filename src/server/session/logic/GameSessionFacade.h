@@ -1,5 +1,6 @@
 #pragma once
 
+#include <memory>
 #include <utility>
 #include <vector>
 
@@ -8,6 +9,7 @@
 #include "common/thread.h"
 #include "server/config/YamlGameConfig.h"
 #include "server/session/logic/MatchSession.h"
+#include "server/session/model/BridgeSensor.h"
 #include "server/session/physics/Box2DPhysicsWorld.h"
 
 class GameSessionFacade : public Thread {
@@ -33,7 +35,11 @@ class GameSessionFacade : public Thread {
        protected:
         void subscribe(GameSessionFacade&);
     };
-
+#if OFFLINE
+    const std::vector<std::unique_ptr<BridgeSensor>>& getDebugSensors() const {
+        return match.getSensors();
+    }
+#endif
     void startTurningLeft(PlayerId id);
     void stopTurningLeft(PlayerId id);
     void startTurningRight(PlayerId id);
