@@ -27,7 +27,8 @@ class EntityFactory {
                                          EntityType type);
     std::unique_ptr<Checkpoint> createCheckpoint(float x, float y, float w,
                                                  float h, float angle,
-                                                 int order);
+                                                 int order,
+                                                 CheckpointType type);
     std::unique_ptr<BridgeSensor> createBridgeSensor(BridgeSensorType type,
                                                      float x, float y, float w,
                                                      float h);

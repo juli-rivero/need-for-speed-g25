@@ -3,7 +3,7 @@ map:
   gravity: [0.0, 0.0]
   city: "LibertyCity"
 
-  walls:
+  buildings:
     - type: residential
       height: 10
       vertices:
@@ -8962,19 +8962,93 @@ map:
         - x: 3873.18
           y: 0
 
-
-  bridges:
-    - { id: 10, x: 40, y: 25, w: 20, h: 1, driveable: false}
-
   checkpoints:
-    - { id: 100, x: 10, y: 5, w: 12, h: 2, angle: 0.0, order: 1 }
-    - { id: 101, x: 50, y: 10, w: 12, h: 2, angle: 0.1, order: 2 }
-    - { id: 102, x: 90, y: 5, w: 12, h: 2, angle: 0.0, order: 3 }
+    - type: start
+      x: 2733.66
+      y: 833.731
+      rotation: 270
+      width: 100
+      order: 0
+    - type: intermediate
+      x: 2230.73
+      y: 759.97
+      rotation: 0
+      width: 100
+      order: 1
+    - type: intermediate
+      x: 2224.03
+      y: 216.815
+      rotation: 0
+      width: 100
+      order: 2
+    - type: intermediate
+      x: 1287.48
+      y: 91.6434
+      rotation: 270
+      width: 100
+      order: 3
+    - type: intermediate
+      x: 511.862
+      y: 87.173
+      rotation: 270
+      width: 100
+      order: 4
+    - type: intermediate
+      x: 87.173
+      y: 701.854
+      rotation: 180
+      width: 100
+      order: 5
+    - type: intermediate
+      x: 784.557
+      y: 835.967
+      rotation: 95
+      width: 100
+      order: 6
+    - type: intermediate
+      x: 1101.96
+      y: 1151.13
+      rotation: 180
+      width: 100
+      order: 7
+    - type: intermediate
+      x: 974.549
+      y: 2072.03
+      rotation: 265
+      width: 100
+      order: 8
+    - type: intermediate
+      x: 382.22
+      y: 2306.73
+      rotation: 180
+      width: 100
+      order: 9
+    - type: intermediate
+      x: 1466.29
+      y: 2724.71
+      rotation: 90
+      width: 100
+      order: 10
+    - type: intermediate
+      x: 3545.03
+      y: 2715.77
+      rotation: 90
+      width: 100
+      order: 11
+    - type: intermediate
+      x: 3887.02
+      y: 3531.62
+      rotation: 180
+      width: 100
+      order: 12
+    - type: finish
+      x: 3882.55
+      y: 4477.12
+      rotation: 180
+      width: 100
+      order: 13
 
-  hints:
-    - { id: 200, x: 30, y: 15, angle: 0.2 }
-    - { id: 201, x: 70, y: 20, angle: -0.3 }
 
   spawn_points:
-    - { x: 50, y: 50, angle: 0.0 }
-    - { x: 3, y: 5, angle: 0.0 }
+    - { x: 2790.66, y: 833.731, angle: 180 }
+    - { x: 2790.66, y: 843.731, angle: 180 }

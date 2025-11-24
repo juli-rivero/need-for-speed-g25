@@ -20,7 +20,7 @@
 // MAIN DE PRUEBAS MANUALES (FISICAS,LOGICA,SERVIDOR) --NO ES EL CLIENTE
 static const int WIN_W = 1000;
 static const int WIN_H = 700;
-static const float PPM = 20.0f;  // pixels per meter
+static const float PPM = 10.0f;  // pixels per meter
 static const float DT = 1.0f / 60.0f;
 
 static const char* toString(MatchState s) {
@@ -259,12 +259,38 @@ static void renderRailingAboveCars(SDL_Renderer* r, const StaticSnapshot& stat,
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
+static void drawRotatedRect(SDL_Renderer* r, float cx, float cy, float w,
+                            float h, float angleDeg, SDL_Color col) {
+    float angleRad = angleDeg * M_PI / 180.0f;
+    float hw = w * 0.5f;
+    float hh = h * 0.5f;
+
+    float cs = cosf(angleRad);
+    float sn = sinf(angleRad);
+
+    SDL_FPoint pts[4];
+
+    pts[0] = {cx + (-hw * cs - -hh * sn), cy + (-hw * sn + -hh * cs)};
+
+    pts[1] = {cx + (hw * cs - -hh * sn), cy + (hw * sn + -hh * cs)};
+
+    pts[2] = {cx + (hw * cs - hh * sn), cy + (hw * sn + hh * cs)};
+
+    pts[3] = {cx + (-hw * cs - hh * sn), cy + (-hw * sn + hh * cs)};
+
+    SDL_SetRenderDrawColor(r, col.r, col.g, col.b, col.a);
+
+    SDL_RenderDrawLineF(r, pts[0].x, pts[0].y, pts[1].x, pts[1].y);
+    SDL_RenderDrawLineF(r, pts[1].x, pts[1].y, pts[2].x, pts[2].y);
+    SDL_RenderDrawLineF(r, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
+    SDL_RenderDrawLineF(r, pts[3].x, pts[3].y, pts[0].x, pts[0].y);
+}
 static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
                               const std::vector<PlayerSnapshot>& players,
                               float camX, float camY) {
     if (players.empty()) return;
 
-    // Suponemos jugador local (id=1)
+    // Jugador local (id 1 para test)
     PlayerId localId = 1;
     auto it =
         std::find_if(players.begin(), players.end(),
@@ -276,16 +302,57 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
     for (const auto& cp : stat.checkpoints) {
-        if (cp.order < nextCP) continue;  // ya pasado → no renderizar
+        if (cp.order < nextCP) continue;  // ya pasado → no dibujar
 
-        SDL_FRect rect{cp.x * PPM - cp.w * PPM / 2.0f - camX,
-                       cp.y * PPM - cp.h * PPM / 2.0f - camY, cp.w * PPM,
-                       cp.h * PPM};
+        // -----------------------------------------
+        //  Rect base
+        // -----------------------------------------
+        float rw = cp.w * PPM;
+        float rh = cp.h * PPM;
 
-        int alpha = (cp.order == nextCP) ? 200 : 80;
-        SDL_SetRenderDrawColor(r, 0, 255, 120, alpha);
-        SDL_RenderFillRectF(r, &rect);
-        SDL_SetRenderDrawColor(r, 0, 200, 100, 255);
+        // grosor mínimo para debug visual
+        if (rh < 6) rh = 6;
+
+        SDL_FRect rect{cp.x * PPM - rw * 0.5f - camX,
+                       cp.y * PPM - rh * 0.5f - camY, rw, rh};
+
+        // -----------------------------------------
+        //   COLOR según tipo
+        // -----------------------------------------
+        SDL_Color col;
+
+        switch (cp.type) {
+            case CheckpointType::Start:
+                col = {40, 220, 40, 255};  // verde
+                break;
+
+            case CheckpointType::Finish:
+                col = {230, 40, 40, 255};  // rojo
+                break;
+
+            case CheckpointType::Intermediate:
+            default:
+                col = {240, 200, 40, 255};  // amarillo
+                break;
+        }
+
+        // si es el siguiente → más fuerte
+        if (cp.order == nextCP)
+            col.a = 220;
+        else
+            col.a = 90;
+
+        SDL_SetRenderDrawColor(r, col.r, col.g, col.b, col.a);
+
+        // -----------------------------------------
+        //    ROTACIÓN (usar la función auxiliar ExF)
+        // -----------------------------------------
+
+        drawRotatedRect(r, cp.x * PPM - camX, cp.y * PPM - camY, rw, rh,
+                        cp.angle, col);
+
+        // borde
+        SDL_SetRenderDrawColor(r, col.r / 2, col.g / 2, col.b / 2, 255);
         SDL_RenderDrawRectF(r, &rect);
     }
 
@@ -338,7 +405,7 @@ inline int test(const YamlGameConfig& cfg) {
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         RaceDefinition race{"LibertyCity",
-                            "assets/liberty_city_circuito3.yaml"};
+                            "assets/liberty_city_circuito1.yaml"};
         PlayerConfig player{1, "Tester", CarType::Speedster};
         PlayerConfig player2{2, "Ghost", CarType::Ghost};
         std::vector<RaceDefinition> races{race};

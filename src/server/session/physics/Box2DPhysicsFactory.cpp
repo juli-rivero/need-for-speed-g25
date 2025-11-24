@@ -4,6 +4,7 @@
 #include <iostream>
 #include <memory>
 
+#include "../../../../build/_deps/sdl2_mixer-src/src/codecs/timidity/options.h"
 #include "server/session/logic/types.h"
 
 Box2DPhysicsFactory::Box2DPhysicsFactory(const b2WorldId world)
@@ -83,10 +84,12 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createRailing(float x,
 
 // --- CHECKPOINT (sensor) ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCheckpoint(
-    float x, float y, float w, float h) {
+    float x, float y, float w, float h, float angleDeg) {
+    float angleRad = angleDeg * PI / 180.0f;
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_staticBody;
     def.position = {x, y};
+    def.rotation = b2MakeRot(angleRad);
 
     auto body = std::make_shared<Box2dPhysicsBody>(world, def);
     b2Polygon box = b2MakeBox(w / 2.0f, h / 2.0f);

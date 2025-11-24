@@ -45,7 +45,7 @@ enum class CarType {
     Offroad,
     Ghost
 };
-
+enum class CheckpointType { Start, Intermediate, Finish };
 struct CarDisplayInfo {
     std::string name;
     std::string description;
@@ -153,6 +153,8 @@ struct CheckpointInfo {
     float x, y;
     float w;
     float h;
+    float angle;
+    CheckpointType type;
 };
 
 struct WallInfo {

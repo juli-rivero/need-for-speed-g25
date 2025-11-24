@@ -140,6 +140,7 @@ StaticSnapshot MatchSession::getStaticSnapshot() const {
         CheckpointInfo ci;
         ci.id = cp->getId();
         ci.order = cp->getOrder();
+        ci.type = cp->getType();
         ci.x = cp->getPosition().x;
         ci.y = cp->getPosition().y;
         ci.w = cp->getWidth();
