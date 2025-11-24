@@ -61,3 +61,20 @@ size_t Car::get_id() const { return id; }
 float Car::get_health() const { return health; }
 float Car::get_speed() const { return speed; }
 uint32_t Car::get_next_checkpoint() const { return next_checkpoint; }
+
+float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
+    if (next_checkpoint >= game.setup.info.checkpoints.size()) {
+        has_angle = false;
+        return 0;
+    }
+
+    float my_x = x + sprite.GetWidth() / 2;
+    float my_y = y + sprite.GetHeight() / 2;
+
+    const CheckpointInfo& c = game.setup.info.checkpoints[next_checkpoint];
+    float check_x = c.x * pixels_per_meter + c.w * pixels_per_meter / 2;
+    float check_y = c.y * pixels_per_meter + c.h * pixels_per_meter / 2;
+
+    has_angle = true;
+    return atan2(my_y - check_y, my_x - check_x) * 180 / PI;
+}
