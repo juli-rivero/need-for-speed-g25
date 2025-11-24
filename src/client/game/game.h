@@ -50,7 +50,6 @@ class Game final : Connexion::Responder {
     void update_state();
     void manage_collisions();
     void draw_state();
-    void play_sounds();
 
     // Auxiliar: dibujar una textura (o texto) en la ubicacion dada.
     // Con in_world == true, se dibuja relativo al mundo, no relativo a la

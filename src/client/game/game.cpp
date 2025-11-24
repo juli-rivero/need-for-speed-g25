@@ -139,8 +139,22 @@ void Game::manage_collisions() {
     }
 }
 
+static std::string format_time(float time) {
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(0);
+
+    // Si, esto definitivamente es mejor que una llamada a sprintf.
+    // Definitivamente.
+    int time_i = static_cast<int>(time);
+    ss << time_i / 60 << ":";
+    ss << std::setw(2) << std::setfill('0') << time_i % 60 << ".";
+    ss << std::setw(2) << std::setfill('0') << fmod(time, 1) * 100;
+    return ss.str();
+}
+
 void Game::draw_state() {
     renderer.Clear();
+    if (my_car) my_car->set_camera();
 
     // Ciudad
     render(assets.city_liberty, 0, 0);
@@ -152,12 +166,10 @@ void Game::draw_state() {
             setup.info.checkpoints[my_car->get_next_checkpoint()];
         render_rect({static_cast<int>(c.x * 10), static_cast<int>(c.y * 10),
                      static_cast<int>(c.w * 10), static_cast<int>(c.h * 10)},
-                    {0, 0, 255, 128});
+                    {0, 255, 0, 128});
     }
 
     // Coches
-    if (my_car) my_car->set_camera();
-
     for (Car& car : cars) {
         if (&car == my_car) continue;
         car.draw(true);
@@ -166,22 +178,24 @@ void Game::draw_state() {
     if (my_car) my_car->draw(false);
 
     // HUD
-    render(std::to_string(time_elapsed), 10, 50, false);
+    render(format_time(time_elapsed), 10, 50, false);
+
     if (my_car) {
         render_rect({10, 10, static_cast<int>(my_car->get_health()), 10},
                     {0, 255, 0, 255}, false);
         render_rect({10, 30, static_cast<int>(my_car->get_speed()), 10},
                     {255, 165, 0, 255}, false);
+
+        bool has_angle = false;
+        float angle = my_car->get_angle_to_next_checkpoint(has_angle);
+        if (has_angle) {
+            // TODO(franco): no hardcodear constantes, crearlas
+            render(assets.arrow, 320 - 32, 10, angle, false);
+        }
     }
 
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Present();
-}
-
-void Game::play_sounds() {
-    // for (Car& car : cars) {
-    //     if (car.get_id() == 1) car.sound_crash();
-    // }
 }
 
 bool Game::start() {
@@ -193,7 +207,6 @@ bool Game::start() {
         update_state();
         manage_collisions();
         draw_state();
-        play_sounds();
 
         if (quit) return true;
 

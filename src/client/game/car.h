@@ -37,5 +37,9 @@ class Car final {
     float get_speed() const;
     uint32_t get_next_checkpoint() const;
 
+    // Calcula el angulo desde su centro al centro del siguiente checkpoint
+    // Setea has_angle relativo a si el angulo existe
+    float get_angle_to_next_checkpoint(bool& has_angle) const;
+
     MAKE_FIXED(Car)
 };

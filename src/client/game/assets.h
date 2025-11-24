@@ -25,6 +25,8 @@ class Assets final {
     SDL2pp::Chunk sound_finish;
     SDL2pp::Font font;
 
+    SDL2pp::Texture arrow;
+
     // Mapeos de cadena
     std::unordered_map<CarSpriteType, SDL2pp::Texture*> car_name;
     std::unordered_map<std::string, SDL2pp::Texture*> city_name;
