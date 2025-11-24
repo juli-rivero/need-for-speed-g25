@@ -37,13 +37,13 @@ std::unique_ptr<Wall> EntityFactory::createBuilding(float x, float y, float w,
     return wall;
 }
 
-std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(float x, float y,
-                                                            float w, float h,
-                                                            float angle,
-                                                            int order) {
-    auto phys = physicsFactory.createCheckpoint(x, y, w, h);
+std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(
+    float x, float y, float w, float h, float angle, int order,
+    CheckpointType type) {
+    auto phys = physicsFactory.createCheckpoint(x, y, w, h, angle);
     auto body = std::make_shared<Box2DBodyAdapter>(std::move(phys));
-    auto cp = std::make_unique<Checkpoint>(nextId(), order, w, h, angle, body);
+    auto cp =
+        std::make_unique<Checkpoint>(nextId(), order, type, w, h, angle, body);
     world.getCollisionManager().registerEntity(body->getShapeId(), cp.get());
     return cp;
 }

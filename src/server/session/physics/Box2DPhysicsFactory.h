@@ -20,7 +20,8 @@ class Box2DPhysicsFactory {
     std::shared_ptr<Box2dPhysicsBody> createRailing(float x, float y, float w,
                                                     float h);
     std::shared_ptr<Box2dPhysicsBody> createCheckpoint(float x, float y,
-                                                       float w, float h);
+                                                       float w, float h,
+                                                       float angleDeg);
     std::shared_ptr<Box2dPhysicsBody> createBridgeSensor(float x, float y,
                                                          float w, float h);
 };

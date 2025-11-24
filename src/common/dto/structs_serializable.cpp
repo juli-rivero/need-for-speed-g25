@@ -214,16 +214,22 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, SpawnPointInfo& s) {
 ProtocolSender& operator<<(ProtocolSender& p, const CheckpointInfo& s) {
     p << s.id;
     p << s.order;
+    p << static_cast<uint8_t>(s.type);
     p << s.x << s.y;
     p << s.w << s.h;
+    p << s.angle;
     return p;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, CheckpointInfo& s) {
+    uint8_t type;
     p >> s.id;
     p >> s.order;
     p >> s.x >> s.y;
     p >> s.w >> s.h;
+    p >> type;
+    s.type = static_cast<CheckpointType>(type);
+    p >> s.angle;
     return p;
 }
 
