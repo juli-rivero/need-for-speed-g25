@@ -15,7 +15,9 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
       city(*assets.city_name.at(setup.map)),
       api(connexion.get_api()),
       my_id(connexion.unique_id),
-      setup(setup) {
+      setup(setup),
+      SCREEN_WIDTH(renderer.GetOutputWidth()),
+      SCREEN_HEIGHT(renderer.GetOutputHeight()) {
     player_snapshots = setup.info.players;
 
     spdlog::info("map: {}", setup.map);
@@ -183,8 +185,8 @@ void Game::draw_state() {
         bool has_angle = false;
         float angle = my_car->get_angle_to_next_checkpoint(has_angle);
         if (has_angle) {
-            // TODO(franco): no hardcodear constantes, crearlas
-            render(assets.arrow, 320 - 32, 10, angle, false);
+            render(assets.arrow, SCREEN_WIDTH / 2 - assets.arrow.GetWidth() / 2,
+                   10, angle, false);
         }
     }
 

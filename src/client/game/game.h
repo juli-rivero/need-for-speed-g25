@@ -67,6 +67,10 @@ class Game final : Connexion::Responder {
                      bool in_world = true);
 
    public:
+    // Constantes utiles
+    const int SCREEN_WIDTH;
+    const int SCREEN_HEIGHT;
+
     explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
                   Connexion& connexion, const GameSetUp& setup);
     ~Game();
