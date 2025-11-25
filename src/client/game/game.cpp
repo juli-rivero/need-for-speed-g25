@@ -114,28 +114,23 @@ void Game::update_state() {
 
     cars.clear();
     for (auto& player : player_snapshots) {
-        cars.emplace_back(*this, player);
-        if (player.id == my_id) my_car = &cars.back();
+        cars.emplace(std::piecewise_construct, std::forward_as_tuple(player.id),
+                     std::forward_as_tuple(*this, player));
+        if (player.id == my_id) my_car = &cars.at(player.id);
     }
 }
 
 void Game::manage_collisions() {
     CollisionEvent collision;
     while (collisions.try_pop(collision)) {
-        std::visit(
-            [](auto& collision) {
-                spdlog::debug("collision on player {} with intensity {}",
-                              collision.player, collision.intensity);
-            },
-            collision);
-        if (auto* car_to_wall = std::get_if<CollisionSimple>(&collision)) {
-            spdlog::debug("the player {} collide with a wall",
-                          car_to_wall->player);
-        }
-        if (auto* car_to_car = std::get_if<CollisionCarToCar>(&collision)) {
-            spdlog::debug("the player {} collide with player {}",
-                          car_to_car->player, car_to_car->other);
-        }
+        PlayerId id;
+        std::visit([&](const auto& collision) { id = collision.player; },
+                   collision);
+
+        Car& car = cars.at(id);
+        car.sound_crash();
+
+        spdlog::info("choque con {}", id);
     }
 }
 
@@ -170,11 +165,10 @@ void Game::draw_state() {
     }
 
     // Coches
-    for (Car& car : cars) {
-        if (&car == my_car) continue;
+    for (auto& [id, car] : cars) {
+        if (id == my_id) continue;
         car.draw(true);
     }
-
     if (my_car) my_car->draw(false);
 
     // HUD
