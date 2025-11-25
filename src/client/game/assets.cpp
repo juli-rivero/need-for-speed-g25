@@ -1,4 +1,4 @@
-#include "client/game/assets.h"
+#include "client/game/classes.h"
 
 Assets::Assets(SDL2pp::Renderer& renderer)
     : car1(renderer, "assets/cars/car1.png"),
