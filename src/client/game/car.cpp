@@ -18,6 +18,7 @@ static float radians_to_sdl_degrees(const float radians) {
 
 Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
+      sprite(*game.assets.car_name.at(base.car.type)),
       id(base.id),
       name(base.name),
       x(world_to_pixel(base.car.x)),
@@ -26,7 +27,6 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       speed(base.car.speed),
       health(base.car.health),
       next_checkpoint(base.raceProgress.nextCheckpoint),
-      sprite(*game.assets.car_name.at(base.car.type)),
       SPRITE_WIDTH(sprite.GetWidth()),
       SPRITE_HEIGHT(sprite.GetHeight()) {}
 
@@ -57,11 +57,6 @@ void Car::sound_crash() {
     game.mixer.PlayChannel(id, game.assets.sound_crash);
     game.mixer.SetVolume(id, get_vol());
 }
-
-size_t Car::get_id() const { return id; }
-float Car::get_health() const { return health; }
-float Car::get_speed() const { return speed; }
-uint32_t Car::get_next_checkpoint() const { return next_checkpoint; }
 
 float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
     if (next_checkpoint >= game.setup.info.checkpoints.size()) {
