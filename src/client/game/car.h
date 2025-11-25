@@ -26,6 +26,10 @@ class Car final {
     int get_vol() const;
 
    public:
+    // Constantes utiles
+    const int SPRITE_WIDTH;
+    const int SPRITE_HEIGHT;
+
     Car(Game& game, const PlayerSnapshot& base);
 
     void set_camera();

@@ -26,19 +26,20 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       speed(base.car.speed),
       health(base.car.health),
       next_checkpoint(base.raceProgress.nextCheckpoint),
-      sprite(*game.assets.car_name.at(base.car.type)) {}
+      sprite(*game.assets.car_name.at(base.car.type)),
+      SPRITE_WIDTH(sprite.GetWidth()),
+      SPRITE_HEIGHT(sprite.GetHeight()) {}
 
 void Car::set_camera() {
-    game.cam_x = x + sprite.GetWidth() / 2 - game.renderer.GetOutputWidth() / 2;
-    game.cam_y =
-        y + sprite.GetHeight() / 2 - game.renderer.GetOutputHeight() / 2;
+    game.cam_x = x + SPRITE_WIDTH / 2 - game.SCREEN_WIDTH / 2;
+    game.cam_y = y + SPRITE_HEIGHT / 2 - game.SCREEN_HEIGHT / 2;
     game.cam_world_x = x;
     game.cam_world_y = y;
 }
 
 void Car::draw(bool with_name) {
     game.render(sprite, x, y, angle);
-    if (with_name) game.render(name, x, y - 32, true);
+    if (with_name) game.render(name, x, y - SPRITE_HEIGHT - 10, true);
 }
 
 int Car::get_vol() const {
@@ -68,8 +69,8 @@ float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
         return 0;
     }
 
-    float my_x = x + sprite.GetWidth() / 2;
-    float my_y = y + sprite.GetHeight() / 2;
+    float my_x = x + SPRITE_WIDTH / 2;
+    float my_y = y + SPRITE_HEIGHT / 2;
 
     const CheckpointInfo& c = game.setup.info.checkpoints[next_checkpoint];
     float check_x = c.x * pixels_per_meter + c.w * pixels_per_meter / 2;
