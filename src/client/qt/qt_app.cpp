@@ -6,7 +6,8 @@
 #include "spdlog/spdlog.h"
 
 QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
-    : stack(([this] {
+    : shouldQuit(quit),
+      stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
           setMinimumSize(1000, 700);
           spdlog::trace("window configurated");
@@ -16,6 +17,9 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
       waitingWindow(&stack, connexion) {
+    // --- CORRECCIÓN 1: 'shouldQuit' en minúscula ---
+    shouldQuit = true;
+
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -58,8 +62,11 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     show();
 
     spdlog::trace("showing window");
+}
 
-    quit = false;  // TODO(juli): borrar
+void QtWindowManager::continue_game() {
+    shouldQuit = false;
+    QCoreApplication::quit();
 }
 
 void QtWindowManager::show_searching_window() {
@@ -78,8 +85,6 @@ void QtWindowManager::show_waiting_window() {
     setWindowTitle("Need for Speed - Sala de Espera");
     stack.setCurrentWidget(&waitingWindow);
 }
-
-void QtWindowManager::continue_game() { QCoreApplication::quit(); }
 
 void QtWindowManager::applyTheme() {
     const ThemeManager& theme = ThemeManager::instance();
