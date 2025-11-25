@@ -47,7 +47,7 @@ int Car::get_vol() const {
 
     const double dist = std::sqrt(dx * dx + dy * dy);
 
-    const int v = MIX_MAX_VOLUME - dist / 4;
+    const int v = MIX_MAX_VOLUME - dist / 3;
     return (v >= 0) ? v : 0;
 }
 

@@ -1,8 +1,8 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
-#include <list>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "client/connexion/connexion.h"
@@ -38,7 +38,7 @@ class Game final : Connexion::Responder {
         const float time_elapsed,
         const std::vector<PlayerSnapshot>& player_snapshots) override;
 
-    std::list<Car> cars;
+    std::unordered_map<PlayerId, Car> cars;
     Car* my_car{nullptr};
 
     // Componentes de colisiones
