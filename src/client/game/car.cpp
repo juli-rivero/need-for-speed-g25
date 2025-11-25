@@ -1,6 +1,6 @@
-#include "client/game/car.h"
-
 #include <math.h>
+
+#include "client/game/classes.h"
 
 constexpr float PI = 3.14;
 constexpr float pixels_per_meter = 10;
@@ -27,19 +27,19 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       speed(base.car.speed),
       health(base.car.health),
       next_checkpoint(base.raceProgress.nextCheckpoint),
-      SPRITE_WIDTH(sprite.GetWidth()),
-      SPRITE_HEIGHT(sprite.GetHeight()) {}
+      WIDTH(sprite.GetWidth()),
+      HEIGHT(sprite.GetHeight()) {}
 
 void Car::set_camera() {
-    game.cam_x = x + SPRITE_WIDTH / 2 - game.SCREEN_WIDTH / 2;
-    game.cam_y = y + SPRITE_HEIGHT / 2 - game.SCREEN_HEIGHT / 2;
+    game.cam_x = x + WIDTH / 2 - game.screen.WIDTH / 2;
+    game.cam_y = y + HEIGHT / 2 - game.screen.HEIGHT / 2;
     game.cam_world_x = x;
     game.cam_world_y = y;
 }
 
 void Car::draw(bool with_name) {
-    game.render(sprite, x, y, angle);
-    if (with_name) game.render(name, x, y - SPRITE_HEIGHT - 10, true);
+    game.screen.render(sprite, x, y, angle);
+    if (with_name) game.screen.render(name, x, y - HEIGHT - 10, true);
 }
 
 int Car::get_vol() const {
@@ -64,8 +64,8 @@ float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
         return 0;
     }
 
-    float my_x = x + SPRITE_WIDTH / 2;
-    float my_y = y + SPRITE_HEIGHT / 2;
+    float my_x = x + WIDTH / 2;
+    float my_y = y + HEIGHT / 2;
 
     const CheckpointInfo& c = game.setup.info.checkpoints[next_checkpoint];
     float check_x = c.x * pixels_per_meter + c.w * pixels_per_meter / 2;
