@@ -157,10 +157,9 @@ void Game::draw_state() {
     render(assets.city_liberty, 0, 0);
 
     // Checkpoints
-    if (my_car &&
-        my_car->get_next_checkpoint() < setup.info.checkpoints.size()) {
+    if (my_car && my_car->next_checkpoint < setup.info.checkpoints.size()) {
         const CheckpointInfo& c =
-            setup.info.checkpoints[my_car->get_next_checkpoint()];
+            setup.info.checkpoints[my_car->next_checkpoint];
         render_rect({static_cast<int>(c.x * 10), static_cast<int>(c.y * 10),
                      static_cast<int>(c.w * 10), static_cast<int>(c.h * 10)},
                     {0, 255, 0, 128});
@@ -177,9 +176,9 @@ void Game::draw_state() {
     render(format_time(time_elapsed), 10, 50, false);
 
     if (my_car) {
-        render_rect({10, 10, static_cast<int>(my_car->get_health()), 10},
+        render_rect({10, 10, static_cast<int>(my_car->health), 10},
                     {0, 255, 0, 255}, false);
-        render_rect({10, 30, static_cast<int>(my_car->get_speed()), 10},
+        render_rect({10, 30, static_cast<int>(my_car->speed), 10},
                     {255, 165, 0, 255}, false);
 
         bool has_angle = false;
