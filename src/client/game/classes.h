@@ -58,6 +58,9 @@ class Car final {
     const float speed;
     const float health;
     const uint32_t next_checkpoint;
+    const bool finished;
+    const float elapsed_time;
+    const bool braking;
 
     // Constantes utiles
     const int WIDTH;
@@ -115,14 +118,17 @@ class Sound final {
     SDL2pp::Mixer& mixer;
     Game& game;
 
+    bool old_braking = false;
+    bool old_finished = false;
+
     int get_vol(const Car& car) const;
 
    public:
     Sound(SDL2pp::Mixer& mixer, Game& game);
 
     void crash(const Car& car) const;
-    void brake(const Car& car) const;
-    void finish() const;
+    void test_brake(const Car& car);
+    void test_finish(const Car& car);
 
     MAKE_FIXED(Sound)
 };
@@ -162,7 +168,7 @@ class Game final : Connexion::Responder {
     // Metodos de actualizacion internos
     bool send_events();
     void update_state();
-    void manage_collisions();
+    void manage_sounds();
 
     // TODO(franco): migrar la camara a screen.
     int cam_x = 0;
