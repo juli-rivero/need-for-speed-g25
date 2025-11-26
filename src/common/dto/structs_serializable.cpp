@@ -6,13 +6,11 @@
 #include "common/structs.h"
 
 ProtocolSender& operator<<(ProtocolSender& p, const SessionConfig& s) {
-    p << s.name << s.maxPlayers << s.raceCount << s.city;
-    return p;
+    return p << s.name << s.maxPlayers << s.raceCount << s.city;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, SessionConfig& s) {
-    p >> s.name >> s.maxPlayers >> s.raceCount >> s.city;
-    return p;
+    return p >> s.name >> s.maxPlayers >> s.raceCount >> s.city;
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const SessionInfo& s) {
@@ -135,8 +133,8 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CollisionEvent& e) {
 
 ProtocolSender& operator<<(ProtocolSender& p, const CarSnapshot& s) {
     p << s.type;
-    p << static_cast<uint8_t>(s.layer);
-    p << s.x << s.y;
+    p << s.layer;
+    p << s.bound;
     p << s.vx << s.vy;
     p << s.angle;
     p << s.speed;
@@ -148,11 +146,9 @@ ProtocolSender& operator<<(ProtocolSender& p, const CarSnapshot& s) {
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, CarSnapshot& s) {
-    uint8_t layer;
     p >> s.type;
-    p >> layer;
-    s.layer = static_cast<RenderLayer>(layer);
-    p >> s.x >> s.y;
+    p >> s.layer;
+    p >> s.bound;
     p >> s.vx >> s.vy;
     p >> s.angle;
     p >> s.speed;
@@ -164,7 +160,6 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CarSnapshot& s) {
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const RaceProgressSnapshot& s) {
-    p << s.playerId;
     p << s.nextCheckpoint;
     p << s.finished;
     p << s.disqualified;
@@ -173,7 +168,6 @@ ProtocolSender& operator<<(ProtocolSender& p, const RaceProgressSnapshot& s) {
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceProgressSnapshot& s) {
-    p >> s.playerId;
     p >> s.nextCheckpoint;
     p >> s.finished;
     p >> s.disqualified;
@@ -196,87 +190,46 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, PlayerSnapshot& s) {
     p >> s.raceProgress;
     return p;
 }
+ProtocolSender& operator<<(ProtocolSender& p, const Point& pos) {
+    return p << pos.x << pos.y;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, Point& pos) {
+    return p >> pos.x >> pos.y;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const Bound& bound) {
+    return p << bound.pos << bound.width << bound.height;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, Bound& bound) {
+    return p >> bound.pos >> bound.width >> bound.height;
+}
 
 ProtocolSender& operator<<(ProtocolSender& p, const SpawnPointInfo& s) {
-    p << s.id;
-    p << s.x << s.y;
-    p << s.angle;
-    return p;
+    return p << s.pos << s.angle;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, SpawnPointInfo& s) {
-    p >> s.id;
-    p >> s.x >> s.y;
-    p >> s.angle;
-    return p;
+    return p >> s.pos >> s.angle;
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const CheckpointInfo& s) {
-    p << s.id;
-    p << s.order;
-    p << static_cast<uint8_t>(s.type);
-    p << s.x << s.y;
-    p << s.w << s.h;
-    p << s.angle;
-    return p;
+    return p << s.order << s.bound << s.angle << s.type;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, CheckpointInfo& s) {
-    uint8_t type;
-    p >> s.id;
-    p >> s.order;
-    p >> s.x >> s.y;
-    p >> s.w >> s.h;
-    p >> type;
-    s.type = static_cast<CheckpointType>(type);
-    p >> s.angle;
-    return p;
+    return p >> s.order >> s.bound >> s.angle >> s.type;
 }
 
-ProtocolSender& operator<<(ProtocolSender& p, const WallInfo& s) {
-    p << s.x << s.y << s.w << s.h;
-    p << static_cast<uint8_t>(s.type);
-    return p;
+ProtocolSender& operator<<(ProtocolSender& p, const RaceInfo& race) {
+    return p << race.name << race.checkpoints << race.spawnPoints;
 }
-
-ProtocolReceiver& operator>>(ProtocolReceiver& p, WallInfo& s) {
-    uint8_t t;
-    p >> s.x >> s.y >> s.w >> s.h;
-    p >> t;
-    s.type = static_cast<EntityType>(t);
-    return p;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceInfo& race) {
+    return p >> race.name >> race.checkpoints >> race.spawnPoints;
 }
-
-ProtocolSender& operator<<(ProtocolSender& p, const BridgeInfo& s) {
-    p << s.x << s.y;
-    p << s.w << s.h;
-    return p;
+ProtocolSender& operator<<(ProtocolSender& p, const CityInfo& city) {
+    return p << city.name << city.walls << city.bridges << city.railings
+             << city.overpasses;
 }
-
-ProtocolReceiver& operator>>(ProtocolReceiver& p, BridgeInfo& s) {
-    p >> s.x >> s.y;
-    p >> s.w >> s.h;
-    return p;
-}
-
-// OverpassInfo
-ProtocolSender& operator<<(ProtocolSender& p, const OverpassInfo& s) {
-    return p << s.x << s.y << s.w << s.h;
-}
-ProtocolReceiver& operator>>(ProtocolReceiver& p, OverpassInfo& s) {
-    return p >> s.x >> s.y >> s.w >> s.h;
-}
-
-ProtocolSender& operator<<(ProtocolSender& p, const StaticSnapshot& s) {
-    p << s.race;
-    p << s.checkpoints << s.spawns << s.walls << s.overpasses;
-    p << s.players;
-    return p;
-}
-
-ProtocolReceiver& operator>>(ProtocolReceiver& p, StaticSnapshot& s) {
-    p >> s.race;
-    p >> s.checkpoints >> s.spawns >> s.walls >> s.bridges >> s.overpasses;
-    p >> s.players;
-    return p;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CityInfo& city) {
+    return p >> city.name >> city.walls >> city.bridges >> city.railings >>
+           city.overpasses;
 }

@@ -7,12 +7,11 @@
 
 #include "../../config/MapLoader.h"
 
-RaceSession::RaceSession(const YamlGameConfig& cfg, CityId city,
+RaceSession::RaceSession(const YamlGameConfig& cfg,
                          std::vector<std::unique_ptr<Checkpoint>> checkpoints,
                          std::vector<SpawnPoint> spawnPoints,
                          const std::vector<Player*>& racePlayers)
     : cfg(cfg),
-      city(std::move(city)),
       players(racePlayers.begin(), racePlayers.end()),
       checkpoints(std::move(checkpoints)),
       spawnPoints(std::move(spawnPoints)) {

@@ -19,7 +19,7 @@ struct SpawnPoint;
 class RaceSession {
    public:
     // Player ya no es ownership de Racesession
-    RaceSession(const YamlGameConfig& cfg, CityId city,
+    RaceSession(const YamlGameConfig& cfg,
                 std::vector<std::unique_ptr<Checkpoint>> checkpoints,
                 std::vector<SpawnPoint> spawnPoints,
                 const std::vector<Player*>& players);
@@ -48,7 +48,6 @@ class RaceSession {
 
    private:
     const YamlGameConfig& cfg;
-    CityId city;
 
     RaceState _state{RaceState::Countdown};
     float _raceClock{0.0f};

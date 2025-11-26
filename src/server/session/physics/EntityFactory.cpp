@@ -49,7 +49,7 @@ std::unique_ptr<Checkpoint> EntityFactory::createCheckpoint(
 }
 
 std::unique_ptr<BridgeSensor> EntityFactory::createBridgeSensor(
-    BridgeSensorType type, float x, float y, float w, float h) {
+    RenderLayer type, float x, float y, float w, float h) {
     auto phys = physicsFactory.createBridgeSensor(x, y, w, h);
     auto body = std::make_shared<Box2DBodyAdapter>(phys);
 

@@ -5,22 +5,16 @@
 #include <variant>
 #include <vector>
 
-#include "server/session/model/Entity.h"
-
 enum class SessionStatus { Waiting, Playing, Full };
 
-enum class RenderLayer { UNDER, OVER };
-
-enum class BridgeSensorType {
-    SetUpper,  // cuando lo toca → car pasa a layer OVER
-    SetLower   // cuando lo toca → car pasa a layer UNDER
-};
+using CityName = std::string;
+using RaceName = std::string;
 
 #define SESSION_CONFIG_FIELDS \
     std::string name;         \
     uint8_t maxPlayers;       \
     uint8_t raceCount;        \
-    std::string city;
+    CityName city;
 
 // Estructura para crear una partida
 struct SessionConfig {
@@ -45,7 +39,7 @@ enum class CarType {
     Offroad,
     Ghost
 };
-enum class CheckpointType { Start, Intermediate, Finish };
+
 struct CarDisplayInfo {
     std::string name;
     std::string description;
@@ -92,6 +86,15 @@ struct CarInfo {
 
 // Game
 
+struct Point {
+    float x, y;
+};
+
+struct Bound {
+    Point pos;
+    float width, height;
+};
+
 enum class TurnDirection { None, Left, Right };
 
 struct CollisionSimple {
@@ -107,14 +110,12 @@ struct CollisionCarToCar : CollisionSimple {
 
 using CollisionEvent = std::variant<CollisionSimple, CollisionCarToCar>;
 
-enum class MatchState { Starting, Racing, Intermission, Finished };
-
-enum class RaceState { Countdown, Running, Finished };
+enum class RenderLayer { UNDER = 0, OVER = 1 };
 
 struct CarSnapshot {
     CarType type;
     RenderLayer layer;
-    float x, y;         // posición actual
+    Bound bound;
     float vx, vy;       // velocidad lineal
     float angle;        // orientación (radianes)
     float speed;        // módulo de la velocidad
@@ -125,7 +126,6 @@ struct CarSnapshot {
 };
 
 struct RaceProgressSnapshot {
-    PlayerId playerId;
     uint32_t nextCheckpoint;  // número de checkpoint pendiente
     bool finished;
     bool disqualified;
@@ -142,46 +142,33 @@ struct PlayerSnapshot {
 // Pre-Game (al empezar la partida)
 
 struct SpawnPointInfo {
-    uint32_t id;
-    float x, y;
+    Point pos;
     float angle;
 };
 
+enum class CheckpointType { Start, Intermediate, Finish };
+
 struct CheckpointInfo {
-    uint32_t id;
     uint32_t order;
-    float x, y;
-    float w;
-    float h;
+    Bound bound;
     float angle;
     CheckpointType type;
 };
 
-struct WallInfo {
-    float x, y;
-    float w, h;
-    EntityType type;
-};
-
-struct BridgeInfo {
-    float x, y;  // centro del puente
-    float w, h;  // área de renderización
-};
-
-// Deck de overpass (siempre arriba de todo)
-struct OverpassInfo {
-    float x, y;
-    float w, h;
-};
-
-struct StaticSnapshot {
-    std::string race;
-
+struct RaceInfo {
+    RaceName name;
     std::vector<CheckpointInfo> checkpoints;
-    std::vector<SpawnPointInfo> spawns;
-    // incluye residential y railings
-    std::vector<WallInfo> walls;
-    std::vector<BridgeInfo> bridges;
-    std::vector<OverpassInfo> overpasses;
-    std::vector<PlayerSnapshot> players;
+    std::vector<SpawnPointInfo> spawnPoints;
 };
+
+struct CityInfo {
+    CityName name;
+    std::vector<Bound> walls;
+    std::vector<Bound> bridges;
+    std::vector<Bound> railings;
+    std::vector<Bound> overpasses;
+};
+
+enum class MatchState { Starting, Racing, Intermission, Finished };
+
+enum class RaceState { Countdown, Running, Finished };

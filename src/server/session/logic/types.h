@@ -6,8 +6,6 @@
 
 #include "common/structs.h"
 
-using CityId = std::string;
-
 enum CollisionCategory : uint32_t {
     CATEGORY_CAR = 0x0001,
     CATEGORY_WALL = 0x0002,
@@ -39,16 +37,6 @@ struct PlayerResult {
     float penalty{0.0f};  // penalización aplicada en esta carrera
     float netTime{0.0f};  // rawTime - penalty
     bool dnf{false};      // no terminó / descalificado
-};
-
-struct RaceDefinition {
-    CityId city;
-    std::string mapFile;  // YAML del recorrido (checkpoints/hints)
-};
-// Representa una ciudad con sus circuitos
-struct CityDefinition {
-    CityId name;
-    std::vector<RaceDefinition> races;
 };
 
 enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };

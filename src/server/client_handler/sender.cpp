@@ -72,15 +72,15 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started(const std::string& map,
-                                 const StaticSnapshot& info) {
+void Sender::notify_game_started(const CityInfo& city_info,
+                                 const RaceInfo& first_race) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{map, info});
+    responses.try_push(StartResponse{city_info, first_race});
 }
 
-void Sender::send_game_static_snapshot(const StaticSnapshot& info) {
+void Sender::send_game_static_snapshot(const RaceInfo& race) {
     log->trace("sending game static snapshot");
-    responses.try_push(dto_game::GameStaticSnapshot{info});
+    responses.try_push(dto_game::GameStaticSnapshot{race});
 }
 
 void Sender::send_game_snapshot(const float raceTimeLeft,

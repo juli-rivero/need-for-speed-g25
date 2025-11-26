@@ -130,11 +130,11 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
             auto* sensor = static_cast<BridgeSensor*>(eA);
             auto* car = static_cast<Car*>(eB);
 
-            if (sensor->getType() == BridgeSensorType::SetUpper) {
+            if (sensor->getType() == RenderLayer::OVER) {
                 car->setLayer(RenderLayer::OVER);
                 std::cout << "[DEBUG] Car " << car->getId()
                           << " → Set LAYER = OVER (upper sensor)\n";
-            } else if (sensor->getType() == BridgeSensorType::SetLower) {
+            } else if (sensor->getType() == RenderLayer::UNDER) {
                 car->setLayer(RenderLayer::UNDER);
                 std::cout << "[DEBUG] Car " << car->getId()
                           << " → Set LAYER = UNDER (lower sensor)\n";
@@ -143,11 +143,11 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
                    eB->getEntityType() == EntityType::BridgeSensor) {
             auto* car = static_cast<Car*>(eA);
             auto* sensor = static_cast<BridgeSensor*>(eB);
-            if (sensor->getType() == BridgeSensorType::SetUpper) {
+            if (sensor->getType() == RenderLayer::OVER) {
                 car->setLayer(RenderLayer::OVER);
                 std::cout << "[DEBUG] Car " << car->getId()
                           << " → Set LAYER = OVER (upper sensor)\n";
-            } else if (sensor->getType() == BridgeSensorType::SetLower) {
+            } else if (sensor->getType() == RenderLayer::UNDER) {
                 car->setLayer(RenderLayer::UNDER);
                 std::cout << "[DEBUG] Car " << car->getId()
                           << " → Set LAYER = UNDER (lower sensor)\n";

@@ -103,7 +103,6 @@ class Player {
         ps.car = car->getSnapshot();
 
         RaceProgressSnapshot rp;
-        rp.playerId = id;
         rp.nextCheckpoint = static_cast<uint32_t>(raceState.nextCheckpoint);
         rp.finished = raceState.finished;
         rp.disqualified = raceState.disqualified;
