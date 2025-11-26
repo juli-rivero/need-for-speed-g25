@@ -6,10 +6,10 @@ using namespace dto_game;
 
 // GameStaticSnapshot SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, GameStaticSnapshot& r) {
-    return p >> r.info;
+    return p >> r.new_race_info;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const GameStaticSnapshot& r) {
-    return p << r.info;
+    return p << r.new_race_info;
 }
 
 // TurnRequest SERIALIZABLE

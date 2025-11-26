@@ -5,6 +5,6 @@
 #include "common/structs.h"
 
 struct GameSetUp {
-    std::string map;
-    StaticSnapshot info;
+    CityInfo city_info;
+    RaceInfo race_info;
 };

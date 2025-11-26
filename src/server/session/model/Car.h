@@ -184,8 +184,7 @@ class Car : public Entity {
         return {
             .type = carType,
             .layer = layer,
-            .x = x,
-            .y = y,
+            .bound = {Point{x, y}, staticStats.width, staticStats.height},
             .vx = vx,
             .vy = vy,
             .angle = body->getAngle(),

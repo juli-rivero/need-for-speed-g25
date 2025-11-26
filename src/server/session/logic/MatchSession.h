@@ -1,8 +1,8 @@
 #pragma once
 
 #include <memory>
+#include <string>
 #include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
 #include "../../config/YamlGameConfig.h"
@@ -20,15 +20,15 @@ class MatchSession {
     const YamlGameConfig& _cfg;
     Box2DPhysicsWorld& _world;
 
-    const std::vector<RaceDefinition> _races;  // N carreras planificadas
+    const std::vector<std::string> _raceFiles;  // N carreras planificadas
     std::size_t _currentRace{0};
 
     const std::vector<PlayerConfig> _playerConfigs;
     std::unordered_map<PlayerId, std::unique_ptr<Player>> _players;
 
     std::vector<std::unique_ptr<Wall>> _buildings;
-    std::vector<BridgeInfo> _bridges;
-    std::vector<OverpassInfo> _overpasses;
+    std::vector<Bound> _bridges;
+    std::vector<Bound> _overpasses;
 
     std::unique_ptr<RaceSession> _race;  // carrera en curso
     MatchState _state{MatchState::Starting};
@@ -44,15 +44,15 @@ class MatchSession {
     void endIntermissionAndPrepareNextRace();
 
    public:
-    MatchSession(const YamlGameConfig& cfg,
-                 std::vector<RaceDefinition> raceDefs, Box2DPhysicsWorld& world,
-                 std::vector<PlayerConfig> players);
+    MatchSession(const YamlGameConfig& cfg, std::vector<std::string> raceFiles,
+                 Box2DPhysicsWorld& world, std::vector<PlayerConfig> players);
 
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&);
 
     WorldSnapshot getSnapshot() const;
-    StaticSnapshot getStaticSnapshot() const;
+    CityInfo getCityInfo() const;
+    RaceInfo getRaceInfo() const;
     // upgrades propuestos por jugadores ( que se aplicarán a la próxima
     // carrera)
     void queueUpgrades(

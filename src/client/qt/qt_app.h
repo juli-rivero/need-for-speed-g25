@@ -36,7 +36,7 @@ class QtWindowManager final : public QMainWindow {
     void show_selecting_window();
     void show_waiting_window();
 
-    void continue_game(const std::string& map, const StaticSnapshot& circuit);
+    void continue_game(const CityInfo&, const RaceInfo&);
 
     void applyTheme();
 };

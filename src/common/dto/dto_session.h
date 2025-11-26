@@ -13,8 +13,8 @@ struct StartRequest {
 };
 
 struct StartResponse {
-    std::string map;
-    StaticSnapshot info;
+    CityInfo city_info;
+    RaceInfo first_race_info;
 };
 
 struct LeaveRequest {};

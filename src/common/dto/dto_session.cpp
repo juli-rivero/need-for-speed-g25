@@ -14,10 +14,10 @@ ProtocolSender& operator<<(ProtocolSender& p, const StartRequest& e) {
 
 // StartResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StartResponse& r) {
-    return p >> r.map >> r.info;
+    return p >> r.city_info >> r.first_race_info;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const StartResponse& r) {
-    return p << r.map << r.info;
+    return p << r.city_info << r.first_race_info;
 }
 
 // LeaveRequest SERIALIZABLE

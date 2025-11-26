@@ -126,38 +126,35 @@ static void renderMiniHUD(SDL_Renderer* r, TTF_Font* font,
 // ============================================================
 //  Render utilities para test()
 // ============================================================
-static void renderBuildings(SDL_Renderer* r, const StaticSnapshot& stat,
-                            float camX, float camY) {
-    for (size_t i = 0; i < stat.walls.size(); ++i) {
-        const auto& b = stat.walls[i];
 
-        SDL_FRect rect{b.x * PPM - b.w * PPM * 0.5f - camX,
-                       b.y * PPM - b.h * PPM * 0.5f - camY, b.w * PPM,
-                       b.h * PPM};
+static SDL_FRect boundWorldToRectMap(const Bound bound, float camX,
+                                     float camY) {
+    return {bound.pos.x * PPM - bound.width * PPM * 0.5f - camX,
+            bound.pos.y * PPM - bound.height * PPM * 0.5f - camY,
+            bound.width * PPM, bound.height * PPM};
+}
 
-        // Residential → rojo
-        // Railing → amarillo
-        if (i < stat.walls.size()) {
-            SDL_SetRenderDrawColor(r, 200, 40, 40, 255);  // rojo residencial
-        }
-        if (/* es railing */ b.type == EntityType::Railing) {
-            SDL_SetRenderDrawColor(r, 245, 220, 40, 255);  // amarillo railing
-        }
-
+static void renderBuildings(SDL_Renderer* r, const CityInfo& info, float camX,
+                            float camY) {
+    for (const auto& wall : info.walls) {
+        SDL_FRect rect = boundWorldToRectMap(wall, camX, camY);
+        SDL_SetRenderDrawColor(r, 200, 40, 40, 255);  // rojo residencial
+        SDL_RenderFillRectF(r, &rect);
+    }
+    for (const auto& railing : info.railings) {
+        SDL_FRect rect = boundWorldToRectMap(railing, camX, camY);
+        SDL_SetRenderDrawColor(r, 245, 220, 40, 255);  // amarillo railing
         SDL_RenderFillRectF(r, &rect);
     }
 }
 
 // Puentes dibujados *debajo* de autos (para sombra / piso bajo)
-static void renderBridgesBelowCars(SDL_Renderer* r, const StaticSnapshot& stat,
+static void renderBridgesBelowCars(SDL_Renderer* r, const CityInfo& info,
                                    float camX, float camY) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& br : stat.bridges) {
-        SDL_FRect rect{br.x * PPM - br.w * PPM * 0.5f - camX,
-                       br.y * PPM - br.h * PPM * 0.5f - camY, br.w * PPM,
-                       br.h * PPM};
-
+    for (const auto& bridge : info.bridges) {
+        SDL_FRect rect = boundWorldToRectMap(bridge, camX, camY);
         SDL_SetRenderDrawColor(r, 40, 40, 40, 150);
         SDL_RenderFillRectF(r, &rect);
     }
@@ -166,15 +163,12 @@ static void renderBridgesBelowCars(SDL_Renderer* r, const StaticSnapshot& stat,
 }
 
 static void renderBridgeDeckAboveUnderCars(SDL_Renderer* r,
-                                           const StaticSnapshot& stat,
-                                           float camX, float camY) {
+                                           const CityInfo& info, float camX,
+                                           float camY) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& br : stat.bridges) {
-        SDL_FRect rect{br.x * PPM - br.w * PPM * 0.5f - camX,
-                       br.y * PPM - br.h * PPM * 0.5f - camY, br.w * PPM,
-                       br.h * PPM};
-
+    for (const auto& bridge : info.bridges) {
+        SDL_FRect rect = boundWorldToRectMap(bridge, camX, camY);
         SDL_SetRenderDrawColor(r, 120, 190, 255, 220);  // celeste deck
         SDL_RenderFillRectF(r, &rect);
         SDL_SetRenderDrawColor(r, 80, 150, 220, 255);
@@ -184,15 +178,12 @@ static void renderBridgeDeckAboveUnderCars(SDL_Renderer* r,
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
 
-static void renderOverpassesOnTop(SDL_Renderer* r, const StaticSnapshot& stat,
+static void renderOverpassesOnTop(SDL_Renderer* r, const CityInfo& info,
                                   float camX, float camY) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& op : stat.overpasses) {
-        SDL_FRect rect{op.x * PPM - op.w * PPM * 0.5f - camX,
-                       op.y * PPM - op.h * PPM * 0.5f - camY, op.w * PPM,
-                       op.h * PPM};
-
+    for (const auto& overpass : info.overpasses) {
+        SDL_FRect rect = boundWorldToRectMap(overpass, camX, camY);
         SDL_SetRenderDrawColor(r, 200, 80, 255, 200);  // violeta
         SDL_RenderFillRectF(r, &rect);
     }
@@ -212,7 +203,7 @@ static void renderSensors(
         SDL_FRect rect{pos.x * PPM - (w * PPM) / 2 - camX,
                        pos.y * PPM - (h * PPM) / 2 - camY, w * PPM, h * PPM};
 
-        if (s->getType() == BridgeSensorType::SetUpper) {
+        if (s->getType() == RenderLayer::OVER) {
             SDL_SetRenderDrawColor(r, 0, 200, 255, 120);  // celeste claro
         } else {
             SDL_SetRenderDrawColor(r, 255, 140, 0, 120);  // naranja
@@ -226,32 +217,22 @@ static void renderSensors(
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
-static void renderRailingBelowCars(SDL_Renderer* r, const StaticSnapshot& stat,
+static void renderRailingBelowCars(SDL_Renderer* r, const CityInfo& info,
                                    float camX, float camY) {
-    for (const auto& w : stat.walls) {
-        if (w.type != EntityType::Railing) continue;
-
-        SDL_FRect rect{w.x * PPM - w.w * PPM * 0.5f - camX,
-                       w.y * PPM - w.h * PPM * 0.5f - camY, w.w * PPM,
-                       w.h * PPM};
-
+    for (const auto& railing : info.railings) {
+        SDL_FRect rect = boundWorldToRectMap(railing, camX, camY);
         // Amarillo fuerte (igual que siempre)
         SDL_SetRenderDrawColor(r, 245, 220, 40, 255);
         SDL_RenderFillRectF(r, &rect);
     }
 }
 
-static void renderRailingAboveCars(SDL_Renderer* r, const StaticSnapshot& stat,
+static void renderRailingAboveCars(SDL_Renderer* r, const CityInfo& info,
                                    float camX, float camY) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& w : stat.walls) {
-        if (w.type != EntityType::Railing) continue;
-
-        SDL_FRect rect{w.x * PPM - w.w * PPM * 0.5f - camX,
-                       w.y * PPM - w.h * PPM * 0.5f - camY, w.w * PPM,
-                       w.h * PPM};
-
+    for (const auto& railing : info.railings) {
+        SDL_FRect rect = boundWorldToRectMap(railing, camX, camY);
         // Amarillo con alpha (translúcido)
         SDL_SetRenderDrawColor(r, 245, 220, 40, 200);
         SDL_RenderFillRectF(r, &rect);
@@ -259,9 +240,14 @@ static void renderRailingAboveCars(SDL_Renderer* r, const StaticSnapshot& stat,
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
-static void drawRotatedRect(SDL_Renderer* r, float cx, float cy, float w,
-                            float h, float angleDeg, SDL_Color col) {
+static void drawRotatedRect(SDL_Renderer* r, SDL_FRect rect, float angleDeg,
+                            SDL_Color col) {
     float angleRad = angleDeg * M_PI / 180.0f;
+    const auto& [x, y, w, h] = rect;
+    // rect.x, rect.y es la esquina superior izquierda. Convertir a centro +
+    // half extents.
+    float cx = x + w * 0.5f;
+    float cy = y + h * 0.5f;
     float hw = w * 0.5f;
     float hh = h * 0.5f;
 
@@ -285,7 +271,7 @@ static void drawRotatedRect(SDL_Renderer* r, float cx, float cy, float w,
     SDL_RenderDrawLineF(r, pts[2].x, pts[2].y, pts[3].x, pts[3].y);
     SDL_RenderDrawLineF(r, pts[3].x, pts[3].y, pts[0].x, pts[0].y);
 }
-static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
+static void renderCheckpoints(SDL_Renderer* r, const RaceInfo& info,
                               const std::vector<PlayerSnapshot>& players,
                               float camX, float camY) {
     if (players.empty()) return;
@@ -301,27 +287,17 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& cp : stat.checkpoints) {
-        if (cp.order < nextCP) continue;  // ya pasado → no dibujar
+    for (const auto& checkpoint : info.checkpoints) {
+        if (checkpoint.order < nextCP) continue;  // ya pasado → no dibujar
 
-        // -----------------------------------------
-        //  Rect base
-        // -----------------------------------------
-        float rw = cp.w * PPM;
-        float rh = cp.h * PPM;
-
-        // grosor mínimo para debug visual
-        if (rh < 6) rh = 6;
-
-        SDL_FRect rect{cp.x * PPM - rw * 0.5f - camX,
-                       cp.y * PPM - rh * 0.5f - camY, rw, rh};
+        SDL_FRect rect = boundWorldToRectMap(checkpoint.bound, camX, camY);
 
         // -----------------------------------------
         //   COLOR según tipo
         // -----------------------------------------
         SDL_Color col;
 
-        switch (cp.type) {
+        switch (checkpoint.type) {
             case CheckpointType::Start:
                 col = {40, 220, 40, 255};  // verde
                 break;
@@ -337,7 +313,7 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
         }
 
         // si es el siguiente → más fuerte
-        if (cp.order == nextCP)
+        if (checkpoint.order == nextCP)
             col.a = 220;
         else
             col.a = 90;
@@ -348,8 +324,7 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
         //    ROTACIÓN (usar la función auxiliar ExF)
         // -----------------------------------------
 
-        drawRotatedRect(r, cp.x * PPM - camX, cp.y * PPM - camY, rw, rh,
-                        cp.angle, col);
+        drawRotatedRect(r, rect, checkpoint.angle, col);
 
         // borde
         SDL_SetRenderDrawColor(r, col.r / 2, col.g / 2, col.b / 2, 255);
@@ -357,6 +332,37 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
     }
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
+}
+static void renderPlayer(SDL_Renderer* r, const PlayerSnapshot& player,
+                         const float camX, float camY, bool isLocalPlayer) {
+    const auto& car = player.car;
+    const auto& [pos, width, height] = car.bound;
+
+    float px = pos.x * PPM - camX;
+    float py = pos.y * PPM - camY;
+
+    SDL_FRect carRect{px - width * PPM * 0.5f, py - height * PPM * 0.5f,
+                      width * PPM, height * PPM};
+    SDL_FPoint center{carRect.w / 2.0f, carRect.h / 2.0f};
+
+    if (isLocalPlayer) {
+        SDL_SetRenderDrawColor(r, 40, 180, 240,
+                               255);  // celeste
+    } else {
+        SDL_SetRenderDrawColor(r, 255, 120, 50,
+                               255);  // naranja
+    }
+
+    SDL_RenderFillRectExF(r, &carRect,
+                          car.angle * 180.0f / static_cast<float>(M_PI),
+                          &center, SDL_FLIP_NONE);
+
+    // Línea de dirección
+    SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
+    float noseLen = carRect.h * 0.5f;
+    float nx = px + std::cos(car.angle) * noseLen;
+    float ny = py + std::sin(car.angle) * noseLen;
+    SDL_RenderDrawLineF(r, px, py, nx, ny);
 }
 
 static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
@@ -404,15 +410,15 @@ inline int test(const YamlGameConfig& cfg) {
             SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
-        RaceDefinition race{"LibertyCity",
-                            "assets/liberty_city_circuito1.yaml"};
-        PlayerConfig player{1, "Tester", CarType::Speedster};
-        PlayerConfig player2{2, "Ghost", CarType::Ghost};
-        std::vector<RaceDefinition> races{race};
-        std::vector<PlayerConfig> players{player, player2};
+        std::string race = "assets/liberty_city_circuito1.yaml";
+        PlayerConfig playerConfig1{1, "Tester", CarType::Speedster};
+        PlayerConfig playerConfig2{2, "Ghost", CarType::Ghost};
+        std::vector<std::string> raceFiles{race};
+        std::vector<PlayerConfig> playersConfig{playerConfig1, playerConfig2};
 
-        GameSessionFacade game(cfg, races, players);
-        auto stat = game.getStaticSnapshot();
+        GameSessionFacade game(cfg, raceFiles, playersConfig);
+        const auto city_info = game.getCityInfo();
+        const auto race_info = game.getRaceInfo();
         game.start();  // EMPEZAR PARTIDA EN EL LOBBY -> CAMBIAR A SDL
 
         bool running = true;
@@ -487,69 +493,38 @@ inline int test(const YamlGameConfig& cfg) {
             const auto& local = *itLocal;
 
             // Cámara centrada en jugador local
-            float camX = local.car.x * PPM - WIN_W / 2.0f;
-            float camY = local.car.y * PPM - WIN_H / 2.0f;
+            const auto& [x, y] = local.car.bound.pos;
+            float camX = x * PPM - WIN_W / 2.0f;
+            float camY = y * PPM - WIN_H / 2.0f;
 
             // --- Render ---
             SDL_SetRenderDrawColor(renderer, 25, 25, 25, 255);
             SDL_RenderClear(renderer);
 
             // Fondo: walls + puentes (parte baja / sombra)
-            renderBuildings(renderer, stat, camX, camY);
-            renderBridgesBelowCars(renderer, stat, camX, camY);
-            renderCheckpoints(renderer, stat, dyn.players, camX, camY);
-            renderRailingBelowCars(renderer, stat, camX, camY);
-
-            auto drawCar = [&](const PlayerSnapshot& ps) {
-                const auto& carDyn = ps.car;
-                const auto& carStat =
-                    cfg.getCarStaticStatsMap().at(ps.car.type);
-
-                float px = carDyn.x * PPM - camX;
-                float py = carDyn.y * PPM - camY;
-
-                SDL_FRect carRect{px - carStat.width * PPM * 0.5f,
-                                  py - carStat.height * PPM * 0.5f,
-                                  carStat.width * PPM, carStat.height * PPM};
-                SDL_FPoint center{carRect.w / 2.0f, carRect.h / 2.0f};
-
-                if (ps.id == localPlayerId) {
-                    SDL_SetRenderDrawColor(renderer, 40, 180, 240,
-                                           255);  // celeste
-                } else {
-                    SDL_SetRenderDrawColor(renderer, 255, 120, 50,
-                                           255);  // naranja
-                }
-
-                SDL_RenderFillRectExF(
-                    renderer, &carRect,
-                    carDyn.angle * 180.0f / static_cast<float>(M_PI), &center,
-                    SDL_FLIP_NONE);
-
-                // Línea de dirección
-                SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-                float noseLen = carRect.h * 0.5f;
-                float nx = px + std::cos(carDyn.angle) * noseLen;
-                float ny = py + std::sin(carDyn.angle) * noseLen;
-                SDL_RenderDrawLineF(renderer, px, py, nx, ny);
-            };
+            renderBuildings(renderer, city_info, camX, camY);
+            renderBridgesBelowCars(renderer, city_info, camX, camY);
+            renderCheckpoints(renderer, race_info, dyn.players, camX, camY);
+            renderRailingBelowCars(renderer, city_info, camX, camY);
 
             // 4) Autos capa UNDER
-            for (const auto& ps : dyn.players) {
-                if (ps.car.layer == RenderLayer::UNDER) {
-                    drawCar(ps);
+            for (const auto& player : dyn.players) {
+                if (player.car.layer == RenderLayer::UNDER) {
+                    renderPlayer(renderer, player, camX, camY,
+                                 player.id == localPlayerId);
                 }
             }
 
-            renderBridgeDeckAboveUnderCars(renderer, stat, camX, camY);
+            renderBridgeDeckAboveUnderCars(renderer, city_info, camX, camY);
 
-            for (const auto& ps : dyn.players) {
-                if (ps.car.layer == RenderLayer::OVER) {
-                    drawCar(ps);
+            for (const auto& player : dyn.players) {
+                if (player.car.layer == RenderLayer::OVER) {
+                    renderPlayer(renderer, player, camX, camY,
+                                 player.id == localPlayerId);
                 }
             }
-            renderOverpassesOnTop(renderer, stat, camX, camY);
-            renderRailingAboveCars(renderer, stat, camX, camY);
+            renderOverpassesOnTop(renderer, city_info, camX, camY);
+            renderRailingAboveCars(renderer, city_info, camX, camY);
 
             const auto& debugSensors = game.getDebugSensors();
             renderSensors(renderer, debugSensors, camX, camY);
@@ -561,16 +536,19 @@ inline int test(const YamlGameConfig& cfg) {
                 const auto& locall = *itLocal;
                 int nextCP = locall.raceProgress.nextCheckpoint;
 
-                if (nextCP < static_cast<int>(stat.checkpoints.size())) {
-                    const auto& cp = stat.checkpoints[nextCP];
+                if (nextCP < static_cast<int>(race_info.checkpoints.size())) {
+                    const auto& checkpoint = race_info.checkpoints[nextCP];
 
                     // centro del auto
-                    float px = locall.car.x * PPM - camX;
-                    float py = locall.car.y * PPM - camY;
+                    const auto& [car_x, car_y] = locall.car.bound.pos;
+                    float px = car_x * PPM - camX;
+                    float py = car_y * PPM - camY;
 
                     // vector hacia el checkpoint
-                    float dx = (cp.x - locall.car.x);
-                    float dy = (cp.y - locall.car.y);
+                    const auto& [checkpoint_x, checkpoint_y] =
+                        checkpoint.bound.pos;
+                    float dx = (checkpoint_x - car_x);
+                    float dy = (checkpoint_y - car_y);
                     float len = std::sqrt(dx * dx + dy * dy);
                     if (len > 0.001f) {
                         dx /= len;

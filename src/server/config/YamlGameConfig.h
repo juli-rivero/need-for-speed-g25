@@ -15,7 +15,7 @@ class YamlGameConfig {
     YAML::Node root;
 
     std::unordered_map<std::string, float> penalties;
-    std::vector<CityDefinition> cities;
+    std::unordered_map<CityName, std::vector<std::string>> races;
     std::unordered_map<CarType, CarDisplayInfo> carsDisplayInfo;
     std::unordered_map<CarType, CarStaticStats> carsStaticStats;
 
@@ -35,8 +35,8 @@ class YamlGameConfig {
     const std::unordered_map<std::string, float>& getPenalties() const {
         return penalties;
     }
-    const std::vector<CityDefinition>& getCities() const { return cities; }
-    const std::vector<RaceDefinition>& getRaces(const CityId& city) const;
+
+    const std::vector<std::string>& getRaces(const CityName& city) const;
     const std::unordered_map<CarType, CarDisplayInfo>& getCarDisplayInfoMap()
         const {
         return carsDisplayInfo;
