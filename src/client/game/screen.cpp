@@ -45,7 +45,10 @@ void Screen::render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
 //
 // PASOS DE RENDERIZADO
 //
-void Screen::draw_ciudad() { render(game.assets.city_liberty, 0, 0); }
+void Screen::draw_ciudad() {
+    auto& city = *game.assets.city_name.at(game.setup.map);
+    render(city, 0, 0);
+}
 
 void Screen::draw_checkpoint() {
     const auto& checkpoints = game.setup.info.checkpoints;
