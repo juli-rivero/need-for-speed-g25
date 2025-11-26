@@ -9,9 +9,8 @@
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
     : screen(renderer, *this),
-      mixer(mixer),
+      sound(mixer, *this),
       assets(renderer),
-      city(*assets.city_name.at(setup.map)),
       api(connexion.get_api()),
       my_id(connexion.unique_id),
       setup(setup) {
@@ -98,9 +97,7 @@ void Game::manage_collisions() {
                    collision);
 
         Car& car = cars.at(id);
-        car.sound_crash();
-
-        spdlog::debug("choque con {}", id);
+        sound.crash(car);
     }
 }
 
@@ -111,9 +108,8 @@ bool Game::start() {
     while (1) {
         bool quit = send_events();
         update_state();
-        manage_collisions();
-
         screen.update();
+        manage_collisions();
 
         if (quit) return true;
 

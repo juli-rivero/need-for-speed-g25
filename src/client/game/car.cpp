@@ -42,22 +42,6 @@ void Car::draw(bool with_name) {
     if (with_name) game.screen.render(name, x, y - HEIGHT - 10, true);
 }
 
-int Car::get_vol() const {
-    const double dx = game.cam_world_x - x;
-    const double dy = game.cam_world_y - y;
-
-    const double dist = std::sqrt(dx * dx + dy * dy);
-
-    const int v = MIX_MAX_VOLUME - dist / 3;
-    return (v >= 0) ? v : 0;
-}
-
-void Car::sound_crash() {
-    // Atenuar el sonido basado en que tan lejos esta de la camara.
-    game.mixer.PlayChannel(id, game.assets.sound_crash);
-    game.mixer.SetVolume(id, get_vol());
-}
-
 float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
     if (next_checkpoint >= game.setup.info.checkpoints.size()) {
         has_angle = false;

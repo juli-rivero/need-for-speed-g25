@@ -6,6 +6,7 @@ target_sources(taller_client
         assets.cpp
         car.cpp
         screen.cpp
+        sound.cpp
         PUBLIC
         # .h files
         sdl_app.h

@@ -46,10 +46,6 @@ class Car final {
     Game& game;
     SDL2pp::Texture& sprite;
 
-    // AUXILIAR: Conseguir el volumen de un sonido de este car, relativo a la
-    // pantalla.
-    int get_vol() const;
-
    public:
     Car(Game& game, const PlayerSnapshot& base);
 
@@ -68,7 +64,6 @@ class Car final {
     const int HEIGHT;
 
     void set_camera();
-    void sound_crash();
     void draw(bool with_name);
 
     // Calcula el angulo desde su centro al centro del siguiente checkpoint
@@ -115,17 +110,33 @@ class Screen final {
     MAKE_FIXED(Screen)
 };
 
+class Sound final {
+   private:
+    SDL2pp::Mixer& mixer;
+    Game& game;
+
+    int get_vol(const Car& car) const;
+
+   public:
+    Sound(SDL2pp::Mixer& mixer, Game& game);
+
+    void crash(const Car& car) const;
+    void brake(const Car& car) const;
+    void finish() const;
+
+    MAKE_FIXED(Sound)
+};
+
 class Game final : Connexion::Responder {
     friend class Car;
     friend class Screen;
+    friend class Sound;
 
    private:
     // Componentes graficos
     Screen screen;
-    SDL2pp::Mixer& mixer;
+    Sound sound;
     Assets assets;
-
-    SDL2pp::Texture& city;
 
     // Componentes de conexion
     Api& api;
