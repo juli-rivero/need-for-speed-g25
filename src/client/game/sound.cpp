@@ -24,9 +24,20 @@ void Sound::crash(const Car& car) const {
     mixer.SetVolume(car.id, get_vol(car));
 }
 
-void Sound::brake(const Car& car) const {
-    mixer.PlayChannel(car.id, game.assets.sound_brake);
-    mixer.SetVolume(car.id, get_vol(car));
+void Sound::test_brake(const Car& car) {
+    // TODO(franco): limite de velocidad minimo para el sonido
+    if (car.braking == true && old_braking == false) {
+        mixer.PlayChannel(car.id, game.assets.sound_brake);
+        mixer.SetVolume(car.id, get_vol(car));
+    }
+
+    old_braking = car.braking;
 }
 
-void Sound::finish() const { mixer.PlayChannel(-1, game.assets.sound_finish); }
+void Sound::test_finish(const Car& car) {
+    if (car.finished == true && old_finished == false) {
+        mixer.PlayChannel(-1, game.assets.sound_finish);
+    }
+
+    old_finished = car.finished;
+}

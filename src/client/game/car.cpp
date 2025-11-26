@@ -27,6 +27,9 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       speed(base.car.speed),
       health(base.car.health),
       next_checkpoint(base.raceProgress.nextCheckpoint),
+      finished(base.raceProgress.finished),
+      elapsed_time(base.raceProgress.elapsedTime),
+      braking(base.car.braking),
       WIDTH(sprite.GetWidth()),
       HEIGHT(sprite.GetHeight()) {}
 

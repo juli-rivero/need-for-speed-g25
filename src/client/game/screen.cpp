@@ -83,21 +83,25 @@ static std::string format_time(float time) {
 }
 
 void Screen::draw_hud() {
-    render(format_time(game.time_elapsed), 10, 50, false);
+    if (!my_car) return;
 
-    if (my_car) {
-        render_rect({10, 10, static_cast<int>(my_car->health), 10},
-                    {0, 255, 0, 255}, false);
-        render_rect({10, 30, static_cast<int>(my_car->speed), 10},
-                    {255, 165, 0, 255}, false);
+    render_rect({10, 10, static_cast<int>(my_car->health), 10},
+                {0, 255, 0, 255}, false);
+    render_rect({10, 30, static_cast<int>(my_car->speed), 10},
+                {255, 165, 0, 255}, false);
 
-        bool has_angle = false;
-        float angle = my_car->get_angle_to_next_checkpoint(has_angle);
-        if (has_angle) {
-            render(game.assets.arrow,
-                   WIDTH / 2 - game.assets.arrow.GetWidth() / 2, 10, angle,
-                   false);
-        }
+    bool has_angle = false;
+    float angle = my_car->get_angle_to_next_checkpoint(has_angle);
+    if (has_angle) {
+        render(game.assets.arrow, WIDTH / 2 - game.assets.arrow.GetWidth() / 2,
+               10, angle, false);
+    }
+
+    if (my_car->finished) {
+        render_rect({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
+        // TODO(franco): pantalla de resultado
+    } else {
+        render(format_time(my_car->elapsed_time), 10, 50, false);
     }
 }
 

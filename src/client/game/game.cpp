@@ -89,7 +89,8 @@ void Game::update_state() {
     }
 }
 
-void Game::manage_collisions() {
+void Game::manage_sounds() {
+    // Colisiones
     CollisionEvent collision;
     while (collisions.try_pop(collision)) {
         PlayerId id;
@@ -99,6 +100,12 @@ void Game::manage_collisions() {
         Car& car = cars.at(id);
         sound.crash(car);
     }
+
+    // Freno (y carrera completada)
+    // TODO(franco): reproducir frenos de otros coches, aparte del mio
+    if (!my_car) return;
+    sound.test_brake(*my_car);
+    sound.test_finish(*my_car);
 }
 
 bool Game::start() {
@@ -109,7 +116,7 @@ bool Game::start() {
         bool quit = send_events();
         update_state();
         screen.update();
-        manage_collisions();
+        manage_sounds();
 
         if (quit) return true;
 
