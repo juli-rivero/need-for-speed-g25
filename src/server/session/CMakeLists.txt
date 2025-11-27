@@ -7,3 +7,4 @@ target_sources(taller_server
 add_subdirectory(logic)
 add_subdirectory(model)
 add_subdirectory(physics)
+add_subdirectory(NPC)

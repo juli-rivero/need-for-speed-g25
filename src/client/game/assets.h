@@ -26,8 +26,8 @@ class Assets final {
     SDL2pp::Font font;
 
     // Mapeos de cadena
-    std::unordered_map<CarSpriteType, SDL2pp::Texture*> car_name;
-    std::unordered_map<std::string, SDL2pp::Texture*> city_name;
+    std::unordered_map<CarType, SDL2pp::Texture*> car_name;
+    std::unordered_map<CityName, SDL2pp::Texture*> city_name;
 
     MAKE_FIXED(Assets)
 };

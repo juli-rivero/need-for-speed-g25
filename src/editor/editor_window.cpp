@@ -70,7 +70,7 @@ void EditorWindow::setupToolbar() {
     QToolBar* toolbar = addToolBar("Tools");
     toolbar->setMovable(false);
 
-    // Checkpoints y hints (disponibles en ambos modos)
+    // Checkpoints (disponibles en ambos modos)
     startAction = toolbar->addAction("🏁 Start");
     startAction->setToolTip("Place Start Checkpoint");
     connect(startAction, &QAction::triggered, this,
@@ -85,10 +85,6 @@ void EditorWindow::setupToolbar() {
     finishAction->setToolTip("Place Finish Checkpoint");
     connect(finishAction, &QAction::triggered, this,
             &EditorWindow::onPlaceFinish);
-
-    hintAction = toolbar->addAction("➡️ Hint");
-    hintAction->setToolTip("Place Direction Hint");
-    connect(hintAction, &QAction::triggered, this, &EditorWindow::onPlaceHint);
 
     toolbar->addSeparator();
 
@@ -191,11 +187,6 @@ void EditorWindow::onPlaceFinish() {
     statusBar()->showMessage("Click to place finish checkpoint", 3000);
 }
 
-void EditorWindow::onPlaceHint() {
-    mapCanvas->placeHint();
-    statusBar()->showMessage("Click to place hint arrow", 3000);
-}
-
 void EditorWindow::onStartPlacingBuilding() {
     mapCanvas->startPlacingBuilding();
     finishBuildingAction->setEnabled(true);
@@ -258,7 +249,7 @@ void EditorWindow::onSaveMap() {
     // Guardar el YAML con la configuración actual
     if (mapCanvas && yamlHandler) {
         yamlHandler->saveMap(fileName, mapCanvas->getCheckpoints(),
-                             mapCanvas->getHints(), mapCanvas->getBuildings());
+                             mapCanvas->getBuildings());
         currentMapFile = fileName;
         statusBar()->showMessage(tr("Map saved: %1").arg(fileName));
     }
@@ -293,10 +284,9 @@ void EditorWindow::onLoadProject() {
     // Cargar el YAML
     QString backgroundPath;
     QList<CheckpointItem*> checkpoints;
-    QList<HintItem*> hints;
     QList<BuildingItem*> buildings;
 
-    if (!yamlHandler->loadMap(yamlFileName, backgroundPath, checkpoints, hints,
+    if (!yamlHandler->loadMap(yamlFileName, backgroundPath, checkpoints,
                               buildings)) {
         QMessageBox::warning(this, "Error",
                              "Failed to load map from YAML file.");
@@ -332,9 +322,6 @@ void EditorWindow::onLoadProject() {
     for (CheckpointItem* cp : checkpoints) {
         mapCanvas->addItemToScene(cp);
     }
-    for (HintItem* hint : hints) {
-        mapCanvas->addItemToScene(hint);
-    }
     for (BuildingItem* building : buildings) {
         mapCanvas->addItemToScene(building);
     }
@@ -362,11 +349,9 @@ void EditorWindow::updateItemList() {
     itemList->clear();
 
     int checkpointCount = mapCanvas->getCheckpoints().size();
-    int hintCount = mapCanvas->getHints().size();
     int buildingCount = mapCanvas->getBuildings().size();
 
     itemList->addItem(QString("Checkpoints: %1").arg(checkpointCount));
-    itemList->addItem(QString("Hints: %1").arg(hintCount));
     itemList->addItem(QString("Buildings: %1").arg(buildingCount));
 }
 
@@ -378,12 +363,10 @@ void EditorWindow::updateStatusBar(const QPointF& pos) {
 
 void EditorWindow::updateSelectionInfo() {
     QList<CheckpointItem*> checkpoints = mapCanvas->getCheckpoints();
-    QList<HintItem*> hints = mapCanvas->getHints();
     QList<BuildingItem*> buildings = mapCanvas->getBuildings();
 
-    QString info = QString("Items: %1 checkpoints, %2 hints, %3 buildings")
+    QString info = QString("Items: %1 checkpoints, %3 buildings")
                        .arg(checkpoints.size())
-                       .arg(hints.size())
                        .arg(buildings.size());
 
     // Mostrar info del item seleccionado si hay uno
@@ -407,11 +390,6 @@ void EditorWindow::updateSelectionInfo() {
             }
             info += QString(" | Selected: Checkpoint %1 at (%2, %3)")
                         .arg(typeStr)
-                        .arg(pos.x(), 0, 'f', 1)
-                        .arg(pos.y(), 0, 'f', 1);
-        } else if (HintItem* hint = dynamic_cast<HintItem*>(item)) {
-            Q_UNUSED(hint);
-            info += QString(" | Selected: Hint at (%1, %2)")
                         .arg(pos.x(), 0, 'f', 1)
                         .arg(pos.y(), 0, 'f', 1);
         } else if (BuildingItem* building = dynamic_cast<BuildingItem*>(item)) {

@@ -13,8 +13,8 @@ struct StartRequest {
 };
 
 struct StartResponse {
-    std::string map;
-    StaticSnapshot info;
+    CityInfo city_info;
+    RaceInfo first_race_info;
 };
 
 struct LeaveRequest {};
@@ -22,7 +22,7 @@ struct LeaveRequest {};
 struct LeaveResponse {};
 
 struct ChooseCarRequest {
-    std::string car_name;
+    CarType car_type;
 };
 
 struct SessionSnapshot {

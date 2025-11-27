@@ -53,7 +53,7 @@ void Receiver::recv(const dto_session::StartRequest& request) {
 }
 void Receiver::recv(const dto_session::ChooseCarRequest& request) {
     log->trace("Received ChooseCarRequest");
-    emitter.dispatch(&Listener::on_choose_car, request.car_name);
+    emitter.dispatch(&Listener::on_choose_car, request.car_type);
 }
 
 // -------------------- Game requests --------------------

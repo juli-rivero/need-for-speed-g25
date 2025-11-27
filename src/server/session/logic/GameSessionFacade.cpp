@@ -9,9 +9,9 @@
 using std::chrono_literals::operator""ms;
 
 GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
-                                     const std::vector<RaceDefinition>& races,
+                                     const std::vector<std::string>& raceFiles,
                                      const std::vector<PlayerConfig>& players)
-    : world(), match(configPath, races, world, players) {}
+    : world(), match(configPath, raceFiles, world, players) {}
 
 void GameSessionFacade::run() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);

@@ -10,7 +10,6 @@ YamlHandler::YamlHandler(QObject* parent) : QObject(parent) {}
 
 bool YamlHandler::saveMap(const QString& filename,
                           const QList<CheckpointItem*>& checkpoints,
-                          const QList<HintItem*>& hints,
                           const QList<BuildingItem*>& buildings) {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -85,18 +84,6 @@ bool YamlHandler::saveMap(const QString& filename,
         }
     }
 
-    // Hints
-    out << "hints:\n";
-    if (hints.isEmpty()) {
-        out << "  []\n";
-    } else {
-        for (HintItem* hint : hints) {
-            out << "  - x: " << hint->pos().x() << "\n";
-            out << "    y: " << hint->pos().y() << "\n";
-            out << "    rotation: " << hint->getRotation() << "\n";
-        }
-    }
-
     // Buildings
     out << "buildings:\n";
     if (buildings.isEmpty()) {
@@ -119,7 +106,6 @@ bool YamlHandler::saveMap(const QString& filename,
     file.close();
     qDebug() << "Map saved:" << filename;
     qDebug() << "  Checkpoints:" << checkpoints.size();
-    qDebug() << "  Hints:" << hints.size();
     qDebug() << "  Buildings:" << buildings.size();
 
     return true;
@@ -127,7 +113,6 @@ bool YamlHandler::saveMap(const QString& filename,
 
 bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
                           QList<CheckpointItem*>& checkpoints,
-                          QList<HintItem*>& hints,
                           QList<BuildingItem*>& buildings) {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
@@ -144,7 +129,6 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
 
     // Variables temporales para construir items
     CheckpointItem* currentCheckpoint = nullptr;
-    HintItem* currentHint = nullptr;
     BuildingItem* currentBuilding = nullptr;
     QList<QPointF> buildingVertices;
 
@@ -164,9 +148,6 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
 
         if (line == "checkpoints:") {
             currentSection = "checkpoints";
-            continue;
-        } else if (line == "hints:") {
-            currentSection = "hints";
             continue;
         } else if (line == "buildings:") {
             currentSection = "buildings";
@@ -205,24 +186,6 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
                     currentCheckpoint->setWidth(width);
                 }
             }
-        } else if (currentSection == "hints") {
-            // Parse hints
-            if (line.startsWith("- x:")) {
-                if (currentHint) {
-                    hints.append(currentHint);
-                }
-                currentHint = new HintItem(0, QPointF(0, 0));
-                float x = line.split(":").last().trimmed().toFloat();
-                currentHint->setPos(x, 0);
-            } else if (currentHint) {
-                if (line.startsWith("y:")) {
-                    float y = line.split(":").last().trimmed().toFloat();
-                    currentHint->setPos(currentHint->pos().x(), y);
-                } else if (line.startsWith("rotation:")) {
-                    float rot = line.split(":").last().trimmed().toFloat();
-                    currentHint->setRotation(rot);
-                }
-            }
         } else if (currentSection == "buildings") {
             // Parse buildings
             if (line.startsWith("- type:")) {
@@ -256,7 +219,6 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
 
     // Agregar últimos items
     if (currentCheckpoint) checkpoints.append(currentCheckpoint);
-    if (currentHint) hints.append(currentHint);
     if (currentBuilding) {
         currentBuilding->setVertices(buildingVertices);
         currentBuilding->finishBuilding();
@@ -267,7 +229,6 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
 
     qDebug() << "Map loaded:" << filename;
     qDebug() << "  Checkpoints:" << checkpoints.size();
-    qDebug() << "  Hints:" << hints.size();
     qDebug() << "  Buildings:" << buildings.size();
 
     return true;

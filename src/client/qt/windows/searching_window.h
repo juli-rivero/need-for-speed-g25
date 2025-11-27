@@ -24,7 +24,7 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
     // Connexion overrides
     void on_search_response(const std::vector<SessionInfo> &) override;
     void on_join_response(const SessionInfo &,
-                          const std::vector<CarStaticInfo> &) override;
+                          const std::vector<CarInfo> &) override;
 
    signals:
     void createGameClicked();
