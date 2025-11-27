@@ -13,7 +13,7 @@ class Player {
     const std::string name;
     const std::unique_ptr<Car> car;  // su auto actual
     PlayerRaceData raceState;
-    // Tiempo total acumulado entre carreras
+
     float totalAccumulated{0.0f};
 
     // Upgrades elegidos por el jugador y TODAVIA no aplicados
