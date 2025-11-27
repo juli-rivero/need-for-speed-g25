@@ -4,8 +4,9 @@
 #include <QObject>
 #include <QString>
 
-#include "editor/building_item.h"
-#include "editor/checkpoint_item.h"
+class CheckpointItem;
+class BuildingItem;
+class SensorItem;
 
 class YamlHandler : public QObject {
     Q_OBJECT
@@ -15,9 +16,10 @@ class YamlHandler : public QObject {
 
     bool saveMap(const QString& filename,
                  const QList<CheckpointItem*>& checkpoints,
-                 const QList<BuildingItem*>& buildings);
+                 const QList<BuildingItem*>& buildings,
+                 const QList<SensorItem*>& sensors);
 
     bool loadMap(const QString& filename, QString& backgroundImagePath,
                  QList<CheckpointItem*>& checkpoints,
-                 QList<BuildingItem*>& buildings);
+                 QList<BuildingItem*>& buildings, QList<SensorItem*>& sensors);
 };
