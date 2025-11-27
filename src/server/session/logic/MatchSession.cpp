@@ -68,9 +68,9 @@ void MatchSession::startRace(std::size_t raceIndex) {
         racePlayers.push_back(player.get());
         _players[pc.id] = std::move(player);
 
-        std::cout << " Jugador " << pc.name << " entra en carrera "
-                  << " con carType=" << static_cast<int>(pc.carType)
-                  << " en pos (" << sp.x << "," << sp.y << ")\n";
+        spdlog::info(
+            "Jugador {} entra en carrera con carType={} en pos ({}, {})",
+            pc.name, static_cast<int>(pc.carType), sp.x, sp.y);
     }
 
     _traffic = std::make_unique<TrafficSystem>(factory);
@@ -79,10 +79,11 @@ void MatchSession::startRace(std::size_t raceIndex) {
     for (auto& rs : roadShapes) {
         _roadGraph.addRoad(rs);
     }
-    std::cout << "[NPC] RoadShapes count = " << roadShapes.size() << std::endl;
+    spdlog::debug("[NPC] RoadShapes count = {}", roadShapes.size());
     _roadGraph.build();
-    std::cout << "[NPC] Graph built: nodes=" << _roadGraph.getNodes().size()
-              << " segments=" << _roadGraph.getSegments().size() << std::endl;
+    spdlog::debug("[NPC] Graph built: nodes={} segments={}",
+                  _roadGraph.getNodes().size(),
+                  _roadGraph.getSegments().size());
 
     _traffic->loadGraph(&_roadGraph);
     for (int i = 0; i < 25; ++i) {
@@ -95,15 +96,14 @@ void MatchSession::startRace(std::size_t raceIndex) {
 
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
-    std::cout << "Carrera " << _raceFiles[raceIndex] << " iniciada"
-              << std::endl;
+    spdlog::info("Carrera {} iniciada", _raceFiles[raceIndex]);
 }
 
 WorldSnapshot MatchSession::getSnapshot() const {
     WorldSnapshot snap;
 
     if (!_race) {
-        std::cerr << "[MatchSession] _race es nullptr en getSnapshot()\n";
+        spdlog::error("_race es nullptr en getSnapshot()");
         return snap;
     }
 

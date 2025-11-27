@@ -157,6 +157,7 @@ struct CheckpointInfo {
 struct NpcInfo {
     float x, y, angle, w, h;
     CarType type;
+    RenderLayer layer;
 };
 struct RaceInfo {
     RaceName name;

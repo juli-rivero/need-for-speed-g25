@@ -364,32 +364,32 @@ static void renderPlayer(SDL_Renderer* r, const PlayerSnapshot& player,
     float ny = py + std::sin(car.angle) * noseLen;
     SDL_RenderDrawLineF(r, px, py, nx, ny);
 }
-static void renderNPCs(SDL_Renderer* r, const WorldSnapshot& snap, float camX,
+static void renderNPCs(SDL_Renderer* r, const NpcInfo& npc, float camX,
                        float camY, const YamlGameConfig& cfg) {
-    for (const auto& npc : snap.npcs) {
-        const auto& carStat = cfg.getCarStaticStatsMap().at(npc.type);
+    const auto& carStat = cfg.getCarStaticStatsMap().at(npc.type);
 
-        float px = npc.x * PPM - camX;
-        float py = npc.y * PPM - camY;
+    float px = npc.x * PPM - camX;
+    float py = npc.y * PPM - camY;
 
-        SDL_FRect rect{px - (carStat.width * PPM * 0.5f),
-                       py - (carStat.height * PPM * 0.5f), carStat.width * PPM,
-                       carStat.height * PPM};
+    SDL_FRect rect{px - (carStat.width * PPM * 0.5f),
+                   py - (carStat.height * PPM * 0.5f), carStat.width * PPM,
+                   carStat.height * PPM};
 
-        SDL_FPoint center{rect.w / 2.0f, rect.h / 2.0f};
+    SDL_FPoint center{rect.w / 2.0f, rect.h / 2.0f};
 
-        SDL_SetRenderDrawColor(r, 180, 80, 255, 255);
+    SDL_SetRenderDrawColor(r, (npc.layer == RenderLayer::UNDER) ? 150 : 255,
+                           (npc.layer == RenderLayer::UNDER) ? 100 : 255, 180,
+                           255);
 
-        SDL_RenderFillRectExF(r, &rect,
-                              npc.angle * 180.0f / static_cast<float>(M_PI),
-                              &center, SDL_FLIP_NONE);
+    SDL_RenderFillRectExF(r, &rect,
+                          npc.angle * 180.0f / static_cast<float>(M_PI),
+                          &center, SDL_FLIP_NONE);
 
-        SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
-        float nose = rect.h * 0.5f;
-        float nx = px + std::cos(npc.angle) * nose;
-        float ny = py + std::sin(npc.angle) * nose;
-        SDL_RenderDrawLineF(r, px, py, nx, ny);
-    }
+    SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
+    float nose = rect.h * 0.5f;
+    float nx = px + std::cos(npc.angle) * nose;
+    float ny = py + std::sin(npc.angle) * nose;
+    SDL_RenderDrawLineF(r, px, py, nx, ny);
 }
 
 static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
@@ -541,10 +541,15 @@ inline int test(const YamlGameConfig& cfg) {
                                  player.id == localPlayerId);
                 }
             }
-            // NPCs SIEMPRE VAN UNDER
-            renderNPCs(renderer, dyn, camX, camY, cfg);
-
+            // NPCs que están UNDER
+            for (auto& npc : dyn.npcs)
+                if (npc.layer == RenderLayer::UNDER)
+                    renderNPCs(renderer, npc, camX, camY, cfg);
             renderBridgeDeckAboveUnderCars(renderer, city_info, camX, camY);
+            // NPCs OVER
+            for (auto& npc : dyn.npcs)
+                if (npc.layer == RenderLayer::OVER)
+                    renderNPCs(renderer, npc, camX, camY, cfg);
 
             for (const auto& player : dyn.players) {
                 if (player.car.layer == RenderLayer::OVER) {

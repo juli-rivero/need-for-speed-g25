@@ -71,7 +71,7 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
                                              float impact) {
     if (!a || !b) return;
 
-    // Car ↔ Wall
+    // Car / Wall
     if (isPair<Car, Wall>(a, b) || isPair<Wall, Car>(a, b)) {
         Car* car =
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
@@ -79,10 +79,31 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
         return;
     }
 
-    // Car ↔ Car
+    // Car / Car
     if (isPair<Car, Car>(a, b)) {
         as<Car>(a)->damage(impact * 0.5f);
         as<Car>(b)->damage(impact * 0.5f);
+    }
+
+    // Car / NPCCar
+    if ((a->getEntityType() == EntityType::Car &&
+         b->getEntityType() == EntityType::NPCCar) ||
+        (a->getEntityType() == EntityType::NPCCar &&
+         b->getEntityType() == EntityType::Car)) {
+        Car* carPlayer =
+            (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
+
+        carPlayer->damage(impact * 0.5f);
+    }
+
+    // Car / Railing
+    if ((a->getEntityType() == EntityType::Car &&
+         b->getEntityType() == EntityType::Railing) ||
+        (a->getEntityType() == EntityType::Railing &&
+         b->getEntityType() == EntityType::Car)) {
+        Car* car =
+            (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
+        car->damage(impact * 0.3f);  // menos daño que pared sólida
     }
 }
 static void handleCheckpointTouch(
@@ -97,12 +118,17 @@ static void handleCheckpointTouch(
     }
 }
 
-static void handleBridgeSensorTouch(BridgeSensor* sensor, Car* car) {
-    if (sensor->getType() == RenderLayer::OVER) {
-        car->setLayer(RenderLayer::OVER);
-    } else {
-        car->setLayer(RenderLayer::UNDER);
+static void handleBridgeSensorTouch(BridgeSensor* sensor, Entity* entity) {
+    if (entity->getEntityType() != EntityType::Car &&
+        entity->getEntityType() != EntityType::NPCCar) {
+        return;
     }
+
+    auto* car = static_cast<Car*>(entity);
+
+    // Aplicar cambio de layer
+    RenderLayer newLayer = sensor->getType();
+    car->setLayer(newLayer);
 }
 
 void CollisionManager::processSensors(const b2SensorEvents& events) {
@@ -111,19 +137,20 @@ void CollisionManager::processSensors(const b2SensorEvents& events) {
 
         Entity* a = shapeToEntity.at(ev.sensorShapeId);
         Entity* b = shapeToEntity.at(ev.visitorShapeId);
-
-        // Car ↔ Checkpoint
-        if (isPair<Checkpoint, Car>(a, b))
+        // Car / Checkpoint
+        if (isPair<Checkpoint, Car>(a, b)) {
             handleCheckpointTouch(a, b, raceSession, carToPlayer);
-        else if (isPair<Car, Checkpoint>(a, b))
+        } else if (isPair<Car, Checkpoint>(a, b)) {
             handleCheckpointTouch(b, a, raceSession, carToPlayer);
-
-        // Car ↔ BridgeSensor
-        else if (isPair<BridgeSensor, Car>(a, b))
-            handleBridgeSensorTouch(as<BridgeSensor>(a), as<Car>(b));
-
-        else if (isPair<Car, BridgeSensor>(a, b))
-            handleBridgeSensorTouch(as<BridgeSensor>(b), as<Car>(a));
+        } else if (a->getEntityType() == EntityType::BridgeSensor &&
+                   (b->getEntityType() == EntityType::Car ||
+                    b->getEntityType() == EntityType::NPCCar)) {
+            handleBridgeSensorTouch(as<BridgeSensor>(a), b);
+        } else if (b->getEntityType() == EntityType::BridgeSensor &&
+                   (a->getEntityType() == EntityType::Car ||
+                    a->getEntityType() == EntityType::NPCCar)) {
+            handleBridgeSensorTouch(as<BridgeSensor>(b), a);
+        }
     }
 }
 

@@ -234,6 +234,7 @@ ProtocolSender& operator<<(ProtocolSender& p, const NpcInfo& s) {
     p << s.angle;
     p << s.w << s.h;
     p << s.type;
+    p << s.layer;
     return p;
 }
 ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcInfo& s) {
@@ -241,6 +242,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcInfo& s) {
     p >> s.angle;
     p >> s.w >> s.h;
     p >> s.type;
+    p >> s.layer;
     return p;
 }
 ProtocolReceiver& operator>>(ProtocolReceiver& p, CityInfo& city) {

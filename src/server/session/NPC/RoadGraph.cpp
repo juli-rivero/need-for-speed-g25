@@ -36,9 +36,6 @@ void RoadGraph::build() {
                 bool merged = false;
                 for (auto& node : nodes) {
                     if (isNear(node.pos, pos, 0.5)) {
-                        std::cout << "[GRAPH] Merging node " << node.id
-                                  << " with new road intersection A=" << A.id
-                                  << " B=" << B.id << "\n";
                         node.connectedRoadIds.push_back(A.id);
                         node.connectedRoadIds.push_back(B.id);
                         merged = true;
@@ -53,20 +50,10 @@ void RoadGraph::build() {
                     node.connectedRoadIds = {A.id, B.id};
                     nodes.push_back(node);
                 }
-                std::cout << "[GRAPH] Intersection found at (" << pos.x << ", "
-                          << pos.y << ") between roads " << A.id << " and "
-                          << B.id << "\n";
             }
         }
     }
-    std::cout << "==== NODES GENERATED ====\n";
     for (auto& node : nodes) {
-        std::cout << "Node " << node.id << " at (" << node.pos.x << ","
-                  << node.pos.y << ") connected roads: ";
-
-        for (int r : node.connectedRoadIds) std::cout << r << " ";
-        std::cout << "\n";
-
         std::sort(node.connectedRoadIds.begin(), node.connectedRoadIds.end());
         node.connectedRoadIds.erase(std::unique(node.connectedRoadIds.begin(),
                                                 node.connectedRoadIds.end()),
@@ -100,7 +87,7 @@ void RoadGraph::build() {
                           return a->pos.y < b->pos.y;
                   });
 
-        // crear segmentos consecutivos
+        // se crea segmentos consecutivos
         for (size_t i = 0; i + 1 < roadNodes.size(); ++i) {
             RoadSegment seg;
             seg.id = segId++;
@@ -110,9 +97,6 @@ void RoadGraph::build() {
             seg.start = seg.a->pos;
             seg.end = seg.b->pos;
             seg.horizontal = road.horizontal;
-            std::cout << "[GRAPH] Segment " << seg.id << " road=" << road.id
-                      << " A=(" << seg.start.x << "," << seg.start.y << ")"
-                      << " B=(" << seg.end.x << "," << seg.end.y << ")" << "\n";
             segments.push_back(seg);
         }
     }

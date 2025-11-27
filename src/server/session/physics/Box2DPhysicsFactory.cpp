@@ -9,6 +9,7 @@
 
 Box2DPhysicsFactory::Box2DPhysicsFactory(const b2WorldId world)
     : world(world) {}
+
 // --- Auto ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
     float x, float y, const CarStaticStats& carInfo) {
@@ -29,7 +30,6 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
     sdef.enableContactEvents = true;
     sdef.enableHitEvents = true;
 
-    // Filtro inicial → UNDER
     sdef.filter.categoryBits = CATEGORY_CAR;
     sdef.filter.maskBits = 0;
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
@@ -52,6 +52,10 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createNpcCar(
     sdef.density = carInfo.density;
     sdef.material.friction = carInfo.friction;
     sdef.material.restitution = carInfo.restitution;
+
+    sdef.enableSensorEvents = true;
+    sdef.enableContactEvents = true;
+    sdef.enableHitEvents = true;
 
     sdef.filter.categoryBits = CATEGORY_NPC;
     sdef.filter.maskBits =
@@ -143,7 +147,7 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBridgeSensor(
     sdef.enableSensorEvents = true;
 
     sdef.filter.categoryBits = CATEGORY_SENSOR;
-    sdef.filter.maskBits = CATEGORY_CAR;
+    sdef.filter.maskBits = CATEGORY_CAR | CATEGORY_NPC;
 
     b2ShapeId sh = b2CreatePolygonShape(body->getId(), &sdef, &box);
     body->setShapeId(sh);
