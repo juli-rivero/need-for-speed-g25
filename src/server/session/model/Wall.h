@@ -21,4 +21,5 @@ class Wall : public Entity {
     float getAngle() const { return body->getAngle(); }
     float getWidth() const { return width; }
     float getHeight() const { return height; }
+    static constexpr EntityType Type = EntityType::Wall;
 };

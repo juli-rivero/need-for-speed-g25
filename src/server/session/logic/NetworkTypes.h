@@ -43,4 +43,6 @@ struct WorldSnapshot {
     float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
     std::vector<PlayerSnapshot> players;
     std::vector<PlayerId> permanentlyDQ;
+
+    std::vector<NpcInfo> npcs;
 };

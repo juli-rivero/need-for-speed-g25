@@ -15,6 +15,8 @@ class Box2DPhysicsFactory {
 
     std::shared_ptr<Box2dPhysicsBody> createCar(float x, float y,
                                                 const CarStaticStats& type);
+    std::shared_ptr<Box2dPhysicsBody> createNpcCar(float x, float y,
+                                                   const CarStaticStats& type);
     std::shared_ptr<Box2dPhysicsBody> createBuilding(
         float x, float y, float w, float h, CollisionCategory category);
     std::shared_ptr<Box2dPhysicsBody> createRailing(float x, float y, float w,

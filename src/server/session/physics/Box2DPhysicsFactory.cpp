@@ -36,7 +36,32 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
     body->setShapeId(shape);
     return body;
 }
+std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createNpcCar(
+    float x, float y, const CarStaticStats& carInfo) {
+    b2BodyDef def = b2DefaultBodyDef();
+    def.type = b2_dynamicBody;
+    def.position = {x, y};
+    def.linearDamping = carInfo.linearDamping;
+    def.angularDamping = carInfo.angularDamping;
 
+    auto body = std::make_shared<Box2dPhysicsBody>(world, def);
+
+    b2Polygon box = b2MakeBox(carInfo.width / 2.0f, carInfo.height / 2.0f);
+
+    b2ShapeDef sdef = b2DefaultShapeDef();
+    sdef.density = carInfo.density;
+    sdef.material.friction = carInfo.friction;
+    sdef.material.restitution = carInfo.restitution;
+
+    sdef.filter.categoryBits = CATEGORY_NPC;
+    sdef.filter.maskBits =
+        CATEGORY_WALL | CATEGORY_RAILING | CATEGORY_CAR | CATEGORY_SENSOR;
+
+    b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
+
+    body->setShapeId(shape);
+    return body;
+}
 // --- MURO ESTÁTICO ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(
     float x, float y, float w, float h, CollisionCategory category) {
@@ -52,7 +77,7 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createBuilding(
     sdef.enableHitEvents = true;
 
     sdef.filter.categoryBits = category;
-    sdef.filter.maskBits = CATEGORY_CAR;
+    sdef.filter.maskBits = CATEGORY_CAR | CATEGORY_NPC;
 
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
     body->setShapeId(shape);

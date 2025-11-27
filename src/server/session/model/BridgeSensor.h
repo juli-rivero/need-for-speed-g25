@@ -25,4 +25,5 @@ class BridgeSensor : public Entity {
     Vec2 getPosition() const { return body->getPosition(); }
     float getWidth() const { return width; }
     float getHeight() const { return height; }
+    static constexpr EntityType Type = EntityType::BridgeSensor;
 };

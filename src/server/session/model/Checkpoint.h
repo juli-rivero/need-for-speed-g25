@@ -29,7 +29,7 @@ class Checkpoint : public Entity {
           body(std::move(body)) {}
 
     int getOrder() const { return order; }
-
+    static constexpr EntityType Type = EntityType::Checkpoint;
     Vec2 getPosition() const { return body->getPosition(); }
     float getAngle() const { return angle; }
     float getWidth() const { return width; }
