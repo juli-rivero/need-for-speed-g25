@@ -4,15 +4,18 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-           Connexion& connexion)
+           Connexion& connexion, const GameSetUp& setup)
     : renderer(renderer),
       mixer(mixer),
       assets(renderer),
+      city(*assets.city_name[setup.map]),
       api(connexion.get_api()),
-      id(connexion.unique_id) {
+      id(connexion.unique_id),
+      players(setup.info.players) {
     renderer.Clear();
     Responder::subscribe(connexion);
 }
@@ -55,6 +58,11 @@ void Game::on_game_snapshot(
     elapsed = time_elapsed;
     players = player_snapshots;
 }
+
+void Game::on_collision_event(const CollisionEvent& collision_event) {
+    collisions.try_push(collision_event);
+}
+
 bool Game::send_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -89,15 +97,39 @@ bool Game::send_events() {
 
     return false;
 }
-
-void Game::get_state() {
+void Game::update_cars() {
     std::lock_guard lock(mutex);
     cars.clear();
-
     for (auto& player : players) {
         cars.emplace_back(*this, player);
         if (player.id == id) my_car = &cars.back();
     }
+}
+
+void Game::manage_collisions() {
+    CollisionEvent collision;
+    while (collisions.try_pop(collision)) {
+        // TODO(franco): cambiar, dejo las herramientas que tenes como ejemplo
+        std::visit(
+            [](auto& collision) {
+                spdlog::debug("collision on player {} with intensity {}",
+                              collision.player, collision.intensity);
+            },
+            collision);
+        if (auto* car_to_wall = std::get_if<CollisionSimple>(&collision)) {
+            spdlog::debug("the player {} collide with a wall",
+                          car_to_wall->player);
+        }
+        if (auto* car_to_car = std::get_if<CollisionCarToCar>(&collision)) {
+            spdlog::debug("the player {} collide with player {}",
+                          car_to_car->player, car_to_car->other);
+        }
+    }
+}
+
+void Game::get_state() {
+    update_cars();
+    manage_collisions();
 }
 
 void Game::draw_state() {
@@ -139,24 +171,18 @@ void Game::play_sounds() {
     // }
 }
 
-void Game::wait_next_frame() {
-    // TODO(crook): hacer 60 FPS verdaderos.
-    SDL_Delay(1000 / 60);
-}
-
 bool Game::start() {
-    while (1) {
-        frame += 1;
+    constexpr std::chrono::duration<double> dt(1.f / 60.f);
+    TimerIterator iterator(dt);
 
+    while (1) {
         bool quit = send_events();
         get_state();
         draw_state();
         play_sounds();
 
-        if (quit) {
-            return true;
-        } else {
-            wait_next_frame();
-        }
+        if (quit) return true;
+
+        iterator.next();
     }
 }

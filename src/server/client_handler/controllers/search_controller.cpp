@@ -29,7 +29,6 @@ SearchController::~SearchController() { Listener::unsubscribe(); }
 void SearchController::on_join_request(const std::string& session_id) {
     try {
         Session& session = sessions_monitor.get_session(session_id);
-        session.add_client(client_id);
         dispatcher.on_join_session(session);
         log->trace("added client to session");
     } catch (const std::exception& e) {

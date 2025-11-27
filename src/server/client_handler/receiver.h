@@ -30,6 +30,8 @@ class Receiver final : public Thread {
         virtual void on_start_request(bool) {}
         virtual void on_choose_car(const std::string&) {}
 
+        virtual void on_request_game_info() {}
+
         virtual void on_turn_left() {}
         virtual void on_stop_turning_left() {}
         virtual void on_turn_right() {}

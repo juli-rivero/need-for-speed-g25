@@ -11,7 +11,7 @@ if (TALLER_CLIENT OR TALLER_SERVER)
     FetchContent_Declare(
             cxxopts
             GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
-            GIT_TAG v3.3.1
+            GIT_TAG v3.2.1
             OVERRIDE_FIND_PACKAGE
     )
     FetchContent_Declare(
@@ -23,8 +23,8 @@ if (TALLER_CLIENT OR TALLER_SERVER)
     FetchContent_MakeAvailable(cxxopts spdlog)
 endif ()
 
-# Install libSDL2 and libSDL2pp (for client or editor)
-if (TALLER_CLIENT OR TALLER_EDITOR OR TALLER_SERVER)
+# Install libSDL2 and libSDL2pp (for client or mock client in server)
+if (TALLER_CLIENT OR TALLER_SERVER)
     set(SDL2PP_WITH_IMAGE yes)
     set(SDL2PP_WITH_MIXER yes)
     set(SDL2PP_WITH_TTF yes)
@@ -66,6 +66,8 @@ if (TALLER_CLIENT OR TALLER_EDITOR OR TALLER_SERVER)
             OVERRIDE_FIND_PACKAGE
     )
 
+    set(SDL2PP_WITH_TTF ON CACHE BOOL "" FORCE)
+    set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE)
     FetchContent_Declare(
             libSDL2pp
             OVERRIDE_FIND_PACKAGE
@@ -76,7 +78,6 @@ if (TALLER_CLIENT OR TALLER_EDITOR OR TALLER_SERVER)
 endif ()
 
 if (TALLER_SERVER)
-    # TODO: Sumar libreria Box2D
     include(FetchContent)
     FetchContent_Declare(
             box2d
@@ -98,6 +99,23 @@ if (TALLER_SERVER)
     FetchContent_MakeAvailable(box2d yaml)
 endif ()
 
+if (TALLER_CLIENT OR TALLER_EDITOR)
+    # TODO: hacer un installer con las dependencias de qt:
+    # En ubuntu:
+    # sudo apt update
+    # sudo apt install qt6-base-dev qt6-tools-dev cmake build-essential -y
+
+    # Buscar Qt6 (componentes necesarios para GUI)
+    find_package(Qt6 REQUIRED COMPONENTS Core Widgets)
+
+    # Habilitar herramientas automáticas de Qt
+    set(CMAKE_AUTOMOC ON)  # Meta-Object Compiler (para signals/slots)
+    set(CMAKE_AUTOUIC ON)  # User Interface Compiler (para archivos .ui)
+    set(CMAKE_AUTORCC ON)  # Resource Compiler (para archivos .qrc)
+
+    message(STATUS "Qt6 encontrado: ${Qt6_VERSION}")
+endif ()
+
 if (TALLER_TESTS)
     # For Windows: Prevent overriding the parent project's compiler/linker settings
     # (borrowed from https://google.github.io/googletest/quickstart-cmake.html)
@@ -112,4 +130,5 @@ if (TALLER_TESTS)
     )
 
     FetchContent_MakeAvailable(googletest)
+    include(GoogleTest)
 endif()

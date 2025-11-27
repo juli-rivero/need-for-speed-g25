@@ -164,8 +164,35 @@ class Car : public Entity {
     }
     bool isDestroyed() const { return health <= 0; }
     bool isNitroActive() const { return nitroActive; }
+    void killLateralVelocity() {
+        Vec2 vel = body->getLinearVelocity();
+        Vec2 rightNormal = {-std::sin(getAngle()), std::cos(getAngle())};
+
+        float lateralSpeed = vel.x * rightNormal.x + vel.y * rightNormal.y;
+
+        Vec2 lateralVel = {rightNormal.x * lateralSpeed,
+                           rightNormal.y * lateralSpeed};
+
+        body->setLinearVelocity(vel.x - lateralVel.x, vel.y - lateralVel.y);
+    }
+    void turn() {
+        // la magnitud de giro depende de la velocidad
+        Vec2 vel = body->getLinearVelocity();
+        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+
+        if (speed < 0.5f) return;  // NO girasi está casi quieto
+
+        float steerStrength = carType.control;
+        float turnRate = steerStrength * (speed / carType.maxSpeed);
+
+        if (turning == TurnDirection::Left)
+            body->setAngularVelocity(-turnRate * 5.0f);
+        else if (turning == TurnDirection::Right)
+            body->setAngularVelocity(turnRate * 5.0f);
+        else
+            body->setAngularVelocity(0.0f);
+    }
     void update(float dt) {
-        // === manejar timers de nitro ===
         if (nitroActive) {
             nitroTimeRemaining -= dt;
             if (nitroTimeRemaining <= 0.0f) {
@@ -181,15 +208,8 @@ class Car : public Entity {
         if (accelerating) accelerate();
         if (braking) brake();
 
-        switch (turning) {
-            case TurnDirection::Left:
-                turnLeft();
-                break;
-            case TurnDirection::Right:
-                turnRight();
-                break;
-            default:
-                break;
-        }
+        killLateralVelocity();
+        // para simular traccion delantera de un auto
+        turn();
     }
 };
