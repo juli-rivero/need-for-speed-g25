@@ -29,7 +29,7 @@ struct Api {
 };
 
 class Sender final : public Thread, public Api {
-    Queue<dto::Request> responses;
+    Queue<dto::Request> requests;
     ProtocolSender& sender;
 
     friend class Connexion;

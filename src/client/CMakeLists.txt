@@ -10,4 +10,5 @@ target_sources(taller_client
         PUBLIC
         args_parser.cpp
         app.h
+        constants.h
 )

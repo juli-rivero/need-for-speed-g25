@@ -1,5 +1,7 @@
 #include "client/game/car.h"
 
+#include <math.h>
+
 constexpr float PI = 3.14;
 constexpr float pixels_per_meter = 10;
 
@@ -42,7 +44,7 @@ int Car::get_vol() const {
     const double dx = game.cam_world_x - x;
     const double dy = game.cam_world_y - y;
 
-    const double dist = sqrt(dx * dx + dy * dy);
+    const double dist = std::sqrt(dx * dx + dy * dy);
 
     const int v = MIX_MAX_VOLUME - dist / 4;
     return (v >= 0) ? v : 0;
@@ -50,7 +52,7 @@ int Car::get_vol() const {
 
 void Car::sound_crash() {
     // Atenuar el sonido basado en que tan lejos esta de la camara.
-    if (game.frame % 120 != 0) return;
+    // if (game.frame % 120 != 0) return;
 
     game.mixer.PlayChannel(id, game.assets.sound_crash);
     game.mixer.SetVolume(id, get_vol());

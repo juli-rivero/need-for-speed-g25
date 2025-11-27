@@ -28,6 +28,7 @@ bool ClientHandler::is_alive() const {
 
 ClientHandler::~ClientHandler() {
     controller.stop();
+    controller.join();
     if (sender.is_alive()) {
         sender.stop();
     }
@@ -36,6 +37,7 @@ ClientHandler::~ClientHandler() {
     }
     sender.join();
     receiver.join();
+    protocol.close();
     log->debug("Destroyed");
     spdlog::drop(log->name());
 }

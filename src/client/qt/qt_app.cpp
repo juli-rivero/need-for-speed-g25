@@ -1,11 +1,13 @@
 #include "client/qt/qt_app.h"
 
 #include <QApplication>
+#include <string>
 
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
+QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit,
+                                 GameSetUp& setup)
     : shouldQuit(quit),
       stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
@@ -16,8 +18,8 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       searchingWindow(&stack, connexion),
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
-      waitingWindow(&stack, connexion) {
-    // --- CORRECCIÓN 1: 'shouldQuit' en minúscula ---
+      waitingWindow(&stack, connexion),
+      setup(setup) {
     shouldQuit = true;
 
     setCentralWidget(&stack);
@@ -64,11 +66,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     spdlog::trace("showing window");
 }
 
-void QtWindowManager::continue_game() {
-    shouldQuit = false;
-    QCoreApplication::quit();
-}
-
 void QtWindowManager::show_searching_window() {
     setWindowTitle("Need for Speed - Buscador de Salas");
     stack.setCurrentWidget(&searchingWindow);
@@ -86,6 +83,16 @@ void QtWindowManager::show_waiting_window() {
     stack.setCurrentWidget(&waitingWindow);
 }
 
+void QtWindowManager::continue_game(const std::string& map,
+                                    const StaticSnapshot& circuit) {
+    setup.map = map;
+    setup.info = circuit;
+
+    shouldQuit = false;
+
+    QCoreApplication::quit();
+}
+
 void QtWindowManager::applyTheme() {
     const ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
@@ -95,13 +102,16 @@ void QtWindowManager::applyTheme() {
                             .arg(palette.cardBackgroundHover));
 }
 
-QtApp::QtApp(Connexion& connexion, bool& quit) {
+QtApp::QtApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     int argc = 0;
 
     spdlog::trace("creando qt app");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-    QtWindowManager main(connexion, quit);
+
+    // Aquí pasamos los 3 argumentos correctamente
+    QtWindowManager main(connexion, quit, setup);
+
     spdlog::trace("exec");
     app.exec();
 }

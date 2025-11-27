@@ -7,32 +7,32 @@
 #include "common/structs.h"
 
 namespace dto_search {
-#include "common/dto/macros.inl"
 
-struct SearchRequest {
-    DECLARE_SERIALIZABLE(SearchRequest)
-};
+struct SearchRequest {};
 
 struct SearchResponse {
-    DECLARE_SERIALIZABLE(SearchResponse)
     std::vector<SessionInfo> sessions;
 };
 
 struct JoinRequest {
-    DECLARE_SERIALIZABLE(JoinRequest)
     std::string session_id;
 };
 
 struct JoinResponse {
-    DECLARE_SERIALIZABLE(JoinResponse)
     SessionInfo session;
     std::vector<CarStaticInfo> carTypes;
 };
 
 struct CreateRequest {
-    DECLARE_SERIALIZABLE(CreateRequest)
     SessionConfig config;
 };
 
-#include "common/dto/macros_undef.inl"
 }  // namespace dto_search
+
+#include "common/dto/macros.inl"
+DECLARE_SERIALIZABLE(dto_search::SearchRequest)
+DECLARE_SERIALIZABLE(dto_search::SearchResponse)
+DECLARE_SERIALIZABLE(dto_search::JoinRequest)
+DECLARE_SERIALIZABLE(dto_search::JoinResponse)
+DECLARE_SERIALIZABLE(dto_search::CreateRequest)
+#include "common/dto/macros_undef.inl"

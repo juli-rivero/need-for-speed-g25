@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "client/connexion/connexion.h"
+#include "client/constants.h"
 #include "client/game/assets.h"
 #include "client/game/car.h"
 #include "client/game/mock_api.h"
@@ -22,7 +23,7 @@ class Game final : Connexion::Responder {
     SDL2pp::Mixer& mixer;
     Assets assets;
 
-    uint64_t frame = 0;
+    SDL2pp::Texture& city;
 
     // MockApi api;
     Api& api;
@@ -30,20 +31,24 @@ class Game final : Connexion::Responder {
 
     void on_game_snapshot(const float,
                           const std::vector<PlayerSnapshot>&) override;
+    void on_collision_event(const CollisionEvent&) override;
 
     std::mutex mutex;
     float elapsed = 0;
     std::vector<PlayerSnapshot> players;
+
+    Queue<CollisionEvent> collisions;
 
     std::list<Car> cars;
     Car* my_car{nullptr};
 
     // Metodos de actualizacion internos
     bool send_events();
+    void update_cars();
+    void manage_collisions();
     void get_state();
     void draw_state();
     void play_sounds();
-    void wait_next_frame();
 
     // Auxiliar: dibujar una textura (o texto) en la ubicacion dada.
     // Con in_world == true, se dibuja relativo al mundo, no relativo a la
@@ -62,7 +67,7 @@ class Game final : Connexion::Responder {
 
    public:
     explicit Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-                  Connexion& connexion);
+                  Connexion& connexion, const GameSetUp& setup);
     ~Game();
 
     bool start();
