@@ -12,10 +12,13 @@ Box2DPhysicsFactory::Box2DPhysicsFactory(const b2WorldId world)
 
 // --- Auto ---
 std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createCar(
-    float x, float y, const CarStaticStats& carInfo) {
+    float x, float y, float angleDeg, const CarStaticStats& carInfo) {
     b2BodyDef def = b2DefaultBodyDef();
     def.type = b2_dynamicBody;
     def.position = {x, y};
+    float angleRad = angleDeg * M_PI / 180.0f;
+    def.rotation = b2MakeRot(angleRad);
+
     def.linearDamping = carInfo.linearDamping;
     def.angularDamping = carInfo.angularDamping;
 
