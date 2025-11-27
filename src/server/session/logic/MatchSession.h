@@ -75,9 +75,7 @@ class MatchSession {
         pendingEndRacePacket.reset();
         return p;
     }
-#if OFFLINE
     const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
         return _race->getSensors();
     }
-#endif
 };

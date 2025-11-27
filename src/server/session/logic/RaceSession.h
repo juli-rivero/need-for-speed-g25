@@ -56,8 +56,6 @@ class RaceSession {
     std::vector<Player*> players;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
-
-#if OFFLINE
     std::vector<std::unique_ptr<BridgeSensor>> _sensors;
 
    public:
@@ -67,6 +65,5 @@ class RaceSession {
     void setSensors(std::vector<std::unique_ptr<BridgeSensor>> sensors) {
         _sensors = std::move(sensors);
     }
-#endif
     void orderCheckpointsByOrder();
 };
