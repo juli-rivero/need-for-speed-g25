@@ -98,7 +98,7 @@ static void handleCheckpointTouch(
 }
 
 static void handleBridgeSensorTouch(BridgeSensor* sensor, Car* car) {
-    if (sensor->getType() == BridgeSensorType::SetUpper) {
+    if (sensor->getType() == RenderLayer::OVER) {
         car->setLayer(RenderLayer::OVER);
     } else {
         car->setLayer(RenderLayer::UNDER);

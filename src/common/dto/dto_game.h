@@ -8,7 +8,7 @@
 
 namespace dto_game {
 struct GameStaticSnapshot {
-    StaticSnapshot info;
+    RaceInfo new_race_info;
 };
 
 struct TurnRequest {

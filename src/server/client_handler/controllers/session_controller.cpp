@@ -82,11 +82,11 @@ void SessionController::on_session_updated(
 }
 
 void SessionController::on_start_game(GameSessionFacade& game,
-                                      const std::string& map,
-                                      const StaticSnapshot& snapshot) {
+                                      const CityInfo& city_info,
+                                      const RaceInfo& race_info) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started(map, snapshot);
+        api.notify_game_started(city_info, race_info);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());

@@ -23,7 +23,7 @@ class MapLoader {
     static MapInfo loadFromYAML(
         const std::string& yamlPath, EntityFactory& factory,
         std::vector<std::unique_ptr<Wall>>& buildings,
-        std::vector<BridgeInfo>& bridges, std::vector<OverpassInfo>& overpasses,
+        std::vector<Bound>& bridges, std::vector<Bound>& overpasses,
         std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
         std::vector<SpawnPoint>& spawnPoints,
         std::vector<RoadShape>& roadShapes,

@@ -12,24 +12,8 @@ struct PlayerInput {
     TurnDirection turn{TurnDirection::None};
 };
 
-/*
-// snapshot estático (solo al empezar la partida)
-struct StaticSnapshot {
-    std::string mapName;
-    std::string cityName;
-
-    std::vector<WallInfo> walls;
-    std::vector<BridgeInfo> bridges;
-    std::vector<CheckpointInfo> checkpoints;
-    std::vector<SpawnPointInfo> spawns;
-    std::vector<CarStaticInfo> cars;
-};
-*/
-
 struct WorldSnapshot {
     float time{0.0f};  // tiempo global simulado
-    std::string raceCity;
-    std::string raceMapFile;
 
     // estado de MatchSession
     MatchState matchState{MatchState::Starting};
@@ -42,7 +26,5 @@ struct WorldSnapshot {
 
     float raceTimeLeft{0.0f};  // tiempo restante si hay límite (10min)
     std::vector<PlayerSnapshot> players;
-    std::vector<PlayerId> permanentlyDQ;
-
     std::vector<NpcInfo> npcs;
 };
