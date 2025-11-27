@@ -178,7 +178,7 @@ void SelectingWindow::setupUI() {
             &SelectingWindow::onCarSelected);
 }
 
-QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
+QWidget* SelectingWindow::createCarCard(const CarInfo& car, int index) {
     QWidget* card = new QWidget();
 
     QHBoxLayout* cardLayout = new QHBoxLayout(card);
@@ -199,7 +199,7 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     // Información del auto
     QVBoxLayout* infoLayout = new QVBoxLayout();
 
-    QLabel* nameLabel = new QLabel(car.name.c_str());
+    QLabel* nameLabel = new QLabel(car.display.name.c_str());
     infoLayout->addWidget(nameLabel);
 
     // Mini barras de estadísticas
@@ -221,11 +221,12 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
         miniStatsLayout->addLayout(miniBarLayout);
     };
 
-    addMiniBar("VEL", car.maxSpeed);
-    addMiniBar("ACE", car.acceleration);
-    addMiniBar("SAL", car.health);
-    addMiniBar("MAS", car.mass);
-    addMiniBar("CTR", car.control);
+    const CarStaticStats& carStats = car.stats;
+    addMiniBar("VEL", carStats.maxSpeed);
+    addMiniBar("ACE", carStats.acceleration);
+    addMiniBar("SAL", carStats.maxHealth);
+    addMiniBar("MAS", carStats.mass);
+    addMiniBar("CTR", carStats.control);
 
     infoLayout->addLayout(miniStatsLayout);
     cardLayout->addLayout(infoLayout, 1);
@@ -249,7 +250,7 @@ void SelectingWindow::onCarSelected(int carIndex) {
 }
 
 void SelectingWindow::onConfirmClicked() {
-    api.choose_car(carTypes[selectedCarIndex].name);
+    api.choose_car(carTypes[selectedCarIndex].type);
     emit confirmRequested();
 }
 
@@ -264,7 +265,7 @@ void SelectingWindow::reset() {
     }
 }
 void SelectingWindow::on_join_response(
-    const SessionInfo&, const std::vector<CarStaticInfo>& car_static_infos) {
+    const SessionInfo&, const std::vector<CarInfo>& car_static_infos) {
     carTypes = car_static_infos;
     QMetaObject::invokeMethod(
         this,
@@ -290,25 +291,27 @@ void SelectingWindow::updateCarDetails(int carIndex) {
         return;
     }
 
-    const CarStaticInfo& car = carTypes[carIndex];
+    const CarInfo& car = carTypes[carIndex];
 
+    const CarDisplayInfo& carDisplay = car.display;
     carNameLabel->setText(
-        (CarSprite::getSprite(car.type) + " " + car.name).c_str());
-    carDescLabel->setText(car.description.c_str());
+        (CarSprite::getSprite(car.type) + " " + carDisplay.name).c_str());
+    carDescLabel->setText(carDisplay.description.c_str());
 
-    speedBar->setValue(static_cast<int>(car.maxSpeed * 100));
-    accelBar->setValue(static_cast<int>(car.acceleration * 100));
-    healthBar->setValue(static_cast<int>(car.health * 100));
-    massBar->setValue(static_cast<int>(car.mass * 100));
-    controlBar->setValue(static_cast<int>(car.control * 100));
+    const CarStaticStats& carStats = car.stats;
+    speedBar->setValue(static_cast<int>(carStats.maxSpeed * 100));
+    accelBar->setValue(static_cast<int>(carStats.acceleration * 100));
+    healthBar->setValue(static_cast<int>(carStats.maxHealth * 100));
+    massBar->setValue(static_cast<int>(carStats.mass * 100));
+    controlBar->setValue(static_cast<int>(carStats.control * 100));
 
     // Aplicar estilos del tema a las barras
     ThemeManager& theme = ThemeManager::instance();
-    speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
-    accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
-    healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
-    massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-    controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
+    speedBar->setStyleSheet(theme.carStatBarStyle(carStats.maxSpeed));
+    accelBar->setStyleSheet(theme.carStatBarStyle(carStats.acceleration));
+    healthBar->setStyleSheet(theme.carStatBarStyle(carStats.maxHealth));
+    massBar->setStyleSheet(theme.carStatBarStyle(carStats.mass));
+    controlBar->setStyleSheet(theme.carStatBarStyle(carStats.control));
 }
 
 /*CarConfig SelectingWindow::getSelectedCar() const {
@@ -431,11 +434,11 @@ void SelectingWindow::applyTheme() {
     // Re-aplicar estilos a las barras de progreso actuales
     if (selectedCarIndex >= 0 &&
         selectedCarIndex < static_cast<int>(carTypes.size())) {
-        const CarStaticInfo& car = carTypes[selectedCarIndex];
-        speedBar->setStyleSheet(theme.carStatBarStyle(car.maxSpeed));
-        accelBar->setStyleSheet(theme.carStatBarStyle(car.acceleration));
-        healthBar->setStyleSheet(theme.carStatBarStyle(car.health));
-        massBar->setStyleSheet(theme.carStatBarStyle(car.mass));
-        controlBar->setStyleSheet(theme.carStatBarStyle(car.control));
+        const CarStaticStats& carStats = carTypes[selectedCarIndex].stats;
+        speedBar->setStyleSheet(theme.carStatBarStyle(carStats.maxSpeed));
+        accelBar->setStyleSheet(theme.carStatBarStyle(carStats.acceleration));
+        healthBar->setStyleSheet(theme.carStatBarStyle(carStats.maxHealth));
+        massBar->setStyleSheet(theme.carStatBarStyle(carStats.mass));
+        controlBar->setStyleSheet(theme.carStatBarStyle(carStats.control));
     }
 }

@@ -37,7 +37,6 @@ class EditorWindow : public QMainWindow {
     void onPlaceStart();
     void onPlaceCheckpoint();
     void onPlaceFinish();
-    void onPlaceHint();
     void onStartPlacingBuilding();
     void onFinishBuilding();
     void onCancelBuilding();
@@ -57,7 +56,6 @@ class EditorWindow : public QMainWindow {
     QAction* startAction;
     QAction* checkpointAction;
     QAction* finishAction;
-    QAction* hintAction;
     QAction* buildingAction;
     QAction* finishBuildingAction;
     QAction* cancelBuildingAction;

@@ -264,8 +264,9 @@ ColorPalette ThemeManager::createDefaultPalette() {
 
     // Textos
     palette.textPrimary = "#000000";
-    palette.textSecondary = "#666666";
+    palette.textSecondary = "#333333";
     palette.textLight = "#ffffff";
+    palette.textBackground = "#ffffff";
 
     // Estados
     palette.statusSuccess = "#4CAF50";
@@ -314,10 +315,11 @@ ColorPalette ThemeManager::createDarkModePalette() {
     palette.borderColor = "#333333";
     palette.borderSelected = "#BB86FC";
 
-    // Textos
-    palette.textPrimary = "#E0E0E0";
-    palette.textSecondary = "#A0A0A0";
+    // Textos - CORREGIDO: Cambiar textBackground por un color claro
+    palette.textPrimary = "#FFFFFF";
+    palette.textSecondary = "#E0E0E0";
     palette.textLight = "#FFFFFF";
+    palette.textBackground = "#FFFFFF";  // Cambiado de #000000 a #FFFFFF
 
     // Estados
     palette.statusSuccess = "#03DAC6";

@@ -15,7 +15,7 @@ struct Api {
     virtual void request_create_and_join_session(const SessionConfig&) = 0;
     virtual void request_leave_current_session() = 0;
     virtual void set_ready(bool ready) = 0;
-    virtual void choose_car(const std::string& car_name) = 0;
+    virtual void choose_car(const CarType&) = 0;
 
     virtual void start_turning(TurnDirection) = 0;
     virtual void stop_turning(TurnDirection) = 0;
@@ -46,7 +46,7 @@ class Sender final : public Thread, public Api {
     void request_create_and_join_session(const SessionConfig&) override;
     void request_leave_current_session() override;
     void set_ready(bool ready) override;
-    void choose_car(const std::string& car_name) override;
+    void choose_car(const CarType&) override;
 
     // Game
     void start_turning(TurnDirection) override;

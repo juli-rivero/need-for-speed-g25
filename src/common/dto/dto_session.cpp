@@ -14,10 +14,10 @@ ProtocolSender& operator<<(ProtocolSender& p, const StartRequest& e) {
 
 // StartResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StartResponse& r) {
-    return p >> r.map >> r.info;
+    return p >> r.city_info >> r.first_race_info;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const StartResponse& r) {
-    return p << r.map << r.info;
+    return p << r.city_info << r.first_race_info;
 }
 
 // LeaveRequest SERIALIZABLE
@@ -31,10 +31,10 @@ ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
 
 // ChooseCarRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, ChooseCarRequest& r) {
-    return p >> r.car_name;
+    return p >> r.car_type;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const ChooseCarRequest& r) {
-    return p << r.car_name;
+    return p << r.car_type;
 }
 
 // SessionSnapshot SERIALIZABLE

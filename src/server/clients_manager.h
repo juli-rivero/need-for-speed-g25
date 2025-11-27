@@ -12,8 +12,10 @@ class ClientsManager {
     std::mutex mutex;
     PlayerId next_id = 0;
 
+    const YamlGameConfig& config;
+
    public:
-    explicit ClientsManager(SessionsMonitor&);
+    explicit ClientsManager(SessionsMonitor&, const YamlGameConfig&);
     MAKE_FIXED(ClientsManager)
 
     void manage_new_handler(Socket&& socket);

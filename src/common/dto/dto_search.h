@@ -20,7 +20,7 @@ struct JoinRequest {
 
 struct JoinResponse {
     SessionInfo session;
-    std::vector<CarStaticInfo> carTypes;
+    std::vector<CarInfo> carTypes;
 };
 
 struct CreateRequest {

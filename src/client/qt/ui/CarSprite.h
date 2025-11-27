@@ -8,5 +8,5 @@
 // mostrar imagenes de los coches, en vez de strings
 class CarSprite {
    public:
-    static std::string getSprite(CarSpriteType car);
+    static std::string getSprite(CarType car);
 };

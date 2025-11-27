@@ -21,8 +21,8 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       sprite(*game.assets.car_name.at(base.car.type)),
       id(base.id),
       name(base.name),
-      x(world_to_pixel(base.car.x)),
-      y(world_to_pixel(base.car.y)),
+      x(world_to_pixel(base.car.bound.pos.x)),
+      y(world_to_pixel(base.car.bound.pos.y)),
       angle(radians_to_sdl_degrees(base.car.angle)),
       speed(base.car.speed),
       health(base.car.health),
@@ -46,7 +46,7 @@ void Car::draw(bool with_name) {
 }
 
 float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
-    if (next_checkpoint >= game.setup.info.checkpoints.size()) {
+    if (next_checkpoint >= game.race_info.checkpoints.size()) {
         has_angle = false;
         return 0;
     }
@@ -54,9 +54,12 @@ float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
     float my_x = x + WIDTH / 2;
     float my_y = y + HEIGHT / 2;
 
-    const CheckpointInfo& c = game.setup.info.checkpoints[next_checkpoint];
-    float check_x = c.x * pixels_per_meter + c.w * pixels_per_meter / 2;
-    float check_y = c.y * pixels_per_meter + c.h * pixels_per_meter / 2;
+    const CheckpointInfo& c = game.race_info.checkpoints[next_checkpoint];
+    const Bound& cb = c.bound;
+    float check_x =
+        cb.pos.x * pixels_per_meter + cb.width * pixels_per_meter / 2;
+    float check_y =
+        cb.pos.y * pixels_per_meter + cb.height * pixels_per_meter / 2;
 
     has_angle = true;
     return atan2(my_y - check_y, my_x - check_x) * 180 / PI;

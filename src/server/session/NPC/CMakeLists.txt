@@ -1,0 +1,11 @@
+target_sources(taller_server
+        PRIVATE
+        NPCVehicle.cpp
+        RoadGraph.cpp
+        TrafficSystem.cpp
+        PUBLIC
+        NPCType.h
+        NPCVehicle.h
+        RoadGraph.h
+        TrafficSystem.h
+)
