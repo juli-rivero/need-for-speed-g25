@@ -11,6 +11,7 @@
 #include "NetworkTypes.h"
 #include "RaceSession.h"
 #include "UpgradeSystem.h"
+#include "server/session/NPC/TrafficSystem.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Wall.h"
@@ -19,6 +20,9 @@ class MatchSession {
    private:
     const YamlGameConfig& _cfg;
     Box2DPhysicsWorld& _world;
+
+    std::unique_ptr<TrafficSystem> _traffic;
+    RoadGraph _roadGraph;
 
     const std::vector<RaceDefinition> _races;  // N carreras planificadas
     std::size_t _currentRace{0};

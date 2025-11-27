@@ -57,29 +57,54 @@ class Car : public Entity {
 
    public:
     Car(const int id, const CarType carType, const CarStaticStats& staticStats,
-        std::shared_ptr<IPhysicalBody> body)
-        : Entity(id, EntityType::Car),
+        std::shared_ptr<IPhysicalBody> body, EntityType entType)
+        : Entity(id, entType),
           staticStats(staticStats),
           health(staticStats.maxHealth),
           body(std::move(body)),
           carType(carType) {}
     RenderLayer getLayer() const { return layer; }
+    static constexpr EntityType Type = EntityType::Car;
+    std::shared_ptr<IPhysicalBody> getBody() { return body; }
+    CarType getType() const { return carType; }
     void setLayer(RenderLayer l) {
         layer = l;
 
         b2ShapeId shape = body->getShapeId();
         b2Filter filter = b2Shape_GetFilter(shape);
 
-        filter.categoryBits = CATEGORY_CAR;
+        bool isNPC = (getEntityType() == EntityType::NPCCar);
+
+        filter.categoryBits = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
         if (layer == RenderLayer::UNDER) {
-            filter.maskBits = CATEGORY_WALL |  // edificios normales
-                              CATEGORY_SENSOR | CATEGORY_CAR;  // otros autos
-            // NO colisiona con CATEGORY_RAILING
-        } else {
-            filter.maskBits = CATEGORY_WALL | CATEGORY_CAR | CATEGORY_RAILING |
-                              CATEGORY_SENSOR;
+            if (isNPC) {
+                // NPC abajo → NO chocan entre sí
+                filter.maskBits = CATEGORY_WALL |    // edificios
+                                  CATEGORY_SENSOR |  // checkpoints/puentes
+                                  CATEGORY_CAR;      // choca con jugadores
+                // No railing porque está abajo
+            } else {
+                // Jugador abajo choca con todo menos railing
+                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
+                                  CATEGORY_CAR |  // otros jugadores
+                                  CATEGORY_NPC;   // NPC
+            }
+
+        } else {  // OVER
+            if (isNPC) {
+                // NPC arriba
+                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
+                                  CATEGORY_RAILING |  //  choca con barandas
+                                  CATEGORY_CAR;       // jugadores, pero no NPC
+            } else {
+                // Jugador arriba
+                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
+                                  CATEGORY_RAILING | CATEGORY_CAR |
+                                  CATEGORY_NPC;  // NPC
+            }
         }
+
         b2Shape_SetFilter(shape, filter);
     }
 

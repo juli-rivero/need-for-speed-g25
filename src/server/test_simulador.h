@@ -358,6 +358,33 @@ static void renderCheckpoints(SDL_Renderer* r, const StaticSnapshot& stat,
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
+static void renderNPCs(SDL_Renderer* r, const WorldSnapshot& snap, float camX,
+                       float camY, const YamlGameConfig& cfg) {
+    for (const auto& npc : snap.npcs) {
+        const auto& carStat = cfg.getCarStaticStatsMap().at(npc.type);
+
+        float px = npc.x * PPM - camX;
+        float py = npc.y * PPM - camY;
+
+        SDL_FRect rect{px - (carStat.width * PPM * 0.5f),
+                       py - (carStat.height * PPM * 0.5f), carStat.width * PPM,
+                       carStat.height * PPM};
+
+        SDL_FPoint center{rect.w / 2.0f, rect.h / 2.0f};
+
+        SDL_SetRenderDrawColor(r, 180, 80, 255, 255);
+
+        SDL_RenderFillRectExF(r, &rect,
+                              npc.angle * 180.0f / static_cast<float>(M_PI),
+                              &center, SDL_FLIP_NONE);
+
+        SDL_SetRenderDrawColor(r, 255, 255, 255, 255);
+        float nose = rect.h * 0.5f;
+        float nx = px + std::cos(npc.angle) * nose;
+        float ny = py + std::sin(npc.angle) * nose;
+        SDL_RenderDrawLineF(r, px, py, nx, ny);
+    }
+}
 
 static void renderUI(SDL_Renderer* r, const CarSnapshot& carDyn,
                      const float maxSpeed) {
@@ -540,6 +567,8 @@ inline int test(const YamlGameConfig& cfg) {
                     drawCar(ps);
                 }
             }
+            // NPCs SIEMPRE VAN UNDER
+            renderNPCs(renderer, dyn, camX, camY, cfg);
 
             renderBridgeDeckAboveUnderCars(renderer, stat, camX, camY);
 

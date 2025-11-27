@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "server/session/NPC/NPCType.h"
 #include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Checkpoint.h"
 #include "server/session/model/Wall.h"
@@ -25,5 +26,6 @@ class MapLoader {
         std::vector<BridgeInfo>& bridges, std::vector<OverpassInfo>& overpasses,
         std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
         std::vector<SpawnPoint>& spawnPoints,
+        std::vector<RoadShape>& roadShapes,
         std::vector<std::unique_ptr<BridgeSensor>>& sensors);
 };

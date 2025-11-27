@@ -173,15 +173,19 @@ struct OverpassInfo {
     float x, y;
     float w, h;
 };
+struct NpcInfo {
+    float x, y, angle, w, h;
+    CarType type;
+};
 
 struct StaticSnapshot {
     std::string race;
 
     std::vector<CheckpointInfo> checkpoints;
     std::vector<SpawnPointInfo> spawns;
-    // incluye residential y railings
     std::vector<WallInfo> walls;
     std::vector<BridgeInfo> bridges;
     std::vector<OverpassInfo> overpasses;
     std::vector<PlayerSnapshot> players;
+    std::vector<NpcInfo> npcs;
 };

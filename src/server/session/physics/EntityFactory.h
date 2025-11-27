@@ -22,7 +22,9 @@ class EntityFactory {
     EntityFactory(Box2DPhysicsWorld&, const YamlGameConfig&);
 
     // Todos reciben una referencia al mundo físico
-    std::unique_ptr<Car> createCar(const CarType&, float x, float y);
+    std::unique_ptr<Car> createCar(const CarType&, float x, float y,
+                                   EntityType entType);
+    std::unique_ptr<Car> createNpcCar(CarType type, float x, float y);
     std::unique_ptr<Wall> createBuilding(float x, float y, float w, float h,
                                          EntityType type);
     std::unique_ptr<Checkpoint> createCheckpoint(float x, float y, float w,

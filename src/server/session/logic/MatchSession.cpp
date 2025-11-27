@@ -9,6 +9,7 @@
 
 #include "../../config/MapLoader.h"
 #include "../physics/EntityFactory.h"
+#include "server/session/NPC/TrafficSystem.h"
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
                            std::vector<RaceDefinition> raceDefs,
@@ -36,12 +37,13 @@ void MatchSession::startRace(std::size_t raceIndex) {
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
     std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
+    std::vector<RoadShape> roadShapes;
 
     EntityFactory factory(_world, _cfg);
 
     MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, buildings,
                             bridges, overpasses, checkpoints, spawnPoints,
-                            bridgeSensors);
+                            roadShapes, bridgeSensors);
 
     if (_buildings.empty()) _buildings = std::move(buildings);
     if (_bridges.empty()) _bridges = std::move(bridges);
@@ -56,7 +58,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
 
         const auto& sp = spawnPoints[i];
 
-        auto car = factory.createCar(pc.carType, sp.x, sp.y);
+        auto car = factory.createCar(pc.carType, sp.x, sp.y, EntityType::Car);
         _world.getCollisionManager().registerCar(car.get(), pc.id);
 
         auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
@@ -71,6 +73,21 @@ void MatchSession::startRace(std::size_t raceIndex) {
                   << " en pos (" << sp.x << "," << sp.y << ")\n";
     }
 
+    _traffic = std::make_unique<TrafficSystem>(factory);
+
+    _roadGraph = RoadGraph{};
+    for (auto& rs : roadShapes) {
+        _roadGraph.addRoad(rs);
+    }
+    std::cout << "[NPC] RoadShapes count = " << roadShapes.size() << std::endl;
+    _roadGraph.build();
+    std::cout << "[NPC] Graph built: nodes=" << _roadGraph.getNodes().size()
+              << " segments=" << _roadGraph.getSegments().size() << std::endl;
+
+    _traffic->loadGraph(&_roadGraph);
+    for (int i = 0; i < 25; ++i) {
+        _traffic->spawnNPCs();
+    }
     _race = std::make_unique<RaceSession>(_cfg, _races[raceIndex].city,
                                           std::move(checkpoints),
                                           std::move(spawnPoints), racePlayers);
@@ -79,11 +96,6 @@ void MatchSession::startRace(std::size_t raceIndex) {
     _race->setSensors(std::move(bridgeSensors));
 #endif
     _world.getCollisionManager().setRaceSession(_race.get());
-
-    _race->start();
-
-    _world.getCollisionManager().setRaceSession(_race.get());
-
     _race->start();
     std::cout << "Carrera " << (raceIndex + 1) << " iniciada en "
               << _races[raceIndex].city << std::endl;
@@ -111,6 +123,11 @@ WorldSnapshot MatchSession::getSnapshot() const {
 
     for (const auto& player : _players | std::views::values) {
         snap.players.push_back(player->buildSnapshot());
+    }
+    if (_traffic) {
+        for (auto& npc : _traffic->getNPCs()) {
+            snap.npcs.push_back(npc->buildSnapshot());
+        }
     }
     return snap;
 }
@@ -177,6 +194,8 @@ void MatchSession::update(float dt) {
                 (void)id;
                 player->update(dt);
             }
+            if (_traffic) _traffic->update(dt);
+
             _race->update(dt);
             if (_race->isFinished()) {
                 pendingEndRacePacket = finishRaceAndComputeTotals();

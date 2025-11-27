@@ -25,7 +25,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     std::vector<std::unique_ptr<Wall>>& buildings,
     std::vector<BridgeInfo>& bridges, std::vector<OverpassInfo>& overpasses,
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
-    std::vector<SpawnPoint>& spawnPoints,
+    std::vector<SpawnPoint>& spawnPoints, std::vector<RoadShape>& roadShapes,
     std::vector<std::unique_ptr<BridgeSensor>>& sensors) {
     std::cout << "[MapLoader] Cargando mapa desde " << yamlPath << "...\n";
 
@@ -75,7 +75,6 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                 continue;
             }
 
-            // Leer vértices en coordenadas de mapa (pixeles)
             std::vector<b2Vec2> poly;
             poly.reserve(vertsNode.size());
             for (const auto& v : vertsNode) {
@@ -97,7 +96,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                 maxY = std::max(maxY, p.y);
             }
 
-            // Pasar a unidades físicas
+            // Pasa a unidades físicas
             float w = mapToWorld(maxX - minX);
             float h = mapToWorld(maxY - minY);
             float cx = mapToWorld((minX + maxX) * 0.5f);
@@ -161,14 +160,13 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                              "usando 0\n";
             }
 
-            // Convertir a unidades físicas
+            // Convierto a unidades físicas
             float x = mapToWorld(mx);
             float y = mapToWorld(my);
             float w = mapToWorld(mWidth);
-            float h =
-                mapToWorld(4.0f);  // altura fija 4 (en pixeles) → escalate
+            float h = mapToWorld(4.0f);  // altura fija 4 (en pixeles)
 
-            // Crear cuerpo físico + modelo lógico
+            // Crea cuerpo físico + modelo lógico
             auto cp =
                 factory.createCheckpoint(x, y, w, h, rotDeg, order, cpType);
             checkpoints.push_back(std::move(cp));
@@ -192,22 +190,33 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
 
         auto mkList = [&](const YAML::Node& arr, BridgeSensorType mode) {
             for (const auto& s : arr) {
-                if (!s["x"] || !s["y"] || !s["w"] || !s["h"]) {
-                    std::cerr << "[MapLoader] Sensor inválido: faltan campos\n";
+                const auto& vertsNode = s["vertices"];
+
+                if (vertsNode.size() < 3) {
+                    std::cerr << "[MapLoader] Sensor con pocos vértices\n";
                     continue;
                 }
 
-                float mx = s["x"].as<float>();
-                float my = s["y"].as<float>();
-                float mw = s["w"].as<float>();
-                float mh = s["h"].as<float>();
+                float minX = vertsNode[0]["x"].as<float>();
+                float maxX = minX;
+                float minY = vertsNode[0]["y"].as<float>();
+                float maxY = minY;
 
-                float x = mapToWorld(mx);
-                float y = mapToWorld(my);
-                float w = mapToWorld(mw);
-                float h = mapToWorld(mh);
+                for (const auto& v : vertsNode) {
+                    float vx = v["x"].as<float>();
+                    float vy = v["y"].as<float>();
+                    minX = std::min(minX, vx);
+                    maxX = std::max(maxX, vx);
+                    minY = std::min(minY, vy);
+                    maxY = std::max(maxY, vy);
+                }
 
-                auto sensor = factory.createBridgeSensor(mode, x, y, w, h);
+                float cx = mapToWorld((minX + maxX) * 0.5f);
+                float cy = mapToWorld((minY + maxY) * 0.5f);
+                float w = mapToWorld(maxX - minX);
+                float h = mapToWorld(maxY - minY);
+
+                auto sensor = factory.createBridgeSensor(mode, cx, cy, w, h);
                 sensors.push_back(std::move(sensor));
             }
         };
@@ -246,10 +255,44 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
         }
     }
 
+    if (mapNode["roads"]) {
+        int idCounter = 0;
+        for (const auto& r : mapNode["roads"]) {
+            const auto& verts = r["vertices"];
+
+            float minX = verts[0]["x"].as<float>();
+            float maxX = minX;
+            float minY = verts[0]["y"].as<float>();
+            float maxY = minY;
+
+            for (const auto& v : verts) {
+                float x = v["x"].as<float>();
+                float y = v["y"].as<float>();
+                minX = std::min(minX, x);
+                maxX = std::max(maxX, x);
+                minY = std::min(minY, y);
+                maxY = std::max(maxY, y);
+            }
+
+            RoadShape rs;
+            rs.id = idCounter++;
+            rs.minX = mapToWorld(minX);
+            rs.maxX = mapToWorld(maxX);
+            rs.minY = mapToWorld(minY);
+            rs.maxY = mapToWorld(maxY);
+            rs.center =
+                b2Vec2((rs.minX + rs.maxX) / 2, (rs.minY + rs.maxY) / 2);
+            rs.horizontal = ((rs.maxX - rs.minX) >= (rs.maxY - rs.minY));
+            rs.vertical = !rs.horizontal;
+
+            roadShapes.push_back(rs);
+        }
+    }
+
     std::cout << "Mapa cargado correctamente con " << buildings.size()
               << " walls, " << bridges.size() << " bridges, "
               << overpasses.size() << " overpasses, " << checkpoints.size()
-              << " checkpoints, " << sensors.size() << " sensors, "
+              << " checkpoints, " << sensors.size() << " sensors,a "
               << spawnPoints.size() << " spawn points.\n";
 
     return info;
@@ -263,6 +306,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     std::vector<BridgeInfo>& bridges, std::vector<OverpassInfo>& overpasses,
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
     std::vector<SpawnPoint>& spawnPoints,
+    std::vector<SpawnPoint>& npcSpawnPoints,
     std::vector<std::unique_ptr<BridgeSensor>>& sensors
 
 ) {
@@ -403,6 +447,16 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                           n["angle"].as<float>());
             spawnPoints.push_back(sp);
             std::cout << "SpawnPoint pos=(" << sp.x << "," << sp.y
+                      << ") angle=" << sp.angle << "\n";
+        }
+    }
+    if (mapNode["NPC_spawn_points"]) {
+        for (const auto& n : mapNode["NPC_spawn_points"]) {
+            SpawnPoint sp(n["x"].as<float>() * MAP_SCALE,
+                          n["y"].as<float>() * MAP_SCALE,
+                          n["angle"].as<float>());
+            npcSpawnPoints.push_back(sp);
+            std::cout << "NPC SpawnPoint pos=(" << sp.x << "," << sp.y
                       << ") angle=" << sp.angle << "\n";
         }
     }

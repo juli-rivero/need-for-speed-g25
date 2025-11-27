@@ -8,42 +8,43 @@
 #include "../model/Wall.h"
 #include "server/session/model/BridgeSensor.h"
 
+namespace {
+
+// devuelve true si A es tipo TA y B es tipo TB (sin importar orden)
+template <typename TA, typename TB>
+bool isPair(const Entity* a, const Entity* b) {
+    return (a->getEntityType() == TA::Type && b->getEntityType() == TB::Type);
+}
+
+template <typename T>
+T* as(Entity* e) {
+    return static_cast<T*>(e);
+}
+
+}  // namespace
+
 void CollisionManager::generateCollisionEvent(Entity* entA, Entity* entB,
                                               float impact) {
-    if (entA->getEntityType() == EntityType::Car &&
-        entB->getEntityType() == EntityType::Wall) {
-        auto* car = static_cast<Car*>(entA);
+    // Car/ Wall
+    if (isPair<Car, Wall>(entA, entB) || isPair<Wall, Car>(entA, entB)) {
+        Car* car = (entA->getEntityType() == EntityType::Car) ? as<Car>(entA)
+                                                              : as<Car>(entB);
         auto it = carToPlayer.find(car);
-        if (it != carToPlayer.end()) {
+        if (it != carToPlayer.end())
             collisionEvents.push_back(CollisionSimple{it->second, impact});
-        }
         return;
     }
 
-    if (entA->getEntityType() == EntityType::Wall &&
-        entB->getEntityType() == EntityType::Car) {
-        auto* car = static_cast<Car*>(entB);
-        auto it = carToPlayer.find(car);
-        if (it != carToPlayer.end()) {
-            collisionEvents.push_back(CollisionSimple{it->second, impact});
-        }
-        return;
-    }
-
-    if (entA->getEntityType() == EntityType::Car &&
-        entB->getEntityType() == EntityType::Car) {
-        auto* car1 = static_cast<Car*>(entA);
-        auto* car2 = static_cast<Car*>(entB);
-
-        auto it1 = carToPlayer.find(car1);
-        auto it2 = carToPlayer.find(car2);
+    // Car / Car
+    if (isPair<Car, Car>(entA, entB)) {
+        auto* c1 = as<Car>(entA);
+        auto* c2 = as<Car>(entB);
+        auto it1 = carToPlayer.find(c1);
+        auto it2 = carToPlayer.find(c2);
 
         if (it1 != carToPlayer.end() && it2 != carToPlayer.end()) {
-            collisionEvents.push_back(CollisionCarToCar{
-                it1->second,
-                it2->second,
-                impact,
-            });
+            collisionEvents.push_back(
+                CollisionCarToCar{it1->second, it2->second, impact});
         }
     }
 }
@@ -70,89 +71,59 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
                                              float impact) {
     if (!a || !b) return;
 
-    if (a->getEntityType() == EntityType::Car &&
-        b->getEntityType() == EntityType::Wall) {
-        auto* car = static_cast<Car*>(a);
+    // Car ↔ Wall
+    if (isPair<Car, Wall>(a, b) || isPair<Wall, Car>(a, b)) {
+        Car* car =
+            (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
         car->damage(impact * 0.5f);
         return;
     }
 
-    if (a->getEntityType() == EntityType::Wall &&
-        b->getEntityType() == EntityType::Car) {
-        auto* car = static_cast<Car*>(b);
-        car->damage(impact * 0.5f);
-        return;
+    // Car ↔ Car
+    if (isPair<Car, Car>(a, b)) {
+        as<Car>(a)->damage(impact * 0.5f);
+        as<Car>(b)->damage(impact * 0.5f);
     }
+}
+static void handleCheckpointTouch(
+    Entity* cp, Entity* car, const RaceSession* race,
+    const std::unordered_map<const Car*, PlayerId>& carToPlayer) {
+    const auto* checkpoint = as<Checkpoint>(cp);
+    auto* c = as<Car>(car);
+    auto it = carToPlayer.find(c);
 
-    if (a->getEntityType() == EntityType::Car &&
-        b->getEntityType() == EntityType::Car) {
-        auto* car1 = static_cast<Car*>(a);
-        auto* car2 = static_cast<Car*>(b);
-        car1->damage(impact * 0.5f);
-        car2->damage(impact * 0.5f);
+    if (race && it != carToPlayer.end()) {
+        race->onCheckpointCrossed(it->second, checkpoint->getOrder());
+    }
+}
+
+static void handleBridgeSensorTouch(BridgeSensor* sensor, Car* car) {
+    if (sensor->getType() == BridgeSensorType::SetUpper) {
+        car->setLayer(RenderLayer::OVER);
+    } else {
+        car->setLayer(RenderLayer::UNDER);
     }
 }
 
 void CollisionManager::processSensors(const b2SensorEvents& events) {
     for (int i = 0; i < events.beginCount; ++i) {
-        const b2SensorBeginTouchEvent& ev = events.beginEvents[i];
-        b2ShapeId sA = ev.sensorShapeId;
-        b2ShapeId sB = ev.visitorShapeId;
+        const auto& ev = events.beginEvents[i];
 
-        auto itA = shapeToEntity.find(sA);
-        auto itB = shapeToEntity.find(sB);
-        if (itA == shapeToEntity.end() || itB == shapeToEntity.end()) continue;
+        Entity* a = shapeToEntity.at(ev.sensorShapeId);
+        Entity* b = shapeToEntity.at(ev.visitorShapeId);
 
-        Entity* eA = itA->second;
-        Entity* eB = itB->second;
+        // Car ↔ Checkpoint
+        if (isPair<Checkpoint, Car>(a, b))
+            handleCheckpointTouch(a, b, raceSession, carToPlayer);
+        else if (isPair<Car, Checkpoint>(a, b))
+            handleCheckpointTouch(b, a, raceSession, carToPlayer);
 
-        // CHECKPOINTS
-        if (eA->getEntityType() == EntityType::Checkpoint &&
-            eB->getEntityType() == EntityType::Car) {
-            auto* car = static_cast<Car*>(eB);
-            const auto* cp = static_cast<Checkpoint*>(eA);
-            auto itOwner = carToPlayer.find(car);
-            if (raceSession && itOwner != carToPlayer.end()) {
-                PlayerId pid = itOwner->second;
-                raceSession->onCheckpointCrossed(pid, cp->getOrder());
-            }
-        } else if (eA->getEntityType() == EntityType::Car &&
-                   eB->getEntityType() == EntityType::Checkpoint) {
-            auto* car = static_cast<Car*>(eA);
-            const auto* cp = static_cast<Checkpoint*>(eB);
-            auto itOwner = carToPlayer.find(car);
-            if (raceSession && itOwner != carToPlayer.end()) {
-                PlayerId pid = itOwner->second;
-                raceSession->onCheckpointCrossed(pid, cp->getOrder());
-            }
-        } else if (eA->getEntityType() == EntityType::BridgeSensor &&
-                   eB->getEntityType() == EntityType::Car) {
-            auto* sensor = static_cast<BridgeSensor*>(eA);
-            auto* car = static_cast<Car*>(eB);
+        // Car ↔ BridgeSensor
+        else if (isPair<BridgeSensor, Car>(a, b))
+            handleBridgeSensorTouch(as<BridgeSensor>(a), as<Car>(b));
 
-            if (sensor->getType() == BridgeSensorType::SetUpper) {
-                car->setLayer(RenderLayer::OVER);
-                std::cout << "[DEBUG] Car " << car->getId()
-                          << " → Set LAYER = OVER (upper sensor)\n";
-            } else if (sensor->getType() == BridgeSensorType::SetLower) {
-                car->setLayer(RenderLayer::UNDER);
-                std::cout << "[DEBUG] Car " << car->getId()
-                          << " → Set LAYER = UNDER (lower sensor)\n";
-            }
-        } else if (eA->getEntityType() == EntityType::Car &&
-                   eB->getEntityType() == EntityType::BridgeSensor) {
-            auto* car = static_cast<Car*>(eA);
-            auto* sensor = static_cast<BridgeSensor*>(eB);
-            if (sensor->getType() == BridgeSensorType::SetUpper) {
-                car->setLayer(RenderLayer::OVER);
-                std::cout << "[DEBUG] Car " << car->getId()
-                          << " → Set LAYER = OVER (upper sensor)\n";
-            } else if (sensor->getType() == BridgeSensorType::SetLower) {
-                car->setLayer(RenderLayer::UNDER);
-                std::cout << "[DEBUG] Car " << car->getId()
-                          << " → Set LAYER = UNDER (lower sensor)\n";
-            }
-        }
+        else if (isPair<Car, BridgeSensor>(a, b))
+            handleBridgeSensorTouch(as<BridgeSensor>(b), as<Car>(a));
     }
 }
 

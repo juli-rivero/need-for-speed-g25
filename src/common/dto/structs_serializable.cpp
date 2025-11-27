@@ -266,17 +266,40 @@ ProtocolSender& operator<<(ProtocolSender& p, const OverpassInfo& s) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, OverpassInfo& s) {
     return p >> s.x >> s.y >> s.w >> s.h;
 }
-
+ProtocolSender& operator<<(ProtocolSender& p, const NpcInfo& s) {
+    p << s.x << s.y;
+    p << s.angle;
+    p << s.w << s.h;
+    p << s.type;
+    return p;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcInfo& s) {
+    p >> s.x >> s.y;
+    p >> s.angle;
+    p >> s.w >> s.h;
+    p >> s.type;
+    return p;
+}
 ProtocolSender& operator<<(ProtocolSender& p, const StaticSnapshot& s) {
     p << s.race;
-    p << s.checkpoints << s.spawns << s.walls << s.overpasses;
+    p << s.checkpoints;
+    p << s.spawns;
+    p << s.walls;
+    p << s.bridges;
+    p << s.overpasses;
     p << s.players;
+    p << s.npcs;
     return p;
 }
 
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StaticSnapshot& s) {
     p >> s.race;
-    p >> s.checkpoints >> s.spawns >> s.walls >> s.bridges >> s.overpasses;
+    p >> s.checkpoints;
+    p >> s.spawns;
+    p >> s.walls;
+    p >> s.bridges;
+    p >> s.overpasses;
     p >> s.players;
+    p >> s.npcs;
     return p;
 }
