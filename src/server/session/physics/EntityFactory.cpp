@@ -13,9 +13,10 @@ EntityFactory::EntityFactory(Box2DPhysicsWorld& world,
     : world(world), cfg(cfg), physicsFactory(world.getWorldId()) {}
 
 std::unique_ptr<Car> EntityFactory::createCar(const CarType& type, float x,
-                                              float y, EntityType entType) {
+                                              float y, float angleDeg,
+                                              EntityType entType) {
     auto stats = cfg.getCarStaticStatsMap().at(type);
-    auto phys = physicsFactory.createCar(x, y, stats);
+    auto phys = physicsFactory.createCar(x, y, angleDeg, stats);
     auto body = std::make_shared<Box2DBodyAdapter>(phys);
     auto car = std::make_unique<Car>(nextId(), type, stats, body, entType);
 

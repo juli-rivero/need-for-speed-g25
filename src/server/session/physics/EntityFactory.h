@@ -23,7 +23,7 @@ class EntityFactory {
 
     // Todos reciben una referencia al mundo físico
     std::unique_ptr<Car> createCar(const CarType&, float x, float y,
-                                   EntityType entType);
+                                   float angleDeg, EntityType entType);
     std::unique_ptr<Car> createNpcCar(CarType type, float x, float y);
     std::unique_ptr<Wall> createBuilding(float x, float y, float w, float h,
                                          EntityType type);

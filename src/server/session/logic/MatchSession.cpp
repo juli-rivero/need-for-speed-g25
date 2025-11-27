@@ -58,7 +58,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
 
         const auto& sp = spawnPoints[i];
 
-        auto car = factory.createCar(pc.carType, sp.x, sp.y, EntityType::Car);
+        auto car = factory.createCar(pc.carType, sp.x, sp.y, sp.angle,
+                                     EntityType::Car);
         _world.getCollisionManager().registerCar(car.get(), pc.id);
 
         auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
