@@ -293,3 +293,11 @@ void MapCanvas::keyPressEvent(QKeyEvent* event) {
 
     QGraphicsView::keyPressEvent(event);
 }
+
+void MapCanvas::updateCursor() {
+    if (placingCheckpoint || placingBuilding || placingSensor) {
+        setCursor(Qt::CrossCursor);
+    } else {
+        setCursor(Qt::ArrowCursor);
+    }
+}
