@@ -6,7 +6,6 @@
 
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
-#include "editor/hint_item.h"
 #include "editor/map_item.h"
 
 class MapCanvas : public QGraphicsView {
@@ -18,7 +17,6 @@ class MapCanvas : public QGraphicsView {
 
     // Modos de colocación
     void placeCheckpoint(CheckpointItem::CheckpointType type);
-    void placeHint();
 
     // 🆕 Edificios
     void startPlacingBuilding();
@@ -38,7 +36,6 @@ class MapCanvas : public QGraphicsView {
 
     // Acceso a items
     QList<CheckpointItem*> getCheckpoints() const;
-    QList<HintItem*> getHints() const;
     QList<BuildingItem*> getBuildings() const;
     QList<MapItem*> getItems() const { return items; }
 
@@ -66,7 +63,6 @@ class MapCanvas : public QGraphicsView {
 
     // Estados de colocación
     bool placingCheckpoint;
-    bool placingHint;
     bool placingBuilding;
     CheckpointItem::CheckpointType currentCheckpointType;
 

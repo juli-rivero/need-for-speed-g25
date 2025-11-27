@@ -9,12 +9,13 @@ using spdlog::stdout_color_mt;
 using std::to_string;
 
 ClientHandler::ClientHandler(const PlayerId id, Socket&& socket,
-                             SessionsMonitor& sessions_monitor)
+                             SessionsMonitor& sessions_monitor,
+                             const YamlGameConfig& config)
     : log(stdout_color_mt("Client " + to_string(id))),
       protocol(std::move(socket)),
       sender(this->protocol, log.get()),
       receiver(this->protocol, log.get()),
-      controller(sessions_monitor, id, sender, receiver, log.get()) {
+      controller(sessions_monitor, id, sender, receiver, log.get(), config) {
     protocol << id << ProtocolSender::send;
     log->debug("Handshake successful");
     receiver.start();

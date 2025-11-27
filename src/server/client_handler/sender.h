@@ -15,16 +15,16 @@
 struct Api {
     virtual void reply_search(const std::vector<SessionInfo>&) = 0;
     virtual void reply_joined(const SessionInfo& session,
-                              const std::vector<CarStaticInfo>& carTypes) = 0;
+                              const std::vector<CarInfo>& carTypes) = 0;
     virtual void reply_left() = 0;
     virtual void reply_error(const std::string&) = 0;
 
     virtual void send_session_snapshot(
         const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
-    virtual void notify_game_started(const std::string& map,
-                                     const StaticSnapshot& info) = 0;
+    virtual void notify_game_started(const CityInfo& info,
+                                     const RaceInfo& first_race) = 0;
 
-    virtual void send_game_static_snapshot(const StaticSnapshot& info) = 0;
+    virtual void send_game_static_snapshot(const RaceInfo& info) = 0;
 
     virtual void send_game_snapshot(float raceTimeLeft,
                                     const std::vector<PlayerSnapshot>&) = 0;
@@ -50,16 +50,16 @@ class Sender final : public Thread, public Api {
 
     void reply_search(const std::vector<SessionInfo>&) override;
     void reply_joined(const SessionInfo& session,
-                      const std::vector<CarStaticInfo>& carTypes) override;
+                      const std::vector<CarInfo>& carTypes) override;
     void reply_left() override;
     void reply_error(const std::string&) override;
 
     void send_session_snapshot(const SessionConfig&,
                                const std::vector<PlayerInfo>& players) override;
-    void notify_game_started(const std::string& map,
-                             const StaticSnapshot& info) override;
+    void notify_game_started(const CityInfo& info,
+                             const RaceInfo& first_race) override;
 
-    void send_game_static_snapshot(const StaticSnapshot& info) override;
+    void send_game_static_snapshot(const RaceInfo& info) override;
 
     void send_game_snapshot(float raceTimeLeft,
                             const std::vector<PlayerSnapshot>&) override;

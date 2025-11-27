@@ -14,13 +14,13 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_finish("assets/sound/finish.ogg"),
       font("assets/fonts/OpenSans-Regular.ttf", 20),
       arrow(renderer, "assets/misc/arrow.png") {
-    car_name.insert({CarSpriteType::Speedster, &car_speedster});
-    car_name.insert({CarSpriteType::Tank, &car_tank});
-    car_name.insert({CarSpriteType::Drifter, &car_drifter});
-    car_name.insert({CarSpriteType::Rocket, &car_rocket});
-    car_name.insert({CarSpriteType::Classic, &car_classic});
-    car_name.insert({CarSpriteType::Offroad, &car_offroad});
-    car_name.insert({CarSpriteType::Ghost, &car_ghost});
+    car_name.insert({CarType::Speedster, &car_speedster});
+    car_name.insert({CarType::Tank, &car_tank});
+    car_name.insert({CarType::Drifter, &car_drifter});
+    car_name.insert({CarType::Rocket, &car_rocket});
+    car_name.insert({CarType::Classic, &car_classic});
+    car_name.insert({CarType::Offroad, &car_offroad});
+    car_name.insert({CarType::Ghost, &car_ghost});
 
     city_name.insert({"LibertyCity", &city_liberty});
     // TODO(franco): sumar mapeos a otras ciudades

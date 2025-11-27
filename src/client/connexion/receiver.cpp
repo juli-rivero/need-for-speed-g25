@@ -50,7 +50,8 @@ void Receiver::recv(const dto_session::LeaveResponse&) {
 }
 void Receiver::recv(const dto_session::StartResponse& response) {
     spdlog::trace("received start response");
-    emitter.dispatch(&Listener::on_start_game, response.map, response.info);
+    emitter.dispatch(&Listener::on_start_game, response.city_info,
+                     response.first_race_info);
 }
 void Receiver::recv(const dto_session::SessionSnapshot& snapshot) {
     spdlog::trace("received session snapshot");
@@ -59,7 +60,8 @@ void Receiver::recv(const dto_session::SessionSnapshot& snapshot) {
 }
 void Receiver::recv(const dto_game::GameStaticSnapshot& snapshot) {
     spdlog::trace("received game static snapshot");
-    emitter.dispatch(&Listener::on_game_static_snapshot, snapshot.info);
+    emitter.dispatch(&Listener::on_game_static_snapshot,
+                     snapshot.new_race_info);
 }
 void Receiver::recv(const dto_game::GameSnapshot& snapshot) {
     spdlog::trace("received game snapshot");

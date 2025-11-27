@@ -4,9 +4,8 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../session/logic/types.h"
-#include "../session/model/CarType.h"
 #include "common/structs.h"
+#include "server/session/logic/types.h"
 #include "yaml-cpp/yaml.h"
 
 struct CityDefinition;
@@ -16,8 +15,9 @@ class YamlGameConfig {
     YAML::Node root;
 
     std::unordered_map<std::string, float> penalties;
-    std::vector<CityDefinition> cities;
-    std::vector<CarType> carTypes;
+    std::unordered_map<CityName, std::vector<std::string>> races;
+    std::unordered_map<CarType, CarDisplayInfo> carsDisplayInfo;
+    std::unordered_map<CarType, CarStaticStats> carsStaticStats;
 
     // Configuración global de carrera
     int maxPlayers{};
@@ -35,11 +35,20 @@ class YamlGameConfig {
     const std::unordered_map<std::string, float>& getPenalties() const {
         return penalties;
     }
-    const std::vector<CityDefinition>& getCities() const { return cities; }
-    const std::vector<RaceDefinition>& getRaces(const CityId& city) const;
-    const std::vector<CarType>& getCarTypes() const { return carTypes; }
-    static CarSpriteType getCarSpriteType(const std::string& name);
-    static constexpr auto DefaultCar = "Classic";
+
+    const std::vector<std::string>& getRaces(const CityName& city) const;
+    const std::unordered_map<CarType, CarDisplayInfo>& getCarDisplayInfoMap()
+        const {
+        return carsDisplayInfo;
+    }
+    const std::unordered_map<CarType, CarStaticStats>& getCarStaticStatsMap()
+        const {
+        return carsStaticStats;
+    }
+    static constexpr auto DefaultCar = CarType::Classic;
 
     void printSummary() const;
+
+   private:
+    static CarType getCarType(const std::string& name);
 };

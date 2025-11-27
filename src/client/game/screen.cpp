@@ -46,18 +46,21 @@ void Screen::render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
 // PASOS DE RENDERIZADO
 //
 void Screen::draw_ciudad() {
-    auto& city = *game.assets.city_name.at(game.setup.map);
+    auto& city = *game.assets.city_name.at(game.city_info.name);
     render(city, 0, 0);
 }
 
 void Screen::draw_checkpoint() {
-    const auto& checkpoints = game.setup.info.checkpoints;
+    const auto& checkpoints = game.race_info.checkpoints;
 
     if (my_car && my_car->next_checkpoint < checkpoints.size()) {
         const CheckpointInfo& c = checkpoints[my_car->next_checkpoint];
-        render_rect({static_cast<int>(c.x * 10), static_cast<int>(c.y * 10),
-                     static_cast<int>(c.w * 10), static_cast<int>(c.h * 10)},
-                    {0, 255, 0, 128});
+        const Bound& cb = c.bound;
+
+        render_rect(
+            {static_cast<int>(cb.pos.x * 10), static_cast<int>(cb.pos.y * 10),
+             static_cast<int>(cb.width * 10), static_cast<int>(cb.height * 10)},
+            {0, 255, 0, 128});
     }
 }
 

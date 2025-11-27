@@ -1,5 +1,6 @@
-// FIXME(franco): varios errores de dependencia mutua...
-// poner todos las definiciones en uno en serio es la mejor solucion?
+// FIXME(franco): varios errores de dependencia mutua me forzaron a unir todas
+// las clases, luego replantear como modularizar el codigo correctamente... por
+// ahora, "make it work, make it right, make it fast"
 
 #pragma once
 
@@ -11,6 +12,7 @@
 #include "client/connexion/connexion.h"
 #include "client/constants.h"
 #include "common/macros.h"
+#include "common/structs.h"
 
 class Assets final {
    public:
@@ -33,7 +35,7 @@ class Assets final {
     SDL2pp::Texture arrow;
 
     // Mapeos de cadena
-    std::unordered_map<CarSpriteType, SDL2pp::Texture*> car_name;
+    std::unordered_map<CarType, SDL2pp::Texture*> car_name;
     std::unordered_map<std::string, SDL2pp::Texture*> city_name;
 
     MAKE_FIXED(Assets)
@@ -147,7 +149,8 @@ class Game final : Connexion::Responder {
     // Componentes de conexion
     Api& api;
     const PlayerId my_id;
-    const GameSetUp& setup;
+    const CityInfo& city_info;
+    const RaceInfo& race_info;
 
     // Componentes de snapshot update
     std::mutex snapshot_mutex;

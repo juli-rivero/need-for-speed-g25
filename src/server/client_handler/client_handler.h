@@ -22,7 +22,8 @@ class ClientHandler final {
 
    public:
     ClientHandler(PlayerId id, Socket&& socket,
-                  SessionsMonitor& sessions_monitor);
+                  SessionsMonitor& sessions_monitor,
+                  const YamlGameConfig& config);
 
     MAKE_FIXED(ClientHandler)
 
