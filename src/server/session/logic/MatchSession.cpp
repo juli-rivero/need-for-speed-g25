@@ -91,9 +91,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
     _race = std::make_unique<RaceSession>(_cfg, std::move(checkpoints),
                                           std::move(spawnPoints), racePlayers);
 
-#if OFFLINE
     _race->setSensors(std::move(bridgeSensors));
-#endif
+
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
     std::cout << "Carrera " << _raceFiles[raceIndex] << " iniciada"

@@ -36,11 +36,12 @@ class GameSessionFacade : public Thread {
        protected:
         void subscribe(GameSessionFacade&);
     };
-#if OFFLINE
+    // TODO(elvis): BORRAR ESTO Y DEMAS AL FINALIZAR, EL CLIENTE NO RENDERIZA
+    // SENSORES, NI LOS NECESITA, SOLO EXISTE EN EL WORLD,usado en modo offline
     const std::vector<std::unique_ptr<BridgeSensor>>& getDebugSensors() const {
         return match.getSensors();
     }
-#endif
+
     void startTurningLeft(PlayerId id);
     void stopTurningLeft(PlayerId id);
     void startTurningRight(PlayerId id);
@@ -51,9 +52,7 @@ class GameSessionFacade : public Thread {
     void stopReversing(PlayerId id);
     void useNitro(PlayerId id);
 
-#if OFFLINE
     WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
-#endif
     CityInfo getCityInfo() const { return match.getCityInfo(); }
     RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
