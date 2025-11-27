@@ -12,12 +12,17 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
     : renderer(renderer),
       mixer(mixer),
       assets(renderer),
-      city(*assets.city_name[setup.map]),
+      city(*assets.city_name[setup.city_info.name]),
+      city_info(setup.city_info),
+      race_info(setup.race_info),
       api(connexion.get_api()),
       id(connexion.unique_id),
-      players(setup.info.players) {
+      players({}) {
     renderer.Clear();
     Responder::subscribe(connexion);
+
+    spdlog::info("Game started on map {}, race {}", city_info.name,
+                 race_info.name);
 }
 Game::~Game() { Responder::unsubscribe(); }
 
@@ -137,7 +142,9 @@ void Game::draw_state() {
 
     // Ciudad
     spdlog::trace("cargando ciudad");
-    render(assets.city_liberty, 0, 0);
+    render(city, 0, 0);
+
+    spdlog::trace("camara en {} {}", cam_x, cam_y);
 
     // Coches
     spdlog::trace("poniendo camara");

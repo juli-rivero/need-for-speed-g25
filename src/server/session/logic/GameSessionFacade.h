@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -8,6 +10,7 @@
 #include "common/thread.h"
 #include "server/config/YamlGameConfig.h"
 #include "server/session/logic/MatchSession.h"
+#include "server/session/model/BridgeSensor.h"
 #include "server/session/physics/Box2DPhysicsWorld.h"
 
 class GameSessionFacade : public Thread {
@@ -23,7 +26,7 @@ class GameSessionFacade : public Thread {
     void stop() override;
 
     explicit GameSessionFacade(const YamlGameConfig& configPath,
-                               const std::vector<RaceDefinition>& races,
+                               const std::vector<std::string>& raceFiles,
                                const std::vector<PlayerConfig>& players);
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
@@ -33,7 +36,11 @@ class GameSessionFacade : public Thread {
        protected:
         void subscribe(GameSessionFacade&);
     };
-
+#if OFFLINE
+    const std::vector<std::unique_ptr<BridgeSensor>>& getDebugSensors() const {
+        return match.getSensors();
+    }
+#endif
     void startTurningLeft(PlayerId id);
     void stopTurningLeft(PlayerId id);
     void startTurningRight(PlayerId id);
@@ -45,13 +52,10 @@ class GameSessionFacade : public Thread {
     void useNitro(PlayerId id);
 
 #if OFFLINE
-    WorldSnapshot getSnapshot() const {
-        return match ? match->getSnapshot() : WorldSnapshot{};
-    }
+    WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
 #endif
-    StaticSnapshot getStaticSnapshot() const {
-        return match.getStaticSnapshot();
-    }
+    CityInfo getCityInfo() const { return match.getCityInfo(); }
+    RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
    private:
     common::Emitter<GameSessionFacade::Listener> emitter;

@@ -13,6 +13,12 @@ CheckpointItem::CheckpointItem(int id, CheckpointType type, QPointF position,
     setFlags(QGraphicsItem::ItemIsSelectable | QGraphicsItem::ItemIsMovable |
              QGraphicsItem::ItemSendsGeometryChanges);
 
+    // Permitir recibir eventos de rueda y enfocables para interacción con
+    // teclado
+    setAcceptHoverEvents(true);
+    setAcceptedMouseButtons(Qt::LeftButton);
+    setFlag(QGraphicsItem::ItemIsFocusable);
+
     setZValue(10);  // Asegurar que esté por encima del fondo
 
     // Almacenar datos para identificación
@@ -35,8 +41,6 @@ void CheckpointItem::paint(QPainter* painter,
                            QWidget* widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);
-
-    painter->setRenderHint(QPainter::Antialiasing);
 
     // Guardar estado
     painter->save();
@@ -98,6 +102,13 @@ void CheckpointItem::setWidth(float w) {
 
 void CheckpointItem::mousePressEvent(QGraphicsSceneMouseEvent* event) {
     if (event->button() == Qt::LeftButton) {
+        if (event->modifiers() & Qt::ControlModifier) {
+            rotating = true;
+            mouseStart = event->scenePos();
+            rotationStart = rotation;
+            event->accept();
+            return;
+        }
         dragging = true;
         dragStartPos = pos();
     }
@@ -115,6 +126,26 @@ void CheckpointItem::mouseReleaseEvent(QGraphicsSceneMouseEvent* event) {
         dragging = false;
     }
     QGraphicsItem::mouseReleaseEvent(event);
+}
+
+void CheckpointItem::wheelEvent(QGraphicsSceneWheelEvent* event) {
+    // delta viene en 1/8 de grado (Qt estándar). Usamos solo la dirección +
+    // paso fijo.
+    float delta = event->delta() / 8.0f;
+    float angleStep = 5.0f;  // grados por paso; ajustar sensibilidad
+
+    if (event->modifiers() & Qt::ShiftModifier) {
+        // rotación fina con Shift
+        angleStep = 1.0f;
+    }
+
+    // Aplicar paso según la dirección del delta
+    if (delta > 0)
+        setRotationAngle(rotation + angleStep);
+    else if (delta < 0)
+        setRotationAngle(rotation - angleStep);
+
+    event->accept();
 }
 
 QColor CheckpointItem::getColor() const {

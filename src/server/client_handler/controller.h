@@ -27,9 +27,11 @@ class Controller final : public ISearchEvents,
     ptr<SessionController> session_controller;
     ptr<GameController> game_controller;
 
+    const YamlGameConfig& config;
+
    public:
     explicit Controller(SessionsMonitor& monitor, PlayerId id, Api&, Receiver&,
-                        spdlog::logger*);
+                        spdlog::logger*, const YamlGameConfig& config);
 
     MAKE_FIXED(Controller)
 

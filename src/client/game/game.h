@@ -24,6 +24,8 @@ class Game final : Connexion::Responder {
     Assets assets;
 
     SDL2pp::Texture& city;
+    const CityInfo& city_info;
+    const RaceInfo& race_info;
 
     // MockApi api;
     Api& api;

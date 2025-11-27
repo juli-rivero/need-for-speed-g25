@@ -24,10 +24,10 @@ int main(const int argc, const char* argv[]) {
             args_parser.print_help();
             return SUCCESS;
         }
-#if OFFLINE
-        test();
-#else
         YamlGameConfig config("assets/config.yaml");
+#if OFFLINE
+        test(config);
+#else
         const Server server(args_parser.get_port(), config);
         while (std::cin.get() != 'q') {}
 #endif

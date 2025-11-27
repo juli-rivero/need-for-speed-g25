@@ -13,11 +13,13 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
       font("assets/fonts/OpenSans-Regular.ttf", 20) {
-    car_name.insert({CarSpriteType::Speedster, &car1});
-    car_name.insert({CarSpriteType::Tank, &car2});
-    car_name.insert({CarSpriteType::Drifter, &car3});
-    car_name.insert({CarSpriteType::Rocket, &car4});
-    car_name.insert({CarSpriteType::Classic, &car5});
-    car_name.insert({CarSpriteType::Offroad, &car6});
-    car_name.insert({CarSpriteType::Ghost, &car7});
+    car_name.emplace(CarType::Speedster, &car1);
+    car_name.emplace(CarType::Tank, &car2);
+    car_name.emplace(CarType::Drifter, &car3);
+    car_name.emplace(CarType::Rocket, &car4);
+    car_name.emplace(CarType::Classic, &car5);
+    car_name.emplace(CarType::Offroad, &car6);
+    car_name.emplace(CarType::Ghost, &car7);
+
+    city_name.emplace("LibertyCity", &city_liberty);
 }

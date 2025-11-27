@@ -3,109 +3,101 @@
 
 #include <algorithm>
 #include <iostream>
+#include <ranges>
 #include <string>
 #include <utility>
 
-#include "../../config/MapLoader.h"  // para cargar CP/Hints desde YAML
-#include "../physics/EntityFactory.h"  // para crear entidades (si generás autos aquí)
+#include "../../config/MapLoader.h"
+#include "../physics/EntityFactory.h"
+#include "server/session/NPC/TrafficSystem.h"
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
-                           std::vector<RaceDefinition> raceDefs,
+                           std::vector<std::string> raceFiles,
                            Box2DPhysicsWorld& world,
-                           std::vector<PlayerConfig> players)
+                           std::vector<PlayerConfig> playersCfg)
     : _cfg(cfg),
       _world(world),
-      _playerConfigs(players),
-      _races(raceDefs),
+      _raceFiles(std::move(raceFiles)),
+      _playerConfigs(std::move(playersCfg)),
       _upgradeSystem(cfg) {
-    if (_races.empty()) {
+    if (_raceFiles.empty()) {
         _state = MatchState::Finished;
         return;
     }
     _state = MatchState::Racing;
     startRace(0);
-    update(0);
 }
 
 void MatchSession::startRace(std::size_t raceIndex) {
     _currentRace = raceIndex;
 
-    std::vector<std::unique_ptr<Wall>> walls;
-    std::vector<std::unique_ptr<Bridge>> bridges;
+    std::vector<std::unique_ptr<Wall>> buildings;
+    std::vector<Bound> bridges;
+    std::vector<Bound> overpasses;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
-    std::vector<PlayerId> playerIds;
-    MapLoader::loadFromYAML(_races[raceIndex].mapFile, _world, walls, bridges,
-                            checkpoints, spawnPoints);
+    std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
+    std::vector<RoadShape> roadShapes;
 
-    // Si es la primera carrera, guardá muros/puentes
-    if (_walls.empty()) _walls = std::move(walls);
+    EntityFactory factory(_world, _cfg);
+
+    MapLoader::loadFromYAML(_raceFiles[raceIndex], factory, buildings, bridges,
+                            overpasses, checkpoints, spawnPoints, roadShapes,
+                            bridgeSensors);
+
+    if (_buildings.empty()) _buildings = std::move(buildings);
     if (_bridges.empty()) _bridges = std::move(bridges);
+    if (_overpasses.empty()) _overpasses = std::move(overpasses);
 
-    std::vector<std::shared_ptr<Car>> cars;
     _players.clear();
+    std::vector<Player*> racePlayers;
 
-    // se crea los jugadores aqui
-    for (size_t i = 0; i < _playerConfigs.size(); ++i) {
-        const auto& p = _playerConfigs[i];
+    for (std::size_t i = 0; i < _playerConfigs.size(); ++i) {
+        const auto& pc = _playerConfigs[i];
         if (i >= spawnPoints.size()) break;
-        if (permanentlyDisqualified.count(p.id)) {
-            continue;
-        }
+
         const auto& sp = spawnPoints[i];
 
-        // Buscar tipo de auto
-        const auto& carTypes = _cfg.getCarTypes();
-        const CarType* chosenType = nullptr;
-        for (const auto& ct : carTypes) {
-            if (ct.name == p.carTypeName) {
-                chosenType = &ct;
-                break;
-            }
-        }
-        if (!chosenType && !carTypes.empty()) {
-            chosenType = &carTypes.front();
-        }
+        auto car = factory.createCar(pc.carType, sp.x, sp.y, EntityType::Car);
+        _world.getCollisionManager().registerCar(car.get(), pc.id);
 
-        auto car = EntityFactory::createCar(_world, *chosenType, sp.x, sp.y);
-        _world.getCollisionManager().registerCar(car.get(), p.id);
-        auto player = std::make_unique<Player>(p.id, p.name, std::move(car));
-        cars.push_back(player->getCar());
-        playerIds.push_back(p.id);
-        _players[p.id] = std::move(player);
+        auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
 
-        std::cout << " Jugador " << p.name << " usa auto tipo '"
-                  << chosenType->name << "' en posición (" << sp.x << ","
-                  << sp.y << ")\n";
+        player->resetRaceState(0.0f);
+
+        racePlayers.push_back(player.get());
+        _players[pc.id] = std::move(player);
+
+        std::cout << " Jugador " << pc.name << " entra en carrera "
+                  << " con carType=" << static_cast<int>(pc.carType)
+                  << " en pos (" << sp.x << "," << sp.y << ")\n";
     }
 
-    _race = std::make_unique<RaceSession>(
-        _cfg, _races[raceIndex].city, std::move(checkpoints), std::move(cars),
-        playerIds, std::move(spawnPoints), _penaltiesForNextRace);
+    _traffic = std::make_unique<TrafficSystem>(factory);
+
+    _roadGraph = RoadGraph{};
+    for (auto& rs : roadShapes) {
+        _roadGraph.addRoad(rs);
+    }
+    std::cout << "[NPC] RoadShapes count = " << roadShapes.size() << std::endl;
+    _roadGraph.build();
+    std::cout << "[NPC] Graph built: nodes=" << _roadGraph.getNodes().size()
+              << " segments=" << _roadGraph.getSegments().size() << std::endl;
+
+    _traffic->loadGraph(&_roadGraph);
+    for (int i = 0; i < 25; ++i) {
+        _traffic->spawnNPCs();
+    }
+    _race = std::make_unique<RaceSession>(_cfg, std::move(checkpoints),
+                                          std::move(spawnPoints), racePlayers);
+
+#if OFFLINE
+    _race->setSensors(std::move(bridgeSensors));
+#endif
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
-    _penaltiesForNextRace.clear();
-
-    std::cout << "Carrera " << (raceIndex + 1) << " iniciada en "
-              << _races[raceIndex].city << std::endl;
-}
-
-CarSnapshot MatchSession::makeCarSnapshot(const std::shared_ptr<Car>& car) {
-    CarSnapshot cs;
-
-    cs.type = YamlGameConfig::getCarSpriteType(car->getType().name);
-    cs.x = car->getPosition().x;
-    cs.y = car->getPosition().y;
-    cs.vx = car->getVelocity().x;
-    cs.vy = car->getVelocity().y;
-    cs.angle = car->getAngle();
-    cs.speed = std::sqrt(cs.vx * cs.vx + cs.vy * cs.vy);
-    cs.health = car->getHealth();
-    cs.nitroActive = car->isNitroActive();
-    cs.accelerating = car->isAccelerating();
-    cs.braking = car->isBraking();
-
-    return cs;
+    std::cout << "Carrera " << _raceFiles[raceIndex] << " iniciada"
+              << std::endl;
 }
 
 WorldSnapshot MatchSession::getSnapshot() const {
@@ -117,113 +109,85 @@ WorldSnapshot MatchSession::getSnapshot() const {
     }
 
     snap.time = _world.getTime();
-    const auto& rd = _races[_currentRace];
-    snap.raceCity = rd.city;
-    snap.raceMapFile = rd.mapFile;
     snap.matchState = _state;
     snap.currentRaceIndex = _currentRace;
-    snap.raceState = _race->state();
+    snap.raceState = _race->getState();
     snap.raceElapsed = _race->elapsedRaceTime();
     snap.raceCountdown = _race->countdownRemaining();
     snap.raceTimeLeft =
         std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
 
-    for (const auto& [id, player] : _players) {
-        PlayerSnapshot ps;
-        ps.id = id;
-        ps.name = player->getName();
-        ps.car = makeCarSnapshot(player->getCar());
-        ps.raceProgress = _race->getProgressForPlayer(id);
-        std::cout << "[SnapshotDBG] Player " << id
-                  << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
-        snap.players.push_back(std::move(ps));
+    for (const auto& player : _players | std::views::values) {
+        snap.players.push_back(player->buildSnapshot());
     }
-    // snap.collisions = _world.getCollisionManager().consumeEvents();
-    snap.permanentlyDQ.assign(permanentlyDisqualified.begin(),
-                              permanentlyDisqualified.end());
+    if (_traffic) {
+        for (auto& npc : _traffic->getNPCs()) {
+            snap.npcs.push_back(npc->buildSnapshot());
+        }
+    }
     return snap;
 }
-StaticSnapshot MatchSession::getStaticSnapshot() const {
-    spdlog::debug("getting static snapshot");
-    StaticSnapshot s;
+CityInfo MatchSession::getCityInfo() const {
+    spdlog::debug("getting city info");
 
-    const auto& raceDef = _races[_currentRace];
-    s.race = raceDef.mapFile;
-
-    spdlog::trace("got race name {}", s.race);
-
-    /* for (const auto& w : _walls) {
-        WallInfo wi;
-        wi.id = w->getId();
-        wi.x = w->getPosition().x;
-        wi.y = w->getPosition().y;
-        wi.w = w->getWidth();
-        wi.h = w->getHeight();
-        s.walls.push_back(wi);
-    } */
-    /* for (const auto& br : _bridges) {
-        BridgeInfo bi;
-        bi.id = br->getId();
-        bi.lowerX = br->getLowerPosition().x;
-        bi.lowerY = br->getLowerPosition().y;
-        bi.upperX = br->getUpperPosition().x;
-        bi.upperY = br->getUpperPosition().y;
-        bi.w = br->getWidth();
-        bi.h = br->getHeight();
-        bi.driveable = br->isDriveable();
-        s.bridges.push_back(bi);
-    } */
-    for (const auto& cp : _race->getCheckpoints()) {
-        CheckpointInfo ci;
-        ci.id = cp->getId();
-        ci.order = cp->getOrder();
-        ci.x = cp->getPosition().x;
-        ci.y = cp->getPosition().y;
-        ci.w = cp->getWidth();
-        ci.h = cp->getHeight();
-        s.checkpoints.push_back(ci);
+    std::vector<Bound> walls;
+    std::vector<Bound> railings;
+    for (const auto& building : _buildings) {
+        const auto [x, y] = building->getPosition();
+        Bound bound{Point{x, y}, building->getWidth(), building->getHeight()};
+        if (building->getEntityType() == EntityType::Wall)
+            walls.push_back(bound);
+        if (building->getEntityType() == EntityType::Railing)
+            railings.push_back(bound);
+    }
+    return CityInfo{.name = _raceFiles[_currentRace],
+                    .walls = walls,
+                    .bridges = _bridges,
+                    .railings = railings,
+                    .overpasses = _overpasses};
+}
+RaceInfo MatchSession::getRaceInfo() const {
+    std::vector<CheckpointInfo> checkpoints;
+    for (const auto& checkpoint : _race->getCheckpoints()) {
+        const auto [x, y] = checkpoint->getPosition();
+        const float width = checkpoint->getWidth();
+        const float height = checkpoint->getHeight();
+        checkpoints.push_back(CheckpointInfo{
+            .order = static_cast<uint32_t>(checkpoint->getOrder()),
+            .bound = {Point{x, y}, width, height},
+            .angle = checkpoint->getAngle(),
+            .type = checkpoint->getType(),
+        });
     }
     spdlog::trace("got checkpoints");
 
-    for (size_t i = 0; i < _race->getSpawnPoints().size(); ++i) {
-        const auto& sp = _race->getSpawnPoints()[i];
-        SpawnPointInfo spi;
-        spi.id = static_cast<int>(i);
-        spi.x = sp.x;
-        spi.y = sp.y;
-        spi.angle = sp.angle;
-        s.spawns.push_back(spi);
+    std::vector<SpawnPointInfo> spawns;
+    for (const auto& spawn : _race->getSpawnPoints()) {
+        spawns.push_back(SpawnPointInfo{
+            .pos = {spawn.x, spawn.y},
+            .angle = spawn.angle,
+        });
     }
     spdlog::trace("got spawnpoints");
-
-    for (const auto& [id, player] : _players) {
-        PlayerSnapshot ps;
-        ps.id = id;
-        ps.name = player->getName();
-        ps.car = makeCarSnapshot(player->getCar());
-        ps.raceProgress = _race->getProgressForPlayer(id);
-        std::cout << "[SnapshotDBG] Player " << id
-                  << " nextCP=" << ps.raceProgress.nextCheckpoint << std::endl;
-        s.players.push_back(std::move(ps));
-    }
-    spdlog::trace("got players");
-
-    return s;
+    return RaceInfo{
+        .name = _raceFiles[_currentRace],
+        .checkpoints = checkpoints,
+        .spawnPoints = spawns,
+    };
 }
+
 void MatchSession::update(float dt) {
     switch (_state) {
         case MatchState::Starting:
-            // TODO(elvis)
+            // TODO(elvis): alguna configuracion inicial?
         case MatchState::Racing:
-            // Actualizar cada coche según su input persistente
+
             for (auto& [id, player] : _players) {
-                auto car = player->getCar();
-                car->update(dt);
-                if (car->isDestroyed()) {
-                    _race->onCarDestroyed(id);
-                    permanentlyDisqualified.insert(id);
-                }
+                (void)id;
+                player->update(dt);
             }
+            if (_traffic) _traffic->update(dt);
+
             _race->update(dt);
             if (_race->isFinished()) {
                 pendingEndRacePacket = finishRaceAndComputeTotals();
@@ -242,33 +206,34 @@ void MatchSession::update(float dt) {
 }
 
 void MatchSession::applyInput(const PlayerId id, const CarInput& car_input) {
-    auto it = _players.find(id);
-    if (it == _players.end()) return;
-    if (_race && _race->state() != RaceState::Countdown) {
-        it->second->getCar()->applyInput(car_input);
+    if (_race && _race->getState() != RaceState::Countdown) {
+        _players.at(id)->applyInput(car_input);
     }
 }
 EndRaceSummaryPacket MatchSession::finishRaceAndComputeTotals() {
-    _lastResults = _race->makeResults();
-    for (const auto& r : _lastResults) {
-        if (!r.dnf) {
-            _totalTime[r.id] += r.netTime;  // acumulado por partida
-        }
-    }
-    // ← crear paquete para el cliente
+    auto results = _race->makeResults();
     EndRaceSummaryPacket summary;
-    summary.raceIndex = _currentRace;
-    for (const auto& r : _lastResults) {
+    summary.raceIndex = static_cast<uint32_t>(_currentRace);
+    for (auto& r : results) {
+        auto itPlayer = _players.find(r.id);
+        if (itPlayer == _players.end()) continue;
+
+        auto& player = itPlayer->second;
+        player->setPenalty(r.penalty);
+        player->accumulateTotal();
+
         EndRaceUpgradeReport rep;
         rep.id = r.id;
         rep.penaltyTime = r.penalty;
-        auto it = _queuedUpgrades.find(r.id);
-        if (it != _queuedUpgrades.end()) rep.upgrades = it->second;
+
+        auto itUp = _queuedUpgrades.find(r.id);
+        if (itUp != _queuedUpgrades.end()) {
+            rep.upgrades = itUp->second;
+        }
 
         summary.results.push_back(rep);
     }
-
-    return summary;  // ← antes no retornabas nada!
+    return summary;
 }
 
 void MatchSession::startIntermission() {
@@ -282,37 +247,27 @@ void MatchSession::queueUpgrades(
 }
 
 void MatchSession::endIntermissionAndPrepareNextRace() {
-    _penaltiesForNextRace = _upgradeSystem.applyForNextRace(_queuedUpgrades);
+    // se aplica upgrades + genera penalizaciones para próxima carrera
+    auto penalties = _upgradeSystem.applyForNextRace(_queuedUpgrades);
+    for (auto& [pid, ups] : _queuedUpgrades) {
+        auto itP = _players.find(pid);
+        if (itP == _players.end()) continue;
 
-    for (auto& [pid, upgrades] : _queuedUpgrades) {
-        auto it = _players.find(pid);
-        if (it == _players.end()) continue;
-
-        auto car = it->second->getCar();
-        auto& u = car->getUpgrades();
-        for (const auto& up : upgrades) {
-            switch (up.stat) {
-                case UpgradeStat::MaxSpeed:
-                    u.bonusMaxSpeed += up.delta;
-                    break;
-
-                case UpgradeStat::Acceleration:
-                    u.bonusAcceleration += up.delta;
-                    break;
-
-                case UpgradeStat::Health:
-                    car->increaseMaxHealth(up.delta);
-                    break;
-
-                case UpgradeStat::Nitro:
-                    u.bonusNitro += up.delta;
-                    break;
-            }
-        }
+        auto& player = itP->second;
+        player->setUpgrades(ups);
+        player->applyUpgrades();
     }
+
+    // se setea penalizaciones iniciales en Player para la próxima carrera
+    for (auto& [pid, pen] : penalties) {
+        auto itP = _players.find(pid);
+        if (itP == _players.end()) continue;
+        itP->second->resetRaceState(pen);
+    }
+
     _queuedUpgrades.clear();
 
-    if (_currentRace + 1 < _races.size()) {
+    if (_currentRace + 1 < _raceFiles.size()) {
         _state = MatchState::Racing;
         startRace(_currentRace + 1);
     } else {

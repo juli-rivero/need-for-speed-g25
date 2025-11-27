@@ -6,19 +6,16 @@
 
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
-#include "editor/hint_item.h"
 
 MapCanvas::MapCanvas(QWidget* parent)
     : QGraphicsView(parent),
       scene(new QGraphicsScene(this)),
       backgroundItem(nullptr),
       placingCheckpoint(false),
-      placingHint(false),
       placingBuilding(false),
       currentCheckpointType(CheckpointItem::Start),
       currentBuilding(nullptr) {
     setScene(scene);
-    setRenderHint(QPainter::Antialiasing);
     setDragMode(QGraphicsView::RubberBandDrag);
 
     // Configurar la escena
@@ -67,23 +64,14 @@ void MapCanvas::clearBackgroundImage() {
 
 void MapCanvas::placeCheckpoint(CheckpointItem::CheckpointType type) {
     placingCheckpoint = true;
-    placingHint = false;
     placingBuilding = false;
     currentCheckpointType = type;
-    updateCursor();
-}
-
-void MapCanvas::placeHint() {
-    placingHint = true;
-    placingCheckpoint = false;
-    placingBuilding = false;
     updateCursor();
 }
 
 void MapCanvas::startPlacingBuilding() {
     placingBuilding = true;
     placingCheckpoint = false;
-    placingHint = false;
 
     if (currentBuilding) {
         finishCurrentBuilding();
@@ -163,16 +151,6 @@ QList<CheckpointItem*> MapCanvas::getCheckpoints() const {
     return checkpoints;
 }
 
-QList<HintItem*> MapCanvas::getHints() const {
-    QList<HintItem*> hints;
-    for (MapItem* item : items) {
-        if (HintItem* hint = dynamic_cast<HintItem*>(item)) {
-            hints.append(hint);
-        }
-    }
-    return hints;
-}
-
 QList<BuildingItem*> MapCanvas::getBuildings() const {
     QList<BuildingItem*> buildings;
     for (MapItem* item : items) {
@@ -189,7 +167,6 @@ void MapCanvas::clearAll() {
     backgroundItem = nullptr;
     currentBuilding = nullptr;
     placingCheckpoint = false;
-    placingHint = false;
     placingBuilding = false;
 }
 
@@ -203,16 +180,6 @@ void MapCanvas::mousePressEvent(QMouseEvent* event) {
                 checkpointId++, currentCheckpointType, scenePos);
             addItemToScene(checkpoint);
             placingCheckpoint = false;
-            emit itemPlaced();
-            updateCursor();
-            return;
-        }
-
-        if (placingHint) {
-            static int hintId = 0;
-            HintItem* hint = new HintItem(hintId++, scenePos);
-            addItemToScene(hint);
-            placingHint = false;
             emit itemPlaced();
             updateCursor();
             return;
@@ -259,7 +226,6 @@ void MapCanvas::keyPressEvent(QKeyEvent* event) {
             cancelCurrentBuilding();
         } else {
             placingCheckpoint = false;
-            placingHint = false;
             updateCursor();
         }
     } else if (event->key() == Qt::Key_Return ||
@@ -278,7 +244,7 @@ void MapCanvas::keyPressEvent(QKeyEvent* event) {
 }
 
 void MapCanvas::updateCursor() {
-    if (placingCheckpoint || placingHint || placingBuilding) {
+    if (placingCheckpoint || placingBuilding) {
         setCursor(Qt::CrossCursor);
     } else {
         setCursor(Qt::ArrowCursor);
