@@ -40,9 +40,8 @@ class Session final {
 
    public:
     struct Listener : common::Listener<Session::Listener> {
-        virtual void on_start_game(GameSessionFacade& game,
-                                   const std::string& map,
-                                   const StaticSnapshot& info) = 0;
+        virtual void on_start_game(GameSessionFacade& game, const CityInfo&,
+                                   const RaceInfo&) = 0;
         virtual void on_session_updated(
             const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
 

@@ -28,11 +28,11 @@ class Receiver final : public Thread {
         virtual void on_join_response(const SessionInfo&,
                                       const std::vector<CarInfo>&) {}
         virtual void on_leave_response() {}
-        virtual void on_start_game(const std::string&, const StaticSnapshot&) {}
+        virtual void on_start_game(const CityInfo&, const RaceInfo&) {}
         virtual void on_session_snapshot(const SessionConfig&,
                                          const std::vector<PlayerInfo>&) {}
 
-        virtual void on_game_static_snapshot(const StaticSnapshot&) {}
+        virtual void on_game_static_snapshot(const RaceInfo&) {}
         /**
          * This method is called to process a snapshot of the current game
          * state.

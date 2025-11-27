@@ -104,20 +104,22 @@ void Session::start_game() {
     for (const auto& player : users_setup | std::views::values)
         players.push_back(player.game_config);
 
-    std::vector<RaceDefinition> races;
+    std::vector<std::string> races;
     races.reserve(config.raceCount);
     const auto all_races = yaml_config.getRaces(config.city);
     for (int i = 0; i < config.raceCount; ++i) {
         // const auto index = rand() % all_races.size();
         constexpr auto index = 0;
-        spdlog::info("city {}, race {}", all_races[index].city,
-                     all_races[index].mapFile);
+        spdlog::info("race {}", all_races[index]);
         races.push_back(all_races[index]);
     }
 
     game = std::make_unique<GameSessionFacade>(yaml_config, races, players);
-    emitter.dispatch(&Listener::on_start_game, *game, config.city,
-                     game->getStaticSnapshot());
+    CityInfo city_info = game->getCityInfo();
+    city_info.name =
+        config.city;  // TODO(juli): esto no se deberia hacer, cambiar
+    emitter.dispatch(&Listener::on_start_game, *game, city_info,
+                     game->getRaceInfo());
     spdlog::trace("iniciando gameloop");
     game->start();
 }

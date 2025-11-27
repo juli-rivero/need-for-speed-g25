@@ -12,15 +12,15 @@
 #include "server/session/NPC/TrafficSystem.h"
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
-                           std::vector<RaceDefinition> raceDefs,
+                           std::vector<std::string> raceFiles,
                            Box2DPhysicsWorld& world,
                            std::vector<PlayerConfig> playersCfg)
     : _cfg(cfg),
       _world(world),
-      _races(std::move(raceDefs)),
+      _raceFiles(std::move(raceFiles)),
       _playerConfigs(std::move(playersCfg)),
       _upgradeSystem(cfg) {
-    if (_races.empty()) {
+    if (_raceFiles.empty()) {
         _state = MatchState::Finished;
         return;
     }
@@ -32,8 +32,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
     _currentRace = raceIndex;
 
     std::vector<std::unique_ptr<Wall>> buildings;
-    std::vector<BridgeInfo> bridges;
-    std::vector<OverpassInfo> overpasses;
+    std::vector<Bound> bridges;
+    std::vector<Bound> overpasses;
     std::vector<std::unique_ptr<Checkpoint>> checkpoints;
     std::vector<SpawnPoint> spawnPoints;
     std::vector<std::unique_ptr<BridgeSensor>> bridgeSensors;
@@ -41,9 +41,9 @@ void MatchSession::startRace(std::size_t raceIndex) {
 
     EntityFactory factory(_world, _cfg);
 
-    MapLoader::loadFromYAML(_races[raceIndex].mapFile, factory, buildings,
-                            bridges, overpasses, checkpoints, spawnPoints,
-                            roadShapes, bridgeSensors);
+    MapLoader::loadFromYAML(_raceFiles[raceIndex], factory, buildings, bridges,
+                            overpasses, checkpoints, spawnPoints, roadShapes,
+                            bridgeSensors);
 
     if (_buildings.empty()) _buildings = std::move(buildings);
     if (_bridges.empty()) _bridges = std::move(bridges);
@@ -88,8 +88,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
     for (int i = 0; i < 25; ++i) {
         _traffic->spawnNPCs();
     }
-    _race = std::make_unique<RaceSession>(_cfg, _races[raceIndex].city,
-                                          std::move(checkpoints),
+    _race = std::make_unique<RaceSession>(_cfg, std::move(checkpoints),
                                           std::move(spawnPoints), racePlayers);
 
 #if OFFLINE
@@ -97,8 +96,8 @@ void MatchSession::startRace(std::size_t raceIndex) {
 #endif
     _world.getCollisionManager().setRaceSession(_race.get());
     _race->start();
-    std::cout << "Carrera " << (raceIndex + 1) << " iniciada en "
-              << _races[raceIndex].city << std::endl;
+    std::cout << "Carrera " << _raceFiles[raceIndex] << " iniciada"
+              << std::endl;
 }
 
 WorldSnapshot MatchSession::getSnapshot() const {
@@ -110,9 +109,6 @@ WorldSnapshot MatchSession::getSnapshot() const {
     }
 
     snap.time = _world.getTime();
-    const auto& rd = _races[_currentRace];
-    snap.raceCity = rd.city;
-    snap.raceMapFile = rd.mapFile;
     snap.matchState = _state;
     snap.currentRaceIndex = _currentRace;
     snap.raceState = _race->getState();
@@ -131,59 +127,55 @@ WorldSnapshot MatchSession::getSnapshot() const {
     }
     return snap;
 }
-StaticSnapshot MatchSession::getStaticSnapshot() const {
-    spdlog::debug("getting static snapshot");
-    StaticSnapshot s;
+CityInfo MatchSession::getCityInfo() const {
+    spdlog::debug("getting city info");
 
-    const auto& raceDef = _races[_currentRace];
-    s.race = raceDef.mapFile;
-
-    for (const auto& w : _buildings) {
-        WallInfo wi;
-        wi.x = w->getPosition().x;
-        wi.y = w->getPosition().y;
-        wi.w = w->getWidth();
-        wi.h = w->getHeight();
-        wi.type = w->getEntityType();
-        s.walls.push_back(wi);
+    std::vector<Bound> walls;
+    std::vector<Bound> railings;
+    for (const auto& building : _buildings) {
+        const auto [x, y] = building->getPosition();
+        Bound bound{Point{x, y}, building->getWidth(), building->getHeight()};
+        if (building->getEntityType() == EntityType::Wall)
+            walls.push_back(bound);
+        if (building->getEntityType() == EntityType::Railing)
+            railings.push_back(bound);
     }
-    for (const auto& br : _bridges) {
-        s.bridges.push_back(br);
-    }
-    for (const auto& op : _overpasses) {
-        s.overpasses.push_back(op);
-    }
-    for (const auto& cp : _race->getCheckpoints()) {
-        CheckpointInfo ci;
-        ci.id = cp->getId();
-        ci.order = cp->getOrder();
-        ci.type = cp->getType();
-        ci.x = cp->getPosition().x;
-        ci.y = cp->getPosition().y;
-        ci.w = cp->getWidth();
-        ci.h = cp->getHeight();
-        s.checkpoints.push_back(ci);
+    return CityInfo{.name = _raceFiles[_currentRace],
+                    .walls = walls,
+                    .bridges = _bridges,
+                    .railings = railings,
+                    .overpasses = _overpasses};
+}
+RaceInfo MatchSession::getRaceInfo() const {
+    std::vector<CheckpointInfo> checkpoints;
+    for (const auto& checkpoint : _race->getCheckpoints()) {
+        const auto [x, y] = checkpoint->getPosition();
+        const float width = checkpoint->getWidth();
+        const float height = checkpoint->getHeight();
+        checkpoints.push_back(CheckpointInfo{
+            .order = static_cast<uint32_t>(checkpoint->getOrder()),
+            .bound = {Point{x, y}, width, height},
+            .angle = checkpoint->getAngle(),
+            .type = checkpoint->getType(),
+        });
     }
     spdlog::trace("got checkpoints");
 
-    for (size_t i = 0; i < _race->getSpawnPoints().size(); ++i) {
-        const auto& sp = _race->getSpawnPoints()[i];
-        SpawnPointInfo spi;
-        spi.id = static_cast<int>(i);
-        spi.x = sp.x;
-        spi.y = sp.y;
-        spi.angle = sp.angle;
-        s.spawns.push_back(spi);
+    std::vector<SpawnPointInfo> spawns;
+    for (const auto& spawn : _race->getSpawnPoints()) {
+        spawns.push_back(SpawnPointInfo{
+            .pos = {spawn.x, spawn.y},
+            .angle = spawn.angle,
+        });
     }
     spdlog::trace("got spawnpoints");
-
-    for (const auto& player : _players | std::views::values) {
-        s.players.push_back(player->buildSnapshot());
-    }
-    spdlog::trace("got players");
-
-    return s;
+    return RaceInfo{
+        .name = _raceFiles[_currentRace],
+        .checkpoints = checkpoints,
+        .spawnPoints = spawns,
+    };
 }
+
 void MatchSession::update(float dt) {
     switch (_state) {
         case MatchState::Starting:
@@ -275,7 +267,7 @@ void MatchSession::endIntermissionAndPrepareNextRace() {
 
     _queuedUpgrades.clear();
 
-    if (_currentRace + 1 < _races.size()) {
+    if (_currentRace + 1 < _raceFiles.size()) {
         _state = MatchState::Racing;
         startRace(_currentRace + 1);
     } else {

@@ -29,12 +29,12 @@ class SessionController final : Session::Listener, Receiver::Listener {
 
     MAKE_FIXED(SessionController)
 
-    void on_start_game(GameSessionFacade& game, const std::string& map,
-                       const StaticSnapshot&) override;
     void on_start_request(bool ready) override;
     void on_choose_car(const CarType&) override;
     void on_leave_request() override;
 
+    void on_start_game(GameSessionFacade& game, const CityInfo&,
+                       const RaceInfo&) override;
     void on_session_updated(const SessionConfig&,
                             const std::vector<PlayerInfo>& players) override;
 };

@@ -73,17 +73,15 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         // === Sección "cities" ===
         if (root["cities"]) {
             for (const auto& cityNode : root["cities"]) {
-                CityDefinition city;
-                city.name = cityNode["city"].as<std::string>();
+                const auto cityId = cityNode["city"].as<std::string>();
+                std::vector<std::string> raceFiles;
                 if (cityNode["races"]) {
                     for (const auto& raceNode : cityNode["races"]) {
-                        RaceDefinition race;
-                        race.mapFile = raceNode["map_file"].as<std::string>();
-                        race.city = city.name;
-                        city.races.push_back(race);
+                        raceFiles.push_back(
+                            raceNode["map_file"].as<std::string>());
                     }
                 }
-                cities.push_back(city);
+                races.emplace(cityId, raceFiles);
             }
         }
 
@@ -94,12 +92,9 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     }
 }
 
-const std::vector<RaceDefinition>& YamlGameConfig::getRaces(
-    const CityId& city) const {
-    for (const auto& c : cities) {
-        if (c.name == city) return c.races;
-    }
-    throw std::invalid_argument("City not found: " + city);
+const std::vector<std::string>& YamlGameConfig::getRaces(
+    const CityName& city) const {
+    return races.at(city);
 }
 
 CarType YamlGameConfig::getCarType(const std::string& name) {
@@ -134,9 +129,9 @@ void YamlGameConfig::printSummary() const {
     }
 
     std::cout << "\n=== CIUDADES ===\n";
-    for (const auto& c : cities) {
-        std::cout << c.name << " (" << c.races.size() << " circuitos)\n";
-        for (const auto& r : c.races) std::cout << "   - " << r.mapFile << "\n";
+    for (const auto& [city, raceFiles] : races) {
+        std::cout << city << " (" << raceFiles.size() << " circuitos)\n";
+        for (const auto& r : raceFiles) std::cout << "   - " << r << "\n";
     }
 
     std::cout << "=============================\n\n";
