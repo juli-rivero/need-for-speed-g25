@@ -47,11 +47,6 @@ void GameSessionFacade::run() {
     }
 }
 
-void GameSessionFacade::stop() {
-    Thread::stop();
-    Thread::join();
-}
-
 void GameSessionFacade::Listener::subscribe(GameSessionFacade& g) {
     common::Listener<GameSessionFacade::Listener>::subscribe(g.emitter);
 }
