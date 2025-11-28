@@ -68,7 +68,7 @@ class Player {
     // ------------------------------
     void setPenalty(float p) { raceState.penaltyTime = p; }
     float getPenalty() const { return raceState.penaltyTime; }
-
+    PlayerId getId() const { return id; }
     float getRawTime() const { return raceState.elapsed; }
     float getNetTime() const {
         return raceState.elapsed + raceState.penaltyTime;

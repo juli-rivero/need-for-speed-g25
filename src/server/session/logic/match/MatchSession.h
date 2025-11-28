@@ -5,12 +5,12 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../../config/YamlGameConfig.h"
-#include "../../session/model/Player.h"
-#include "../physics/Box2DPhysicsWorld.h"
-#include "NetworkTypes.h"
-#include "RaceSession.h"
-#include "UpgradeSystem.h"
+#include "../../../config/YamlGameConfig.h"
+#include "../../model/Player.h"
+#include "../../physics/Box2DPhysicsWorld.h"
+#include "../NetworkTypes.h"
+#include "../UpgradeSystem.h"
+#include "../race/RaceSession.h"
 #include "server/session/NPC/TrafficSystem.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/BridgeSensor.h"
@@ -52,7 +52,7 @@ class MatchSession {
                  Box2DPhysicsWorld& world, std::vector<PlayerConfig> players);
 
     void update(float dt);  // delega a la carrera actual / intermission
-    void applyInput(PlayerId id, const CarInput&);
+    void applyInput(PlayerId id, const CarInput&) const;
 
     WorldSnapshot getSnapshot() const;
     CityInfo getCityInfo() const;

@@ -8,6 +8,7 @@
 #include "../session/model/BridgeSensor.h"
 #include "../session/physics/Box2DBodyAdapter.h"
 #include "../session/physics/EntityFactory.h"
+#include "YamlInclude.h"
 
 // ============================================================
 //  Convenciones de unidades
@@ -31,7 +32,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
 
     YAML::Node root;
     try {
-        root = YAML::LoadFile(yamlPath);
+        root = loadYamlWithInclude(yamlPath);
     } catch (const std::exception& e) {
         spdlog::error("[MapLoader] Error cargando YAML: {}", e.what());
         throw;

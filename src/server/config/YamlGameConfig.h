@@ -21,6 +21,7 @@ class YamlGameConfig {
 
     // Configuración global de carrera
     int maxPlayers{};
+    int maxNPCs{};
     float timeLimitSec{};
     float intermissionSec{};
 
@@ -31,6 +32,7 @@ class YamlGameConfig {
     int getMaxPlayers() const { return maxPlayers; }
     float getRaceTimeLimitSec() const { return timeLimitSec; }
     float getIntermissionSec() const { return intermissionSec; }
+    int getMaxNPCS() const { return maxNPCs; }
 
     const std::unordered_map<std::string, float>& getPenalties() const {
         return penalties;
