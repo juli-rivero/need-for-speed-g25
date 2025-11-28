@@ -8,8 +8,8 @@
 #include "common/emitter.h"
 #include "common/queue.h"
 #include "common/thread.h"
+#include "match/MatchSession.h"
 #include "server/config/YamlGameConfig.h"
-#include "server/session/logic/MatchSession.h"
 #include "server/session/model/BridgeSensor.h"
 #include "server/session/physics/Box2DPhysicsWorld.h"
 

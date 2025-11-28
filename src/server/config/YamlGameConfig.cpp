@@ -16,6 +16,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         if (root["race"]) {
             const auto& race = root["race"];
             maxPlayers = race["max_players"].as<int>();
+            maxNPCs = race["max_NPCs"].as<int>();
             timeLimitSec = race["time_limit_sec"].as<float>();
             intermissionSec = race["intermission_sec"].as<float>();
         } else {
