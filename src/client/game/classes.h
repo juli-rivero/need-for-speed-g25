@@ -11,35 +11,10 @@
 
 #include "client/connexion/connexion.h"
 #include "client/constants.h"
+#include "client/game/assets.h"
+#include "client/game/map.h"
 #include "common/macros.h"
 #include "common/structs.h"
-
-class Assets final {
-   public:
-    explicit Assets(SDL2pp::Renderer& renderer);
-
-    // Assets a secas
-    SDL2pp::Texture car_speedster;
-    SDL2pp::Texture car_tank;
-    SDL2pp::Texture car_drifter;
-    SDL2pp::Texture car_rocket;
-    SDL2pp::Texture car_classic;
-    SDL2pp::Texture car_offroad;
-    SDL2pp::Texture car_ghost;
-    SDL2pp::Texture city_liberty;
-    SDL2pp::Chunk sound_brake;
-    SDL2pp::Chunk sound_crash;
-    SDL2pp::Chunk sound_finish;
-    SDL2pp::Font font;
-
-    SDL2pp::Texture arrow;
-
-    // Mapeos de cadena
-    std::unordered_map<CarType, SDL2pp::Texture*> car_name;
-    std::unordered_map<std::string, SDL2pp::Texture*> city_name;
-
-    MAKE_FIXED(Assets)
-};
 
 class Game;
 
@@ -63,6 +38,7 @@ class Car final {
     const bool finished;
     const float elapsed_time;
     const bool braking;
+    const RenderLayer layer;
 
     // Constantes utiles
     const int WIDTH;
@@ -87,8 +63,10 @@ class Screen final {
 
     // Pasos de renderizado
     void draw_ciudad();
-    void draw_checkpoint();
-    void draw_coches();
+    void draw_next_checkpoint();
+    void draw_coches(RenderLayer capa);
+    void draw_bridges();
+    void draw_overpasses();
     void draw_hud();
 
    public:
@@ -106,11 +84,19 @@ class Screen final {
     // Modificar cam_x e cam_y para impactar donde dibujar.
     // TODO(franco): migrar la camara a screen.
     // TODO(franco): esto no deberia ser private? refactorizar car?
-    void render(SDL2pp::Texture& surface, int x, int y, double angle = 0,
+    void render(SDL2pp::Texture& surface, SDL2pp::Point pos, double angle = 0,
                 bool in_world = true);
-    void render(const std::string& texto, int x, int y, bool in_world = true);
-    void render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
+
+    void render_slice(SDL2pp::Texture& texture, SDL2pp::Rect section,
+                      SDL2pp::Point pos, bool in_world = true);
+
+    void render_text(const std::string& texto, SDL2pp::Point pos,
                      bool in_world = true);
+
+    void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
+                      bool in_world = true);
+    void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
+                      double angle, bool in_world = true);
 
     MAKE_FIXED(Screen)
 };
@@ -146,9 +132,10 @@ class Game final : Connexion::Responder {
     Sound sound;
     Assets assets;
 
-    // Componentes de conexion
+    // Componentes de conexion y configuracion
     Api& api;
     const PlayerId my_id;
+    Map map;
     const CityInfo& city_info;
     const RaceInfo& race_info;
 
