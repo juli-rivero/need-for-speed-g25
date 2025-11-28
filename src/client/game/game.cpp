@@ -13,15 +13,10 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
       assets(renderer),
       api(connexion.get_api()),
       my_id(connexion.unique_id),
+      map(setup.city_info, setup.race_info),
       city_info(setup.city_info),
       race_info(setup.race_info) {
-    spdlog::info("map: {}", city_info.name);
-    for (const CheckpointInfo& c : race_info.checkpoints) {
-        const Bound& cb = c.bound;
-        spdlog::info("check: x {} | y {} | w {} | h {}", cb.pos.x, cb.pos.y,
-                     cb.width, cb.height);
-    }
-
+    spdlog::info("map: {}", map.name);
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }

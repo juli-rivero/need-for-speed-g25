@@ -1,6 +1,7 @@
 #include <math.h>
 
 #include "client/game/classes.h"
+#include "spdlog/spdlog.h"
 
 constexpr float PI = 3.14;
 constexpr float pixels_per_meter = 10;
@@ -30,6 +31,7 @@ Car::Car(Game& game, const PlayerSnapshot& base)
       finished(base.raceProgress.finished),
       elapsed_time(base.raceProgress.elapsedTime),
       braking(base.car.braking),
+      layer(base.car.layer),
       WIDTH(sprite.GetWidth()),
       HEIGHT(sprite.GetHeight()) {}
 
@@ -41,12 +43,16 @@ void Car::set_camera() {
 }
 
 void Car::draw(bool with_name) {
-    game.screen.render(sprite, x, y, angle);
-    if (with_name) game.screen.render(name, x, y - HEIGHT - 10, true);
+    int x_i = static_cast<int>(x);
+    int y_i = static_cast<int>(y);
+
+    game.screen.render(sprite, {x_i, y_i}, angle);
+    if (with_name)
+        game.screen.render_text(name, {x_i, y_i - HEIGHT - 10}, true);
 }
 
 float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
-    if (next_checkpoint >= game.race_info.checkpoints.size()) {
+    if (next_checkpoint >= game.map.checkpoint_amount) {
         has_angle = false;
         return 0;
     }
@@ -54,12 +60,9 @@ float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
     float my_x = x + WIDTH / 2;
     float my_y = y + HEIGHT / 2;
 
-    const CheckpointInfo& c = game.race_info.checkpoints[next_checkpoint];
-    const Bound& cb = c.bound;
-    float check_x =
-        cb.pos.x * pixels_per_meter + cb.width * pixels_per_meter / 2;
-    float check_y =
-        cb.pos.y * pixels_per_meter + cb.height * pixels_per_meter / 2;
+    const Map::Box& b = game.map.checkpoints[next_checkpoint];
+    float check_x = b.x + b.w / 2;
+    float check_y = b.y + b.h / 2;
 
     has_angle = true;
     return atan2(my_y - check_y, my_x - check_x) * 180 / PI;

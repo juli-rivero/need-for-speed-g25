@@ -1,4 +1,4 @@
-#include "client/game/classes.h"
+#include "client/game/assets.h"
 
 Assets::Assets(SDL2pp::Renderer& renderer)
     : car_speedster(renderer, "assets/cars/speedster.png"),
@@ -13,7 +13,8 @@ Assets::Assets(SDL2pp::Renderer& renderer)
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
       font("assets/fonts/OpenSans-Regular.ttf", 20),
-      arrow(renderer, "assets/misc/arrow.png") {
+      arrow(renderer, "assets/misc/arrow.png"),
+      white(renderer, "assets/misc/white.png") {
     car_name.insert({CarType::Speedster, &car_speedster});
     car_name.insert({CarType::Tank, &car_tank});
     car_name.insert({CarType::Drifter, &car_drifter});
