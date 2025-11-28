@@ -78,15 +78,27 @@ class Car : public Entity {
         bool isNPC = (getEntityType() == EntityType::NPCCar);
         filter.categoryBits = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        // Siempre detectar sensores sin importar layer
-        filter.maskBits = CATEGORY_SENSOR | CATEGORY_WALL | CATEGORY_CAR;
+        // Siempre paredes + sensores
+        filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR;
 
-        // Jugador debe detectar NPCs
-        if (!isNPC) filter.maskBits |= CATEGORY_NPC;
+        //  REGLA DE COLISIÓN POR CAPA
+        if (layer == RenderLayer::UNDER) {
+            if (!isNPC) {
+                filter.maskBits |= CATEGORY_CAR;
+                filter.maskBits |= CATEGORY_NPC;
+            } else {
+                filter.maskBits |= CATEGORY_CAR;
+            }
 
-        // Railing solo en OVER
-        if (layer == RenderLayer::OVER) filter.maskBits |= CATEGORY_RAILING;
-
+        } else {
+            filter.maskBits |= CATEGORY_RAILING;
+            if (!isNPC) {
+                filter.maskBits |= CATEGORY_CAR;
+                filter.maskBits |= CATEGORY_NPC;
+            } else {
+                filter.maskBits |= CATEGORY_CAR;
+            }
+        }
         b2Shape_SetFilter(shape, filter);
     }
 

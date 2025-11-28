@@ -5,41 +5,61 @@
 #include <utility>
 #include <vector>
 
-TrafficSystem::TrafficSystem(EntityFactory& f) : factory(f) {
+TrafficSystem::TrafficSystem(EntityFactory& f,
+                             const std::vector<SpawnPoint>& playerSpawnPoints)
+    : factory(f), playerSpawnPoints(playerSpawnPoints) {
     std::srand(std::time(nullptr));
+}
+
+static bool isNear(const b2Vec2& a, const SpawnPoint& b, float minDist) {
+    float dx = a.x - b.x;
+    float dy = a.y - b.y;
+    return (dx * dx + dy * dy) < (minDist * minDist);
+}
+
+bool TrafficSystem::isTooCloseToSpawnPoints(const b2Vec2& pos) const {
+    const float MIN_DIST = 10.0f;  // 6 metros → 60 px si PPM=10
+
+    for (const auto& sp : playerSpawnPoints) {
+        if (isNear(pos, sp, MIN_DIST)) return true;
+    }
+    return false;
 }
 
 const std::vector<std::unique_ptr<NPCVehicle>>& TrafficSystem::getNPCs() const {
     return npcs;
 }
 void TrafficSystem::spawnNPCs() {
-    const auto& segments = graph->getSegments();
-    if (segments.empty()) {
-        return;
+    const int MAX_ATTEMPTS = 25;
+
+    for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
+        const auto& segments = graph->getSegments();
+        if (segments.empty()) return;
+
+        const RoadSegment& seg = segments[rand() % segments.size()];
+
+        // NOLINTNEXTLINE
+        float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+        b2Vec2 pos{seg.start.x + (seg.end.x - seg.start.x) * t,
+                   seg.start.y + (seg.end.y - seg.start.y) * t};
+
+        if (isTooCloseToSpawnPoints(pos)) continue;
+
+        float dx = seg.end.x - seg.start.x;
+        float dy = seg.end.y - seg.start.y;
+        float angle = atan2f(dy, dx);
+
+        auto car = factory.createNpcCar(CarType::Classic, pos.x, pos.y);
+        auto npc = std::make_unique<NPCVehicle>(std::move(car));
+
+        npc->getCar()->setLayer(RenderLayer::UNDER);
+        npc->getCar()->getBody()->setTransform(pos.x, pos.y, angle);
+
+        npc->setTargetNode(seg.b);
+
+        npcs.push_back(std::move(npc));
+        return;  // spawn correcto
     }
-    // se elige segmento
-    const RoadSegment& seg = segments[rand() % segments.size()];
-
-    // se interpola punto aleatorio sobre el segmento
-
-    // NOLINTNEXTLINE
-    float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-    b2Vec2 pos = {seg.start.x + (seg.end.x - seg.start.x) * t,
-                  seg.start.y + (seg.end.y - seg.start.y) * t};
-
-    float dx = seg.end.x - seg.start.x;
-    float dy = seg.end.y - seg.start.y;
-    float angle = std::atan2(dy, dx);
-
-    // crea auto
-    auto car = factory.createNpcCar(CarType::Classic, pos.x, pos.y);
-    auto npc = std::make_unique<NPCVehicle>(std::move(car));
-    npc->getCar()->setLayer(RenderLayer::UNDER);
-    npc->getCar()->getBody()->setTransform(pos.x, pos.y, angle);
-
-    npc->setTargetNode(seg.b);
-
-    npcs.push_back(std::move(npc));
 }
 
 void TrafficSystem::update(float dt) const {
