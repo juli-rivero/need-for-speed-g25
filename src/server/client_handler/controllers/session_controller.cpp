@@ -1,5 +1,6 @@
 #include "server/client_handler/controllers/session_controller.h"
 
+#include <ranges>
 #include <vector>
 
 using dto::ErrorResponse;
@@ -13,7 +14,8 @@ using std::vector;
 SessionController::SessionController(Session& session, const PlayerId client_id,
                                      Api& api, Receiver& receiver,
                                      ISessionEvents& handler,
-                                     spdlog::logger* log)
+                                     spdlog::logger* log,
+                                     const YamlGameConfig& game_config)
     : log(log),
       client_id(client_id),
       api(api),
@@ -22,7 +24,15 @@ SessionController::SessionController(Session& session, const PlayerId client_id,
     Receiver::Listener::subscribe(receiver);
     Session::Listener::subscribe(session);
     session.add_client(client_id);
-    api.reply_joined(session.get_info(), session.get_types_of_static_cars());
+    const auto& toDisplayInfo = game_config.getCarDisplayInfoMap();
+    const auto& toStats = game_config.getCarStaticStatsMap();
+
+    std::vector<CarInfo> cars;
+    cars.reserve(toDisplayInfo.size());
+    for (const auto type : toDisplayInfo | std::views::keys) {
+        cars.push_back({type, toDisplayInfo.at(type), toStats.at(type)});
+    }
+    api.reply_joined(session.get_info(), cars);
     log->debug("controlling session");
 }
 
@@ -44,9 +54,9 @@ void SessionController::on_start_request(const bool ready) {
         api.reply_error(e.what());
     }
 }
-void SessionController::on_choose_car(const std::string& car_name) {
+void SessionController::on_choose_car(const CarType& car_type) {
     try {
-        session.set_car(client_id, car_name);
+        session.set_car(client_id, car_type);
     } catch (std::exception& e) {
         log->warn("could not set car: {}", e.what());
         api.reply_error(e.what());
@@ -72,11 +82,11 @@ void SessionController::on_session_updated(
 }
 
 void SessionController::on_start_game(GameSessionFacade& game,
-                                      const std::string& map,
-                                      const StaticSnapshot& snapshot) {
+                                      const CityInfo& city_info,
+                                      const RaceInfo& race_info) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started(map, snapshot);
+        api.notify_game_started(city_info, race_info);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());

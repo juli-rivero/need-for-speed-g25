@@ -1,5 +1,7 @@
 #pragma once
 
+#include <memory>
+#include <string>
 #include <utility>
 #include <vector>
 
@@ -8,6 +10,7 @@
 #include "common/thread.h"
 #include "server/config/YamlGameConfig.h"
 #include "server/session/logic/MatchSession.h"
+#include "server/session/model/BridgeSensor.h"
 #include "server/session/physics/Box2DPhysicsWorld.h"
 
 class GameSessionFacade : public Thread {
@@ -23,7 +26,7 @@ class GameSessionFacade : public Thread {
     void stop() override;
 
     explicit GameSessionFacade(const YamlGameConfig& configPath,
-                               const std::vector<RaceDefinition>& races,
+                               const std::vector<std::string>& raceFiles,
                                const std::vector<PlayerConfig>& players);
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
@@ -33,6 +36,11 @@ class GameSessionFacade : public Thread {
        protected:
         void subscribe(GameSessionFacade&);
     };
+    // TODO(elvis): BORRAR ESTO Y DEMAS AL FINALIZAR, EL CLIENTE NO RENDERIZA
+    // SENSORES, NI LOS NECESITA, SOLO EXISTE EN EL WORLD,usado en modo offline
+    const std::vector<std::unique_ptr<BridgeSensor>>& getDebugSensors() const {
+        return match.getSensors();
+    }
 
     void startTurningLeft(PlayerId id);
     void stopTurningLeft(PlayerId id);
@@ -44,14 +52,9 @@ class GameSessionFacade : public Thread {
     void stopReversing(PlayerId id);
     void useNitro(PlayerId id);
 
-#if OFFLINE
-    WorldSnapshot getSnapshot() const {
-        return match ? match->getSnapshot() : WorldSnapshot{};
-    }
-#endif
-    StaticSnapshot getStaticSnapshot() const {
-        return match.getStaticSnapshot();
-    }
+    WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
+    CityInfo getCityInfo() const { return match.getCityInfo(); }
+    RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
    private:
     common::Emitter<GameSessionFacade::Listener> emitter;

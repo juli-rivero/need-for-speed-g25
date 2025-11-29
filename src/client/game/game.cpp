@@ -1,68 +1,45 @@
-#include "client/game/game.h"
-
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/game/classes.h"
 #include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
-    : renderer(renderer),
-      mixer(mixer),
+    : screen(renderer, *this),
+      sound(mixer, *this),
       assets(renderer),
-      city(*assets.city_name[setup.map]),
       api(connexion.get_api()),
-      id(connexion.unique_id),
-      players(setup.info.players) {
-    renderer.Clear();
+      my_id(connexion.unique_id),
+      map(setup.city_info, setup.race_info),
+      city_info(setup.city_info),
+      race_info(setup.race_info) {
+    spdlog::info("map: {}", map.name);
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
 
 //
-// AUXILIAR
+// DATOS SERVIDOR
 //
-void Game::render(SDL2pp::Texture& texture, int x, int y, double angle,
-                  bool in_world) {
-    SDL2pp::Point pos(x, y);
-    if (in_world) pos -= SDL2pp::Point(cam_x, cam_y);
-
-    renderer.Copy(texture, SDL2pp::NullOpt, pos, angle);
-}
-
-void Game::render(const std::string& texto, int x, int y, bool in_world) {
-    SDL2pp::Surface s =
-        assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
-    SDL2pp::Texture t(renderer, s);
-
-    render(t, x, y, 0, in_world);
-}
-
-void Game::render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
-                       bool in_world) {
-    if (in_world) rect -= SDL2pp::Point(cam_x, cam_y);
-
-    renderer.SetDrawColor(color).FillRect(rect);
-}
-
-//
-// PRINCIPAL
-//
-
 void Game::on_game_snapshot(
     const float time_elapsed,
     const std::vector<PlayerSnapshot>& player_snapshots) {
-    std::lock_guard lock(mutex);
-    elapsed = time_elapsed;
-    players = player_snapshots;
+    std::lock_guard lock(snapshot_mutex);
+
+    this->time_elapsed = time_elapsed;
+    this->player_snapshots = player_snapshots;
 }
 
 void Game::on_collision_event(const CollisionEvent& collision_event) {
     collisions.try_push(collision_event);
 }
 
+//
+// PRINCIPAL
+//
 bool Game::send_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -97,78 +74,34 @@ bool Game::send_events() {
 
     return false;
 }
-void Game::update_cars() {
-    std::lock_guard lock(mutex);
+void Game::update_state() {
+    std::lock_guard lock(snapshot_mutex);
+
     cars.clear();
-    for (auto& player : players) {
-        cars.emplace_back(*this, player);
-        if (player.id == id) my_car = &cars.back();
+    for (auto& player : player_snapshots) {
+        cars.emplace(std::piecewise_construct, std::forward_as_tuple(player.id),
+                     std::forward_as_tuple(*this, player));
+        if (player.id == my_id) my_car = &cars.at(player.id);
     }
 }
 
-void Game::manage_collisions() {
+void Game::manage_sounds() {
+    // Colisiones
     CollisionEvent collision;
     while (collisions.try_pop(collision)) {
-        // TODO(franco): cambiar, dejo las herramientas que tenes como ejemplo
-        std::visit(
-            [](auto& collision) {
-                spdlog::debug("collision on player {} with intensity {}",
-                              collision.player, collision.intensity);
-            },
-            collision);
-        if (auto* car_to_wall = std::get_if<CollisionSimple>(&collision)) {
-            spdlog::debug("the player {} collide with a wall",
-                          car_to_wall->player);
-        }
-        if (auto* car_to_car = std::get_if<CollisionCarToCar>(&collision)) {
-            spdlog::debug("the player {} collide with player {}",
-                          car_to_car->player, car_to_car->other);
-        }
-    }
-}
+        PlayerId id;
+        std::visit([&](const auto& collision) { id = collision.player; },
+                   collision);
 
-void Game::get_state() {
-    update_cars();
-    manage_collisions();
-}
-
-void Game::draw_state() {
-    renderer.Clear();
-
-    // Ciudad
-    spdlog::trace("cargando ciudad");
-    render(assets.city_liberty, 0, 0);
-
-    // Coches
-    spdlog::trace("poniendo camara");
-    if (my_car) my_car->set_camera();
-
-    spdlog::trace("dibujando coches");
-    for (Car& car : cars) {
-        if (&car == my_car) continue;
-        car.draw(true);
+        Car& car = cars.at(id);
+        sound.crash(car);
     }
 
-    if (my_car) my_car->draw(false);
-
-    // HUD
-    spdlog::trace("mostrando HUD");
-    // render("Hola, mundo!", 10, 10, false);
-    if (my_car) {
-        render_rect({10, 10, static_cast<int>(my_car->get_health()), 10},
-                    {0, 255, 0, 255}, false);
-        render_rect({10, 30, static_cast<int>(my_car->get_speed()), 10},
-                    {255, 165, 0, 255}, false);
-    }
-
-    renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Present();
-}
-
-void Game::play_sounds() {
-    // for (Car& car : cars) {
-    //     if (car.get_id() == 1) car.sound_crash();
-    // }
+    // Freno (y carrera completada)
+    // TODO(franco): reproducir frenos de otros coches, aparte del mio
+    if (!my_car) return;
+    sound.test_brake(*my_car);
+    sound.test_finish(*my_car);
 }
 
 bool Game::start() {
@@ -177,9 +110,9 @@ bool Game::start() {
 
     while (1) {
         bool quit = send_events();
-        get_state();
-        draw_state();
-        play_sounds();
+        update_state();
+        screen.update();
+        manage_sounds();
 
         if (quit) return true;
 

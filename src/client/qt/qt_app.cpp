@@ -82,11 +82,10 @@ void QtWindowManager::show_waiting_window() {
     setWindowTitle("Need for Speed - Sala de Espera");
     stack.setCurrentWidget(&waitingWindow);
 }
-
-void QtWindowManager::continue_game(const std::string& map,
-                                    const StaticSnapshot& circuit) {
-    setup.map = map;
-    setup.info = circuit;
+void QtWindowManager::continue_game(const CityInfo& city_info,
+                                    const RaceInfo& race_info) {
+    setup.city_info = city_info;
+    setup.race_info = race_info;
 
     shouldQuit = false;
 
@@ -108,10 +107,7 @@ QtApp::QtApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     spdlog::trace("creando qt app");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-
-    // Aquí pasamos los 3 argumentos correctamente
     QtWindowManager main(connexion, quit, setup);
-
     spdlog::trace("exec");
     app.exec();
 }
