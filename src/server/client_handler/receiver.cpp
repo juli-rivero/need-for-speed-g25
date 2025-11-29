@@ -43,6 +43,10 @@ void Receiver::recv(const dto_search::CreateRequest& request) {
     log->trace("Received CreateRequest");
     emitter.dispatch(&Listener::on_create_request, request.config);
 }
+void Receiver::recv(const dto_search::StaticSessionDataRequest&) {
+    log->trace("Received StaticSessionDataRequest");
+    emitter.dispatch(&Listener::on_static_session_data_request);
+}
 void Receiver::recv(const dto_session::LeaveRequest&) {
     log->trace("Received LeaveRequest");
     emitter.dispatch(&Listener::on_leave_request);

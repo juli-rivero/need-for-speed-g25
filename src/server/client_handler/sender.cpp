@@ -6,6 +6,7 @@
 using dto::ErrorResponse;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
+using dto_search::StaticSessionDataResponse;
 using dto_session::LeaveResponse;
 using dto_session::SessionSnapshot;
 using dto_session::StartResponse;
@@ -49,6 +50,11 @@ void Sender::stop() {
 void Sender::reply_search(const vector<SessionInfo>& info) {
     log->trace("sending search response");
     responses.try_push(SearchResponse{info});
+}
+
+void Sender::reply_static_session_data(const StaticSessionData& data) {
+    log->trace("sending static session data response");
+    responses.try_push(StaticSessionDataResponse{data});
 }
 
 void Sender::reply_joined(const SessionInfo& session,

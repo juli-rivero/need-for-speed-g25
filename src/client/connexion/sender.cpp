@@ -49,6 +49,10 @@ void Sender::request_join_session(const std::string& session) {
     spdlog::trace("requesting join session {}", session);
     requests.try_push(JoinRequest{session});
 }
+void Sender::request_static_session_data() {
+    spdlog::trace("requesting static session data");
+    requests.try_push(dto_search::StaticSessionDataRequest{});
+}
 void Sender::request_create_and_join_session(const SessionConfig& config) {
     spdlog::trace("requesting create and join session {}", config.name);
     requests.try_push(CreateRequest{config});

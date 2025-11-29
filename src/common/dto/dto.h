@@ -15,13 +15,16 @@ struct ErrorResponse {
 
 using Request =
     std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_search::CreateRequest, dto_session::LeaveRequest,
-                 dto_session::StartRequest, dto_session::ChooseCarRequest,
-                 dto_game::TurnRequest, dto_game::AccelerateRequest,
-                 dto_game::UseBoostRequest, dto_game::ReverseRequest>;
+                 dto_search::CreateRequest,
+                 dto_search::StaticSessionDataRequest,
+                 dto_session::LeaveRequest, dto_session::StartRequest,
+                 dto_session::ChooseCarRequest, dto_game::TurnRequest,
+                 dto_game::AccelerateRequest, dto_game::UseBoostRequest,
+                 dto_game::ReverseRequest>;
 
 using Response =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
+                 dto_search::StaticSessionDataResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
                  dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,

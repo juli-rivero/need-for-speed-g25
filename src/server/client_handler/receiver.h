@@ -26,6 +26,7 @@ class Receiver final : public Thread {
         virtual void on_join_request(const std::string&) {}
         virtual void on_search_request() {}
         virtual void on_create_request(const SessionConfig&) {}
+        virtual void on_static_session_data_request() {}
         virtual void on_leave_request() {}
         virtual void on_start_request(bool) {}
         virtual void on_choose_car(const CarType&) {}
@@ -54,6 +55,7 @@ class Receiver final : public Thread {
     void recv(const dto_search::JoinRequest&);
     void recv(const dto_search::SearchRequest&);
     void recv(const dto_search::CreateRequest&);
+    void recv(const dto_search::StaticSessionDataRequest&);
     void recv(const dto_session::LeaveRequest&);
     void recv(const dto_session::StartRequest&);
     void recv(const dto_session::ChooseCarRequest&);

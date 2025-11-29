@@ -41,6 +41,16 @@ std::vector<std::string> SessionsMonitor::get_sessions_ids() {
     return result;
 }
 
+int SessionsMonitor::get_max_players_per_session() {
+    return yaml_config.getMaxPlayers();
+}
+int SessionsMonitor::get_max_races_per_session() {
+    return yaml_config.getMaxRacesPerSession();
+}
+std::vector<CityName> SessionsMonitor::get_available_cities() {
+    return yaml_config.getAvailableCities();
+}
+
 void SessionsMonitor::reap_sessions() {
     for (auto it = sessions.begin(); it != sessions.end();) {
         if (it->second.empty())

@@ -14,6 +14,7 @@
 
 struct Api {
     virtual void reply_search(const std::vector<SessionInfo>&) = 0;
+    virtual void reply_static_session_data(const StaticSessionData&) = 0;
     virtual void reply_joined(const SessionInfo& session,
                               const std::vector<CarInfo>& carTypes) = 0;
     virtual void reply_left() = 0;
@@ -48,6 +49,7 @@ class Sender final : public Thread, public Api {
     MAKE_FIXED(Sender)
 
     void reply_search(const std::vector<SessionInfo>&) override;
+    void reply_static_session_data(const StaticSessionData&) override;
     void reply_joined(const SessionInfo& session,
                       const std::vector<CarInfo>& carTypes) override;
     void reply_left() override;

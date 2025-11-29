@@ -20,6 +20,7 @@ class YamlGameConfig {
     std::unordered_map<CarType, CarStaticStats> carsStaticStats;
 
     // Configuración global de carrera
+    int maxRaces{};
     int maxPlayers{};
     int maxNPCs{};
     float timeLimitSec{};
@@ -29,6 +30,7 @@ class YamlGameConfig {
     explicit YamlGameConfig(const std::string& filePath);
 
     // Getters
+    int getMaxRacesPerSession() const { return maxRaces; }
     int getMaxPlayers() const { return maxPlayers; }
     float getRaceTimeLimitSec() const { return timeLimitSec; }
     float getIntermissionSec() const { return intermissionSec; }
@@ -38,7 +40,8 @@ class YamlGameConfig {
         return penalties;
     }
 
-    const std::vector<std::string>& getRaces(const CityName& city) const;
+    const std::vector<CityName> getAvailableCities() const;
+    const std::vector<RaceName>& getRaces(const CityName& city) const;
     const std::unordered_map<CarType, CarDisplayInfo>& getCarDisplayInfoMap()
         const {
         return carsDisplayInfo;

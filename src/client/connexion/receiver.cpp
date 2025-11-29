@@ -39,6 +39,10 @@ void Receiver::recv(const dto_search::SearchResponse& response) {
     spdlog::trace("received search response");
     emitter.dispatch(&Listener::on_search_response, response.sessions);
 }
+void Receiver::recv(const dto_search::StaticSessionDataResponse& response) {
+    spdlog::trace("received static session data response");
+    emitter.dispatch(&Listener::on_static_session_data_response, response.data);
+}
 void Receiver::recv(const dto_search::JoinResponse& response) {
     spdlog::trace("received join response");
     emitter.dispatch(&Listener::on_join_response, response.session,
