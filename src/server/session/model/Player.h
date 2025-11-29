@@ -5,7 +5,6 @@
 #include <utility>
 #include <vector>
 
-#include "../logic/NetworkTypes.h"
 #include "Car.h"
 #include "server/session/logic/types.h"
 class Player {

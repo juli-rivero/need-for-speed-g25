@@ -2,26 +2,39 @@
 
 #include "MatchSession.h"
 
-WorldSnapshot MatchSession::getSnapshot() const {
-    WorldSnapshot snap;
+GameSnapshot MatchSession::getSnapshot() const {
+    const MatchSnapshot match{
+        .matchState = _state,
+        .currentRaceIndex = static_cast<uint32_t>(_currentRace),
+        .time = _world.getTime(),
+    };
+    const RaceSnapshot race{
+        .raceState = _race->getState(),
+        .raceElapsed = _race->elapsedRaceTime(),
+        .raceCountdown = _race->countdownRemaining(),
+        .raceTimeLeft = std::max(
+            0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime()),
+    };
 
-    snap.time = _world.getTime();
-    snap.matchState = _state;
-    snap.currentRaceIndex = _currentRace;
-    snap.raceState = _race->getState();
-    snap.raceElapsed = _race->elapsedRaceTime();
-    snap.raceCountdown = _race->countdownRemaining();
-    snap.raceTimeLeft =
-        std::max(0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime());
-
+    std::vector<PlayerSnapshot> players;
+    players.reserve(_players.size());
     for (const auto& p : _players | std::views::values)
-        snap.players.push_back(p->buildSnapshot());
+        players.push_back(p->buildSnapshot());
 
-    if (_traffic)
-        for (auto& n : _traffic->getNPCs())
-            snap.npcs.push_back(n->buildSnapshot());
+    std::vector<NpcSnapshot> npcs;
+    if (_traffic) {
+        const auto& logic_npcs = _traffic->getNPCs();
+        npcs.reserve(logic_npcs.size());
+        for (auto& npc_logic : logic_npcs)
+            npcs.push_back(npc_logic->buildSnapshot());
+    }
 
-    return snap;
+    return GameSnapshot{
+        .match = match,
+        .race = race,
+        .players = players,
+        .npcs = npcs,
+    };
 }
 
 CityInfo MatchSession::getCityInfo() const {

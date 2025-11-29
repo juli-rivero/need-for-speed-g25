@@ -5,7 +5,6 @@ target_sources(taller_server
         PUBLIC
         GameSessionFacade.h
         types.h
-        NetworkTypes.h
         UpgradeSystem.h
 )
 add_subdirectory(match)

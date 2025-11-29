@@ -28,7 +28,7 @@ class GameSessionFacade : public Thread {
                                const std::vector<PlayerConfig>& players);
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
-        virtual void on_snapshot(const WorldSnapshot&) = 0;
+        virtual void on_snapshot(const GameSnapshot&) = 0;
         virtual void on_collision_event(const CollisionEvent&) = 0;
 
        protected:
@@ -50,7 +50,7 @@ class GameSessionFacade : public Thread {
     void stopReversing(PlayerId id);
     void useNitro(PlayerId id);
 
-    WorldSnapshot getSnapshot() const { return match.getSnapshot(); }
+    GameSnapshot getSnapshot() const { return match.getSnapshot(); }
     CityInfo getCityInfo() const { return match.getCityInfo(); }
     RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
