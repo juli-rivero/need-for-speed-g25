@@ -66,10 +66,6 @@ enum class TurnDirection { None, Left, Right };
 struct CollisionSimple {
     PlayerId player;
     float intensity;
-
-    CollisionSimple() = default;
-
-    CollisionSimple(PlayerId p, float i) : player(p), intensity(i) {}
 };
 
 struct CollisionCarToCar : CollisionSimple {

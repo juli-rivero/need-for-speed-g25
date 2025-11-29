@@ -444,9 +444,8 @@ void SelectingWindow::applyTheme() {
     QList<QLabel*> statLabels = findChildren<QLabel*>();
     for (QLabel* label : statLabels) {
         QString text = label->text();
-        if (text.contains("⚡") || text.contains("🚀") ||
-            text.contains("❤️") || text.contains("⚖️") ||
-            text.contains("🎮")) {
+        if (text.contains("⚡") || text.contains("🚀") || text.contains("❤️") ||
+            text.contains("⚖️") || text.contains("🎮")) {
             label->setStyleSheet(QString("font-weight: bold;"
                                          "color: %1;")
                                      .arg(palette.textPrimary));
