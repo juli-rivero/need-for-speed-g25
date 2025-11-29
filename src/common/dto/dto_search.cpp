@@ -5,9 +5,13 @@
 using namespace dto_search;
 
 // SearchRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, SearchRequest&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const SearchRequest&) {
+ProtocolReceiver& operator>>(ProtocolReceiver& p, SearchRequest&) {
+    p.get<uint8_t>();  // para que al enviar, no se envien 0 bytes y salte un
+                       // error
     return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const SearchRequest&) {
+    return p << static_cast<uint8_t>(0);
 }
 // SearchResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, SearchResponse& e) {
