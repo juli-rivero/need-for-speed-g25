@@ -21,10 +21,12 @@ ProtocolSender& operator<<(ProtocolSender& p, const Request& e) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
     /*
     * std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_search::CreateRequest, dto_session::LeaveRequest,
-                 dto_session::StartRequest, dto_session::ChooseCarRequest,
-                 dto_game::TurnRequest, dto_game::AccelerateRequest,
-                 dto_game::UseBoostRequest, dto_game::ReverseRequest>;
+                 dto_search::CreateRequest,
+                 dto_search::StaticSessionDataRequest,
+                 dto_session::LeaveRequest, dto_session::StartRequest,
+                 dto_session::ChooseCarRequest, dto_game::TurnRequest,
+                 dto_game::AccelerateRequest, dto_game::UseBoostRequest,
+                 dto_game::ReverseRequest>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -37,24 +39,27 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
             e = p.get<dto_search::CreateRequest>();
             break;
         case 3:
-            e = p.get<dto_session::LeaveRequest>();
+            e = p.get<dto_search::StaticSessionDataRequest>();
             break;
         case 4:
-            e = p.get<dto_session::StartRequest>();
+            e = p.get<dto_session::LeaveRequest>();
             break;
         case 5:
-            e = p.get<dto_session::ChooseCarRequest>();
+            e = p.get<dto_session::StartRequest>();
             break;
         case 6:
-            e = p.get<dto_game::TurnRequest>();
+            e = p.get<dto_session::ChooseCarRequest>();
             break;
         case 7:
-            e = p.get<dto_game::AccelerateRequest>();
+            e = p.get<dto_game::TurnRequest>();
             break;
         case 8:
-            e = p.get<dto_game::UseBoostRequest>();
+            e = p.get<dto_game::AccelerateRequest>();
             break;
         case 9:
+            e = p.get<dto_game::UseBoostRequest>();
+            break;
+        case 10:
             e = p.get<dto_game::ReverseRequest>();
             break;
         default:
@@ -73,9 +78,11 @@ ProtocolSender& operator<<(ProtocolSender& p, const Response& e) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
     /*
     * std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
+                 dto_search::StaticSessionDataResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
-                 dto_game::GameStaticSnapshot, dto_game::GameSnapshot>;
+                 dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
+                 dto_game::EventPacket>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -85,24 +92,27 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             e = p.get<dto_search::JoinResponse>();
             break;
         case 2:
-            e = p.get<dto_session::LeaveResponse>();
+            e = p.get<dto_search::StaticSessionDataResponse>();
             break;
         case 3:
-            e = p.get<dto_session::StartResponse>();
+            e = p.get<dto_session::LeaveResponse>();
             break;
         case 4:
-            e = p.get<dto::ErrorResponse>();
+            e = p.get<dto_session::StartResponse>();
             break;
         case 5:
-            e = p.get<dto_session::SessionSnapshot>();
+            e = p.get<dto::ErrorResponse>();
             break;
         case 6:
-            e = p.get<dto_game::GameStaticSnapshot>();
+            e = p.get<dto_session::SessionSnapshot>();
             break;
         case 7:
-            e = p.get<dto_game::GameSnapshotPacket>();
+            e = p.get<dto_game::GameStaticSnapshot>();
             break;
         case 8:
+            e = p.get<dto_game::GameSnapshotPacket>();
+            break;
+        case 9:
             e = p.get<dto_game::EventPacket>();
             break;
         default:

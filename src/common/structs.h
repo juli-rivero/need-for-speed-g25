@@ -10,6 +10,12 @@ enum class SessionStatus { Waiting, Playing, Full };
 using CityName = std::string;
 using RaceName = std::string;
 
+struct StaticSessionData {
+    uint32_t playersCapacity;
+    uint32_t racesCapacity;
+    std::vector<CityName> cities;
+};
+
 #define SESSION_CONFIG_FIELDS \
     std::string name;         \
     uint8_t maxPlayers;       \

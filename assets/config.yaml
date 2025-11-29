@@ -1,10 +1,13 @@
 # CONFIGURACIÓN GLOBAL (constantes)
 
-race:
-  max_players: 8
-  max_NPCs : 25
-  time_limit_sec: 6000        # límite por carrera (10 minutos)
-  intermission_sec: 10       # pausa entre carreras
+config:
+  match:
+    max_races: 5
+  race:
+    max_players: 8
+    max_NPCs : 25
+    time_limit_sec: 6000        # límite por carrera (10 minutos)
+    intermission_sec: 10       # pausa entre carreras
 
 # Penalizaciones por mejoras de auto
 # (se suman en segundos al tiempo de carrera)

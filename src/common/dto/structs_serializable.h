@@ -4,6 +4,7 @@
 #include "common/protocol.h"
 #include "common/structs.h"
 
+DECLARE_SERIALIZABLE(StaticSessionData)
 MAKE_ENUM_SERIALIZABLE(SessionStatus, uint8_t)
 DECLARE_SERIALIZABLE(SessionConfig)
 DECLARE_SERIALIZABLE(SessionInfo)

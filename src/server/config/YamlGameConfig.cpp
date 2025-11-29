@@ -13,12 +13,19 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                      filePath);
 
         // === Sección "race" ===
-        if (root["race"]) {
-            const auto& race = root["race"];
-            maxPlayers = race["max_players"].as<int>();
-            maxNPCs = race["max_NPCs"].as<int>();
-            timeLimitSec = race["time_limit_sec"].as<float>();
-            intermissionSec = race["intermission_sec"].as<float>();
+        if (root["config"]) {
+            const auto& config = root["config"];
+            if (config["match"]) {
+                const auto& match = config["match"];
+                maxRaces = match["max_races"].as<int>();
+            }
+            if (config["race"]) {
+                const auto& race = config["race"];
+                maxPlayers = race["max_players"].as<int>();
+                maxNPCs = race["max_NPCs"].as<int>();
+                timeLimitSec = race["time_limit_sec"].as<float>();
+                intermissionSec = race["intermission_sec"].as<float>();
+            }
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
@@ -95,7 +102,15 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     }
 }
 
-const std::vector<std::string>& YamlGameConfig::getRaces(
+const std::vector<CityName> YamlGameConfig::getAvailableCities() const {
+    std::vector<CityName> cities;
+    for (const auto& city : races | std::views::keys) {
+        cities.push_back(city);
+    }
+    return cities;
+}
+
+const std::vector<RaceName>& YamlGameConfig::getRaces(
     const CityName& city) const {
     return races.at(city);
 }

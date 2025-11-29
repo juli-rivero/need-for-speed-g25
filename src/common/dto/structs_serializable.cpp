@@ -5,6 +5,13 @@
 #include "common/protocol.h"
 #include "common/structs.h"
 
+ProtocolReceiver& operator>>(ProtocolReceiver& p, StaticSessionData& s) {
+    return p >> s.playersCapacity >> s.racesCapacity >> s.cities;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const StaticSessionData& s) {
+    return p << s.playersCapacity << s.racesCapacity << s.cities;
+}
+
 ProtocolSender& operator<<(ProtocolSender& p, const SessionConfig& s) {
     return p << s.name << s.maxPlayers << s.raceCount << s.city;
 }
