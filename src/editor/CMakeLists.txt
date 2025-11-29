@@ -8,10 +8,12 @@ target_sources(taller_editor
     yaml_handler.cpp
     checkpoint_item.cpp
     building_item.cpp
+    sensor_item.cpp
 
     PUBLIC
     # .h files
     editor_window.h
+    sensor_item.h
     start_dialog.h
     map_canvas.h
     yaml_handler.h

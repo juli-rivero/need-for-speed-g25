@@ -210,38 +210,6 @@ QString ThemeManager::carCardStyle() const {
         .arg(currentPalette.primaryColor);
 }
 
-QString ThemeManager::carStatBarStyle(float value) const {
-    // Elegir color basado en el valor
-    QString barColor;
-    if (value >= 0.8f) {
-        barColor = currentPalette.statusSuccess;  // Verde para valores altos
-    } else if (value >= 0.6f) {
-        barColor = "#8BC34A";  // Verde claro
-    } else if (value >= 0.4f) {
-        barColor = currentPalette.statusWarning;  // Naranja para valores medios
-    } else {
-        barColor = currentPalette.statusError;  // Rojo para valores bajos
-    }
-
-    return QString(
-               "QProgressBar {"
-               "    border: 1px solid %1;"
-               "    border-radius: 4px;"
-               "    background-color: %2;"
-               "    text-align: center;"
-               "    color: %3;"
-               "    font-weight: bold;"
-               "}"
-               "QProgressBar::chunk {"
-               "    background-color: %4;"
-               "    border-radius: 3px;"
-               "}")
-        .arg(currentPalette.borderColor)
-        .arg(currentPalette.progressBackground)
-        .arg(currentPalette.textPrimary)
-        .arg(barColor);
-}
-
 // Creación de paletas
 ColorPalette ThemeManager::createDefaultPalette() {
     ColorPalette palette;
