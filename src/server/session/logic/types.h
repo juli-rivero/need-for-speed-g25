@@ -34,6 +34,7 @@ struct PlayerRaceData {
 
 enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
 struct UpgradeChoice {
-    UpgradeStat stat;  // queda mas simple asi, los delta y penalties se obtiene
-                       // del config y para mostrarlos
+    UpgradeStat stat;
+    float delta;    // cuánto aumenta el stat
+    float penalty;  // penalidad por aplicar este upgrade
 };

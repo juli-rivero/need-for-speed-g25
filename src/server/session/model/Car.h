@@ -254,8 +254,8 @@ class Car : public Entity {
     // los atributos del coche con los del yaml para casos aislados como el fin
     // de partida en caso de que se quiera mostrar cada penalizacion (¿se quiere
     // eso?)
-    void upgrade(const UpgradeChoice up, float amount) {
-        switch (up.stat) {
+    void upgrade(const UpgradeStat up, float amount) {
+        switch (up) {
             case UpgradeStat::MaxSpeed:
                 upgrades.bonusMaxSpeed += amount;
                 break;
