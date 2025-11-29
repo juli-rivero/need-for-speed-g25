@@ -8,7 +8,6 @@
 #include "../../../config/YamlGameConfig.h"
 #include "../../model/Player.h"
 #include "../../physics/Box2DPhysicsWorld.h"
-#include "../UpgradeSystem.h"
 #include "../race/RaceSession.h"
 #include "server/session/NPC/TrafficSystem.h"
 #include "server/session/logic/types.h"
@@ -37,12 +36,7 @@ class MatchSession {
     MatchState _state{MatchState::Starting};
     float _intermissionClock{0.0f};
 
-    UpgradeSystem _upgradeSystem;
-    std::unordered_map<PlayerId, std::vector<UpgradeChoice>> _queuedUpgrades;
-    std::optional<EndRaceSummaryPacket> pendingEndRacePacket;
-
     void startRace(std::size_t raceIndex);
-    EndRaceSummaryPacket finishRaceAndComputeTotals();
     void startIntermission();
     void endIntermissionAndPrepareNextRace();
 
@@ -56,25 +50,17 @@ class MatchSession {
     GameSnapshot getSnapshot() const;
     CityInfo getCityInfo() const;
     RaceInfo getRaceInfo() const;
-    // upgrades propuestos por jugadores ( que se aplicarán a la próxima
-    // carrera)
-    void queueUpgrades(
-        const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups);
 
     MatchState state() const { return _state; }
 
     const std::vector<std::unique_ptr<Wall>>& getWalls() const {
         return _buildings;
     }
-    bool hasPendingEndRacePacket() const {
-        return pendingEndRacePacket.has_value();
-    }
-    EndRaceSummaryPacket consumeEndRacePacket() {
-        auto p = *pendingEndRacePacket;
-        pendingEndRacePacket.reset();
-        return p;
-    }
+
     const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
         return _race->getSensors();
     }
+    void applyUpgrade(PlayerId id, UpgradeStat stat);
+
+    static const char* toPenaltyKey(UpgradeStat s);
 };
