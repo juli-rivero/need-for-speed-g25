@@ -3,9 +3,11 @@
 #include <QFrame>
 #include <QHBoxLayout>
 #include <QMessageBox>
+#include <string>
+#include <vector>
 
 #include "client/qt/theme_manager.h"
-#include "client/qt/ui/CarSprite.h"
+#include "client/qt/windows/car_assets.h"
 #include "spdlog/spdlog.h"
 
 WaitingWindow::WaitingWindow(QWidget* parent, Connexion& connexion)
@@ -133,7 +135,6 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
     for (const PlayerInfo& player : players) {
         QListWidgetItem* item = new QListWidgetItem(playersListWidget);
 
-        // Frame del jugador
         QFrame* frame = new QFrame();
         frame->setFrameShape(QFrame::Box);
         frame->setStyleSheet(theme.gameCardStyle());
@@ -141,15 +142,21 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
         QHBoxLayout* hlayout = new QHBoxLayout(frame);
         hlayout->setContentsMargins(15, 10, 15, 10);
 
-        // Icono del auto
-        QLabel* carIcon =
-            new QLabel(CarSprite::getSprite(player.carType).c_str());
-        carIcon->setStyleSheet(
-            QString("font-size: 32px; border: none; color: %1;")
-                .arg(palette.textPrimary));
+        // --- ICONO DEL AUTO (PNG) ---
+        QLabel* carIcon = new QLabel();
+        QString imagePath = getCarImagePath(player.carType);
+
+        QPixmap pix(imagePath);
+        if (pix.isNull()) {
+            carIcon->setText("🚗");
+            carIcon->setStyleSheet("font-size: 28px; border: none;");
+        } else {
+            carIcon->setPixmap(pix.scaled(48, 48, Qt::KeepAspectRatio,
+                                          Qt::SmoothTransformation));
+        }
         hlayout->addWidget(carIcon);
 
-        // Nombre
+        // --- NOMBRE DEL JUGADOR ---
         QLabel* nameLabel = new QLabel(player.name.c_str());
         nameLabel->setStyleSheet(
             QString(
@@ -157,7 +164,7 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
                 .arg(palette.textPrimary));
         hlayout->addWidget(nameLabel);
 
-        // Badge de host
+        // Badge host
         if (player.isHost) {
             QLabel* hostBadge = new QLabel("👑 Host");
             hostBadge->setStyleSheet(
@@ -172,13 +179,14 @@ void WaitingWindow::updatePlayersList(const std::vector<PlayerInfo>& players) {
 
         hlayout->addStretch();
 
-        // Estado ready
-        statusLabel = new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
-        statusLabel->setStyleSheet(
-            QString("font-size: 14px; font-weight: bold; color: %1; "
-                    "border: none; padding: 5px 15px;")
+        // Estado de ready
+        QLabel* stateLabel =
+            new QLabel(player.isReady ? "✅ Listo" : "⏳ Esperando");
+        stateLabel->setStyleSheet(
+            QString(
+                "font-size: 14px; font-weight: bold; color: %1; border: none;")
                 .arg(player.isReady ? "#27ae60" : "#95a5a6"));
-        hlayout->addWidget(statusLabel);
+        hlayout->addWidget(stateLabel);
 
         item->setSizeHint(frame->sizeHint());
         playersListWidget->addItem(item);
@@ -200,8 +208,7 @@ void WaitingWindow::updateStatusMessage() {
     }
 
     if (allReady && currentPlayers.size() >= 2) {
-        statusLabel->setText(
-            "🏁 ¡Todos listos! La carrera comenzará pronto...");
+        statusLabel->setText("🏁 ¡Todos listos! La carrera comenzará pronto..");
         statusLabel->setStyleSheet(
             "color: #27ae60; font-size: 14px; font-weight: bold;");
 

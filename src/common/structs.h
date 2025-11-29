@@ -130,11 +130,12 @@ struct CollisionSimple {
     PlayerId player;
     float intensity;
 };
+
 struct CollisionCarToCar : CollisionSimple {
     PlayerId other;
-    explicit CollisionCarToCar(const PlayerId player, const PlayerId other,
-                               const float intensity)
-        : CollisionSimple{player, intensity}, other(other) {}
+
+    CollisionCarToCar(PlayerId player, PlayerId other, float intensity)
+        : CollisionSimple(player, intensity), other(other) {}
 };
 
 using CollisionEvent = std::variant<CollisionSimple, CollisionCarToCar>;
