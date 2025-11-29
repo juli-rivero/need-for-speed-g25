@@ -142,11 +142,8 @@ class Game final : Connexion::Responder {
     // Componentes de snapshot update
     std::mutex snapshot_mutex;
 
-    float time_elapsed = 0;
-    std::vector<PlayerSnapshot> player_snapshots;
-    void on_game_snapshot(
-        const float time_elapsed,
-        const std::vector<PlayerSnapshot>& player_snapshots) override;
+    GameSnapshot last_snapshot;
+    void on_game_snapshot(const GameSnapshot&) override;
 
     std::unordered_map<PlayerId, Car> cars;
     Car* my_car = nullptr;

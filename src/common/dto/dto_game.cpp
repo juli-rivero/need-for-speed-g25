@@ -45,11 +45,12 @@ ProtocolSender& operator<<(ProtocolSender& p, const ReverseRequest& e) {
 }
 
 // GameSnapshot SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& r) {
-    return p >> r.raceTimeLeft >> r.players;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshotPacket& packet) {
+    return p >> packet.snapshot;
 }
-ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& r) {
-    return p << r.raceTimeLeft << r.players;
+ProtocolSender& operator<<(ProtocolSender& p,
+                           const GameSnapshotPacket& packet) {
+    return p << packet.snapshot;
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const EventPacket& r) {

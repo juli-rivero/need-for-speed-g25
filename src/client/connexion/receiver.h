@@ -43,8 +43,7 @@ class Receiver final : public Thread {
          * players, including their positions, speeds, and other relevant
          * information.
          */
-        virtual void on_game_snapshot(const float,
-                                      const std::vector<PlayerSnapshot>&) {}
+        virtual void on_game_snapshot(const GameSnapshot&) {}
 
         virtual void on_collision_event(const CollisionEvent&) {}
 
@@ -64,6 +63,6 @@ class Receiver final : public Thread {
     void recv(const dto_session::StartResponse&);
     void recv(const dto_session::SessionSnapshot&);
     void recv(const dto_game::GameStaticSnapshot&);
-    void recv(const dto_game::GameSnapshot&);
+    void recv(const dto_game::GameSnapshotPacket&);
     void recv(const dto_game::EventPacket&);
 };

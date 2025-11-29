@@ -24,13 +24,10 @@ Game::~Game() { Responder::unsubscribe(); }
 //
 // DATOS SERVIDOR
 //
-void Game::on_game_snapshot(
-    const float time_elapsed,
-    const std::vector<PlayerSnapshot>& player_snapshots) {
+void Game::on_game_snapshot(const GameSnapshot& game_snapshot) {
     std::lock_guard lock(snapshot_mutex);
 
-    this->time_elapsed = time_elapsed;
-    this->player_snapshots = player_snapshots;
+    last_snapshot = game_snapshot;
 }
 
 void Game::on_collision_event(const CollisionEvent& collision_event) {
@@ -78,7 +75,7 @@ void Game::update_state() {
     std::lock_guard lock(snapshot_mutex);
 
     cars.clear();
-    for (auto& player : player_snapshots) {
+    for (auto& player : last_snapshot.players) {
         cars.emplace(std::piecewise_construct, std::forward_as_tuple(player.id),
                      std::forward_as_tuple(*this, player));
         if (player.id == my_id) my_car = &cars.at(player.id);
