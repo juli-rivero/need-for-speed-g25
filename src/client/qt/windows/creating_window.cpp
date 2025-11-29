@@ -67,24 +67,13 @@ void CreatingWindow::setupUI() {
 
     // Número de carreras
     racesSpin = new QSpinBox(this);
-    racesSpin->setMinimum(1);
-    racesSpin->setMaximum(10);
+    racesSpin->setMinimum(3);
+    racesSpin->setMaximum(3);
     racesSpin->setValue(3);
     racesSpin->setSuffix(" carreras");
     racesSpin->setMinimumHeight(35);
     QLabel* racesLabel = new QLabel("🏁 Cantidad de carreras:", this);
     formLayout->addRow(racesLabel, racesSpin);
-
-    // Número de vueltas
-    // TODO(nico): borrar, el numero vueltas en un circuito siempre es 1
-    lapsSpin = new QSpinBox(this);
-    lapsSpin->setMinimum(1);
-    lapsSpin->setMaximum(10);
-    lapsSpin->setValue(3);
-    lapsSpin->setSuffix(" vueltas");
-    lapsSpin->setMinimumHeight(35);
-    QLabel* lapsLabel = new QLabel("🔄 Vueltas por carrera:", this);
-    formLayout->addRow(lapsLabel, lapsSpin);
 
     // Ciudad/Mapa
     // TODO(juli): hacer que el cliente obtenga los mapas del servidor
