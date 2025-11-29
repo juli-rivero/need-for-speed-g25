@@ -74,7 +74,7 @@ TEST_F(ProtocolTest, JoinResponseRoundTrip) {
         .session = {.name = "Main Room",
                     .maxPlayers = 6,
                     .raceCount = 4,
-                    .city = "Harbor",
+                    .city = "Kamchatka",
                     .currentPlayers = 2,
                     .status = SessionStatus::Waiting},
         .carTypes{
@@ -161,7 +161,7 @@ TEST_F(ProtocolTest, CreateRequestRoundTrip) {
         .config = {.name = "Nueva Sala",
                    .maxPlayers = 5,
                    .raceCount = 2,
-                   .city = "BayCity"},
+                   .city = "LibertyCity"},
     };
 
     client_protocol << req << ProtocolSender::send;
