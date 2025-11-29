@@ -3,20 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "../common/protocol.h"
-#include "../common/socket.h"
-
-class ProtocolTest : public ::testing::Test {
-   protected:
-    Socket acceptor;
-    Protocol client_protocol;
-    Protocol server_protocol;
-
-    ProtocolTest()
-        : acceptor("7649"),
-          client_protocol("localhost", "7649"),
-          server_protocol(acceptor.accept()) {}
-};
+#include "tests/protocol_mock_class.h"
 
 TEST_F(ProtocolTest, Bool) {
     constexpr bool original = true;

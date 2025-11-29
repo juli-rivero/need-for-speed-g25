@@ -84,7 +84,7 @@ struct CarInfo {
     CarStaticStats stats;
 };
 
-// Game
+// Pre-Game (al empezar la partida)
 
 struct Point {
     float x, y;
@@ -95,17 +95,47 @@ struct Bound {
     float width, height;
 };
 
+struct SpawnPointInfo {
+    Point pos;
+    float angle;
+};
+
+enum class CheckpointType { Start, Intermediate, Finish };
+
+struct CheckpointInfo {
+    uint32_t order;
+    Bound bound;
+    float angle;
+    CheckpointType type;
+};
+struct RaceInfo {
+    RaceName name;
+    std::vector<CheckpointInfo> checkpoints;
+    std::vector<SpawnPointInfo> spawnPoints;
+};
+
+struct CityInfo {
+    CityName name;
+    std::vector<Bound> walls;
+    std::vector<Bound> bridges;
+    std::vector<Bound> railings;
+    std::vector<Bound> overpasses;
+};
+
+// Game
+
 enum class TurnDirection { None, Left, Right };
 
 struct CollisionSimple {
     PlayerId player;
     float intensity;
 };
+
 struct CollisionCarToCar : CollisionSimple {
     PlayerId other;
-    explicit CollisionCarToCar(const PlayerId player, const PlayerId other,
-                               const float intensity)
-        : CollisionSimple{player, intensity}, other(other) {}
+
+    CollisionCarToCar(PlayerId player, PlayerId other, float intensity)
+        : CollisionSimple(player, intensity), other(other) {}
 };
 
 using CollisionEvent = std::variant<CollisionSimple, CollisionCarToCar>;
@@ -138,41 +168,31 @@ struct PlayerSnapshot {
     CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
 };
-
-// Pre-Game (al empezar la partida)
-
-struct SpawnPointInfo {
-    Point pos;
-    float angle;
-};
-
-enum class CheckpointType { Start, Intermediate, Finish };
-
-struct CheckpointInfo {
-    uint32_t order;
-    Bound bound;
-    float angle;
-    CheckpointType type;
-};
-struct NpcInfo {
-    float x, y, angle, w, h;
+struct NpcSnapshot {
     CarType type;
     RenderLayer layer;
-};
-struct RaceInfo {
-    RaceName name;
-    std::vector<CheckpointInfo> checkpoints;
-    std::vector<SpawnPointInfo> spawnPoints;
+    Bound bound;
+    float angle;
 };
 
-struct CityInfo {
-    CityName name;
-    std::vector<Bound> walls;
-    std::vector<Bound> bridges;
-    std::vector<Bound> railings;
-    std::vector<Bound> overpasses;
+enum class RaceState { Countdown, Running, Finished };
+struct RaceSnapshot {
+    RaceState raceState{RaceState::Countdown};
+    float raceElapsed{0.0f};    // tiempo desde que empezo la carrera
+    float raceCountdown{0.0f};  // tiempo restante antes de empezar la racha
+    float raceTimeLeft{0.0f};   // tiempo restante si hay límite (10min)
 };
 
 enum class MatchState { Starting, Racing, Intermission, Finished };
+struct MatchSnapshot {
+    MatchState matchState{MatchState::Starting};
+    uint32_t currentRaceIndex{0};
+    float time{0.0f};  // tiempo global simulado
+};
+struct GameSnapshot {
+    MatchSnapshot match;
+    RaceSnapshot race;
 
-enum class RaceState { Countdown, Running, Finished };
+    std::vector<PlayerSnapshot> players;
+    std::vector<NpcSnapshot> npcs;
+};

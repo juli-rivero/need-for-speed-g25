@@ -18,23 +18,22 @@ Protocol::Protocol(Socket&& socket) : socket(std::move(socket)) {}
 Protocol Protocol::accept() const { return Protocol(socket.accept()); }
 
 bool Protocol::is_stream_recv_closed() {
-    return socket.is_stream_recv_closed();
+    return is_closed || socket.is_stream_recv_closed();
 }
 bool Protocol::is_stream_send_closed() {
-    return socket.is_stream_send_closed();
+    return is_closed || socket.is_stream_send_closed();
 }
 void Protocol::close_stream_recv() { socket.shutdown(SHUT_RD); }
 void Protocol::close_stream_send() { socket.shutdown(SHUT_WR); }
-void Protocol::close() { socket.close(); }
 
 void Protocol::send() {
     try {
         if (socket.sendall(buffer.data(), buffer.size()) == 0) {
-            socket.close();
+            is_closed = true;
             throw ClosedProtocol();
         }
     } catch (LibError& e) {
-        socket.close();
+        is_closed = true;
         throw ClosedProtocol(e.what());
     }
     buffer.clear();
@@ -43,11 +42,11 @@ void Protocol::send() {
 void Protocol::recv_from_socket(void* const& value, const size_t sz) {
     try {
         if (socket.recvall(value, sz) == 0) {
-            socket.close();
+            is_closed = true;
             throw ClosedProtocol();
         }
     } catch (LibError& e) {
-        socket.close();
+        is_closed = true;
         throw ClosedProtocol(e.what());
     }
 }

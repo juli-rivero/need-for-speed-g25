@@ -6,6 +6,7 @@
 #include <QProgressBar>
 #include <QVBoxLayout>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "client/connexion/connexion.h"
@@ -47,6 +48,12 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
     std::vector<CarInfo> carTypes;
     int selectedCarIndex;
 
+    QLabel* speedValueLabel;
+    QLabel* accelValueLabel;
+    QLabel* healthValueLabel;
+    QLabel* massValueLabel;
+    QLabel* controlValueLabel;
+
     // UI Components
     QVBoxLayout* mainLayout;
     QWidget* carCardsContainer;
@@ -64,4 +71,7 @@ class SelectingWindow final : public QWidget, Connexion::Responder {
 
     QPushButton* confirmButton;
     QPushButton* cancelButton;
+
+    QProgressBar* createMiniStatBar(float value);
+    QLabel* carDetailImageLabel;
 };

@@ -100,7 +100,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             e = p.get<dto_game::GameStaticSnapshot>();
             break;
         case 7:
-            e = p.get<dto_game::GameSnapshot>();
+            e = p.get<dto_game::GameSnapshotPacket>();
             break;
         case 8:
             e = p.get<dto_game::EventPacket>();

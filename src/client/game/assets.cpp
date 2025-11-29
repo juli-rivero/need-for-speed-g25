@@ -1,25 +1,28 @@
 #include "client/game/assets.h"
 
 Assets::Assets(SDL2pp::Renderer& renderer)
-    : car1(renderer, "assets/cars/car1.png"),
-      car2(renderer, "assets/cars/car2.png"),
-      car3(renderer, "assets/cars/car3.png"),
-      car4(renderer, "assets/cars/car4.png"),
-      car5(renderer, "assets/cars/car5.png"),
-      car6(renderer, "assets/cars/car6.png"),
-      car7(renderer, "assets/cars/car7.png"),
+    : car_speedster(renderer, "assets/cars/speedster.png"),
+      car_tank(renderer, "assets/cars/tank.png"),
+      car_drifter(renderer, "assets/cars/drifter.png"),
+      car_rocket(renderer, "assets/cars/rocket.png"),
+      car_classic(renderer, "assets/cars/classic.png"),
+      car_offroad(renderer, "assets/cars/offroad.png"),
+      car_ghost(renderer, "assets/cars/ghost.png"),
       city_liberty(renderer, "assets/cities/liberty_city.png"),
       sound_brake("assets/sound/brake.ogg"),
       sound_crash("assets/sound/crash.ogg"),
       sound_finish("assets/sound/finish.ogg"),
-      font("assets/fonts/OpenSans-Regular.ttf", 20) {
-    car_name.emplace(CarType::Speedster, &car1);
-    car_name.emplace(CarType::Tank, &car2);
-    car_name.emplace(CarType::Drifter, &car3);
-    car_name.emplace(CarType::Rocket, &car4);
-    car_name.emplace(CarType::Classic, &car5);
-    car_name.emplace(CarType::Offroad, &car6);
-    car_name.emplace(CarType::Ghost, &car7);
+      font("assets/fonts/OpenSans-Regular.ttf", 20),
+      arrow(renderer, "assets/misc/arrow.png"),
+      white(renderer, "assets/misc/white.png") {
+    car_name.insert({CarType::Speedster, &car_speedster});
+    car_name.insert({CarType::Tank, &car_tank});
+    car_name.insert({CarType::Drifter, &car_drifter});
+    car_name.insert({CarType::Rocket, &car_rocket});
+    car_name.insert({CarType::Classic, &car_classic});
+    car_name.insert({CarType::Offroad, &car_offroad});
+    car_name.insert({CarType::Ghost, &car_ghost});
 
-    city_name.emplace("LibertyCity", &city_liberty);
+    city_name.insert({"LibertyCity", &city_liberty});
+    // TODO(franco): sumar mapeos a otras ciudades
 }

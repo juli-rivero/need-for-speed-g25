@@ -8,7 +8,6 @@
 #include "../../../config/YamlGameConfig.h"
 #include "../../model/Player.h"
 #include "../../physics/Box2DPhysicsWorld.h"
-#include "../NetworkTypes.h"
 #include "../UpgradeSystem.h"
 #include "../race/RaceSession.h"
 #include "server/session/NPC/TrafficSystem.h"
@@ -54,7 +53,7 @@ class MatchSession {
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&) const;
 
-    WorldSnapshot getSnapshot() const;
+    GameSnapshot getSnapshot() const;
     CityInfo getCityInfo() const;
     RaceInfo getRaceInfo() const;
     // upgrades propuestos por jugadores ( que se aplicarán a la próxima
