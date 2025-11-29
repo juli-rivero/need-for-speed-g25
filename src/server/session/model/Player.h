@@ -12,7 +12,6 @@ class Player {
     const std::string name;
     const std::unique_ptr<Car> car;  // su auto actual
     PlayerRaceData raceState;
-
     float totalAccumulated{0.0f};
 
    public:
@@ -69,7 +68,11 @@ class Player {
     float getNetTime() const {
         return raceState.elapsed + raceState.penaltyTime;
     }
-
+    void applyUpgrade(UpgradeStat stat, float delta, float penalty) {
+        car->upgrade(stat, delta);
+        float newPenalty = raceState.penaltyTime + penalty;
+        raceState.penaltyTime = newPenalty;
+    }
     void accumulateTotal() { totalAccumulated += getNetTime(); }
     float getTotalAccumulated() const { return totalAccumulated; }
 

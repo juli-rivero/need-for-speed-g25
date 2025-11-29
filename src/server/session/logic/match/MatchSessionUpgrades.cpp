@@ -23,12 +23,8 @@ void MatchSession::applyUpgrade(PlayerId id, UpgradeStat stat) {
 
     const char* key = toPenaltyKey(stat);
 
-    float statIncrement = upgrades.at(key);
-    float penaltyAdd = penalties.at(key);
+    float delta = upgrades.at(key);
+    float penalty = penalties.at(key);
 
-    UpgradeChoice up{stat};
-    player->getCar()->upgrade(up, statIncrement);
-
-    float newPenalty = player->getPenalty() + penaltyAdd;
-    player->setPenalty(newPenalty);
+    player->applyUpgrade(stat, delta, penalty);
 }
