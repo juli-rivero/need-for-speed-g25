@@ -105,6 +105,7 @@ class ProtocolSender {
 class Protocol final : public ProtocolSender, public ProtocolReceiver {
     Socket socket;
     Buffer buffer;
+    bool is_closed = false;
 
    public:
     explicit Protocol(Socket&& socket);
@@ -127,7 +128,6 @@ class Protocol final : public ProtocolSender, public ProtocolReceiver {
     bool is_stream_send_closed() override;
     void close_stream_recv() override;
     void close_stream_send() override;
-    void close();
 
     void send() override;
 

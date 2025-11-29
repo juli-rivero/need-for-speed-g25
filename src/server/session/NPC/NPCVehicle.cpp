@@ -40,17 +40,15 @@ b2Vec2 NPCVehicle::steeringSeek(const b2Vec2& target) {
 
     return b2Vec2(desired.x - vel.x, desired.y - vel.y);
 }
-NpcInfo NPCVehicle::buildSnapshot() const {
-    auto body = car->getBody();
-    Vec2 pos = body->getPosition();
+NpcSnapshot NPCVehicle::buildSnapshot() const {
+    const auto& body = car->getBody();
+    const auto& [x, y] = body->getPosition();
+    const auto& stats = car->getStaticStats();
     return {
-        .x = pos.x,
-        .y = pos.y,
-        .angle = body->getAngle(),
-        .w = car->getStaticStats().width,
-        .h = car->getStaticStats().height,
         .type = car->getType(),
         .layer = car->getLayer(),
+        .bound = {{x, y}, stats.width, stats.height},
+        .angle = body->getAngle(),
     };
 }
 

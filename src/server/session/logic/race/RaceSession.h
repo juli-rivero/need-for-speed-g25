@@ -10,7 +10,6 @@
 #include "../../../config/YamlGameConfig.h"
 #include "../../model/Car.h"
 #include "../../model/Checkpoint.h"
-#include "../NetworkTypes.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Player.h"

@@ -16,6 +16,8 @@
 class QtWindowManager final : public QMainWindow {
     Q_OBJECT
 
+    bool& shouldQuit;
+
     QStackedWidget stack;
 
     SearchingWindow searchingWindow;

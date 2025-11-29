@@ -33,6 +33,6 @@ class GameController final : Receiver::Listener, GameSessionFacade::Listener {
     void on_stop_reversing() override;
     void on_nitro() override;
 
-    void on_snapshot(const WorldSnapshot&) override;
+    void on_snapshot(const GameSnapshot&) override;
     void on_collision_event(const CollisionEvent&) override;
 };

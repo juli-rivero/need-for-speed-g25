@@ -94,11 +94,17 @@ QRectF BuildingItem::boundingRect() const {
 
 QColor BuildingItem::getBuildingColor() const {
     if (buildingType == "residential") {
-        return QColor(100, 149, 237, 180);
+        return QColor(100, 149, 237, 180);  // Azul
     } else if (buildingType == "commercial") {
-        return QColor(255, 165, 0, 180);
+        return QColor(255, 165, 0, 180);  // Naranja
     } else if (buildingType == "industrial") {
-        return QColor(169, 169, 169, 180);
+        return QColor(169, 169, 169, 180);  // Gris
+    } else if (buildingType == "bridge") {
+        return QColor(139, 69, 19, 180);  // Marrón (Madera/Asfalto)
+    } else if (buildingType == "railing") {
+        return QColor(255, 0, 0, 150);  // Rojo semi-transparente
+    } else if (buildingType == "overpass") {
+        return QColor(128, 0, 128, 150);  // Violeta (Deck visual)
     }
     return QColor(100, 149, 237, 180);
 }
