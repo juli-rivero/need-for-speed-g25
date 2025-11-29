@@ -204,4 +204,6 @@ struct GameSnapshot {
 
     std::vector<PlayerSnapshot> players;
     std::vector<NpcSnapshot> npcs;
+
+    std::vector<PlayerId> positionsOrdered;
 };

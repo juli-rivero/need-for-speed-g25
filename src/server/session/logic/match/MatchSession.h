@@ -61,6 +61,6 @@ class MatchSession {
         return _race->getSensors();
     }
     void applyUpgrade(PlayerId id, UpgradeStat stat);
-
+    std::vector<PlayerId> computePositions() const;
     static const char* toPenaltyKey(UpgradeStat s);
 };
