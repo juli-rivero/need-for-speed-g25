@@ -141,8 +141,7 @@ void SelectingWindow::setupUI() {
             &SelectingWindow::onCarSelected);
 }
 
-// Modificar createCarCard para mostrar valores reales en mini-barras:
-QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
+QWidget* SelectingWindow::createCarCard(const CarInfo& car, int index) {
     QWidget* card = new QWidget();
     card->setFixedHeight(80);
 
@@ -188,7 +187,7 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
     infoLayout->setSpacing(4);
 
     // Nombre del auto
-    QLabel* nameLabel = new QLabel(car.name.c_str());
+    QLabel* nameLabel = new QLabel(car.display.name.c_str());
     QFont nameFont = nameLabel->font();
     nameFont.setPointSize(11);
     nameFont.setBold(true);
@@ -221,12 +220,12 @@ QWidget* SelectingWindow::createCarCard(const CarStaticInfo& car, int index) {
         miniStatsLayout->addLayout(miniStatLayout);
     };
 
-    // MOSTRAR VALORES REALES
-    addMiniStat("VEL", car.maxSpeed);
-    addMiniStat("ACE", car.acceleration);
-    addMiniStat("SAL", car.health);
-    addMiniStat("MAS", car.mass);
-    addMiniStat("CTR", car.control);
+    const CarStaticStats& carStats = car.stats;
+    addMiniStat("VEL", carStats.maxSpeed);
+    addMiniStat("ACE", carStats.acceleration);
+    addMiniStat("SAL", carStats.maxHealth);
+    addMiniStat("MAS", carStats.mass);
+    addMiniStat("CTR", carStats.control);
 
     infoLayout->addLayout(miniStatsLayout);
     cardLayout->addLayout(infoLayout, 1);
@@ -286,7 +285,7 @@ void SelectingWindow::onCarSelected(int carIndex) {
 }
 
 void SelectingWindow::onConfirmClicked() {
-    api.choose_car(carTypes[selectedCarIndex].name);
+    api.choose_car(carTypes[selectedCarIndex].type);
     emit confirmRequested();
 }
 
@@ -301,7 +300,7 @@ void SelectingWindow::reset() {
 }
 
 void SelectingWindow::on_join_response(
-    const SessionInfo&, const std::vector<CarStaticInfo>& car_static_infos) {
+    const SessionInfo&, const std::vector<CarInfo>& car_static_infos) {
     QMetaObject::invokeMethod(
         this,
         [this, car_static_infos]() {
@@ -343,17 +342,18 @@ void SelectingWindow::updateCarDetails(int carIndex) {
         return;
     }
 
-    const CarStaticInfo& car = carTypes[carIndex];
+    const CarInfo& car = carTypes[carIndex];
 
     // Actualizar textos
-    carNameLabel->setText(car.name.c_str());
-    carDescLabel->setText(car.description.c_str());
+    carNameLabel->setText(car.display.name.c_str());
+    carDescLabel->setText(car.display.description.c_str());
 
-    speedValueLabel->setText(QString::number(car.maxSpeed));
-    accelValueLabel->setText(QString::number(car.acceleration));
-    healthValueLabel->setText(QString::number(car.health));
-    massValueLabel->setText(QString::number(car.mass));
-    controlValueLabel->setText(QString::number(car.control));
+    const CarStaticStats& carStats = car.stats;
+    speedValueLabel->setText(QString::number(carStats.maxSpeed));
+    accelValueLabel->setText(QString::number(carStats.acceleration));
+    healthValueLabel->setText(QString::number(carStats.maxHealth));
+    massValueLabel->setText(QString::number(carStats.mass));
+    controlValueLabel->setText(QString::number(carStats.control));
 
     // No hay barras, así que no aplicar estilos a barras inexistentes
 }

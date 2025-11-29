@@ -7,7 +7,6 @@
 #include <QPushButton>
 #include <QWidget>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "client/qt/game_card_widget.h"
@@ -25,7 +24,7 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
     // Connexion overrides
     void on_search_response(const std::vector<SessionInfo> &) override;
     void on_join_response(const SessionInfo &,
-                          const std::vector<CarStaticInfo> &) override;
+                          const std::vector<CarInfo> &) override;
 
    signals:
     void createGameClicked();
@@ -40,6 +39,13 @@ class SearchingWindow final : public QWidget, Connexion::Responder {
     void onThemeChanged(int index);
     void applyTheme();
 
+    // Slots para respuestas del cliente
+    // void onConnected();
+
+    // void onGameCreated(int gameId); Se va a hacer en create_game_dialog
+    // void onPlayersListUpdated(std::vector<PlayerInfo> players); se va a hacer
+    // en waiting_room_widget void onGameStarting(); se va a hacer en
+    // waiting_room_widget
     void onError(QString message);
 
    private:

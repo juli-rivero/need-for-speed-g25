@@ -4,4 +4,4 @@
 
 #include "common/structs.h"
 
-QString getCarImagePath(CarSpriteType carType);
+QString getCarImagePath(CarType carType);

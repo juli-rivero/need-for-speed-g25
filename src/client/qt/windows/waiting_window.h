@@ -22,7 +22,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
 
     void on_session_snapshot(const SessionConfig&,
                              const std::vector<PlayerInfo>&) override;
-    void on_start_game(const std::string& map, const StaticSnapshot&) override;
+    void on_start_game(const CityInfo&, const RaceInfo&) override;
     void on_leave_response() override;
 
     // Configurar la sala de espera
@@ -36,8 +36,7 @@ class WaitingWindow final : public QWidget, Connexion::Responder {
    signals:
     void leaveGameRequested();
     // void readyStateChanged(bool ready);
-    void startGameRequested(const std::string& map,
-                            const StaticSnapshot& circuit);
+    void startGameRequested(const CityInfo&, const RaceInfo&);
 
    private slots:
     void onLeaveClicked();

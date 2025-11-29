@@ -1,6 +1,7 @@
-#include "client/game/car.h"
-
 #include <math.h>
+
+#include "client/game/classes.h"
+#include "spdlog/spdlog.h"
 
 constexpr float PI = 3.14;
 constexpr float pixels_per_meter = 10;
@@ -18,46 +19,51 @@ static float radians_to_sdl_degrees(const float radians) {
 
 Car::Car(Game& game, const PlayerSnapshot& base)
     : game(game),
+      sprite(*game.assets.car_name.at(base.car.type)),
       id(base.id),
       name(base.name),
-      x(world_to_pixel(base.car.x)),
-      y(world_to_pixel(base.car.y)),
+      x(world_to_pixel(base.car.bound.pos.x)),
+      y(world_to_pixel(base.car.bound.pos.y)),
       angle(radians_to_sdl_degrees(base.car.angle)),
       speed(base.car.speed),
       health(base.car.health),
-      sprite(*game.assets.car_name.at(base.car.type)) {}
+      next_checkpoint(base.raceProgress.nextCheckpoint),
+      finished(base.raceProgress.finished),
+      elapsed_time(base.raceProgress.elapsedTime),
+      braking(base.car.braking),
+      layer(base.car.layer),
+      WIDTH(sprite.GetWidth()),
+      HEIGHT(sprite.GetHeight()) {}
 
 void Car::set_camera() {
-    game.cam_x = x + sprite.GetWidth() / 2 - game.renderer.GetOutputWidth() / 2;
-    game.cam_y =
-        y + sprite.GetHeight() / 2 - game.renderer.GetOutputHeight() / 2;
+    game.cam_x = x + WIDTH / 2 - game.screen.WIDTH / 2;
+    game.cam_y = y + HEIGHT / 2 - game.screen.HEIGHT / 2;
     game.cam_world_x = x;
     game.cam_world_y = y;
 }
 
 void Car::draw(bool with_name) {
-    game.render(sprite, x, y, angle);
-    if (with_name) game.render(name, x, y - 32, true);
+    int x_i = static_cast<int>(x);
+    int y_i = static_cast<int>(y);
+
+    game.screen.render(sprite, {x_i, y_i}, angle);
+    if (with_name)
+        game.screen.render_text(name, {x_i, y_i - HEIGHT - 10}, true);
 }
 
-int Car::get_vol() const {
-    const double dx = game.cam_world_x - x;
-    const double dy = game.cam_world_y - y;
+float Car::get_angle_to_next_checkpoint(bool& has_angle) const {
+    if (next_checkpoint >= game.map.checkpoint_amount) {
+        has_angle = false;
+        return 0;
+    }
 
-    const double dist = std::sqrt(dx * dx + dy * dy);
+    float my_x = x + WIDTH / 2;
+    float my_y = y + HEIGHT / 2;
 
-    const int v = MIX_MAX_VOLUME - dist / 4;
-    return (v >= 0) ? v : 0;
+    const Map::Box& b = game.map.checkpoints[next_checkpoint];
+    float check_x = b.x + b.w / 2;
+    float check_y = b.y + b.h / 2;
+
+    has_angle = true;
+    return atan2(my_y - check_y, my_x - check_x) * 180 / PI;
 }
-
-void Car::sound_crash() {
-    // Atenuar el sonido basado en que tan lejos esta de la camara.
-    // if (game.frame % 120 != 0) return;
-
-    game.mixer.PlayChannel(id, game.assets.sound_crash);
-    game.mixer.SetVolume(id, get_vol());
-}
-
-size_t Car::get_id() const { return id; }
-float Car::get_health() const { return health; }
-float Car::get_speed() const { return speed; }

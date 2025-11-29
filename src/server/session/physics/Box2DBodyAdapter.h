@@ -24,7 +24,7 @@ class Box2DBodyAdapter : public IPhysicalBody {
         b2Transform transform = b2Body_GetTransform(body->getId());
         return b2Rot_GetAngle(transform.q);
     }
-    b2ShapeId getShapeId() const { return body->getShapeId(); }
+    b2ShapeId getShapeId() const override { return body->getShapeId(); }
     void setTransform(float x, float y, float angle) override {
         b2Rot rot = b2MakeRot(angle);
         b2Body_SetTransform(body->getId(), {x, y}, rot);

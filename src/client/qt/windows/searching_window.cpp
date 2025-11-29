@@ -14,6 +14,47 @@
 SearchingWindow::SearchingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent), api(connexion.get_api()), currentGameId(-1) {
     spdlog::trace("creating lobby window");
+    // lobbyClient = new MockLobbyClient();
+    // spdlog::trace("created lobby client");
+
+    // TODO(juli): borrar y cambiar por mock connexion de la rama base
+    // Conectar señales del cliente
+    // connect(lobbyClient, &ILobbyClient::connected, this,
+    //        &SearchingWindow::onConnected);
+    // connect(lobbyClient, &ILobbyClient::gamesListReceived, this,
+    //        &SearchingWindow::onGamesListReceived);
+    // connect(lobbyClient, &ILobbyClient::gameCreated,
+    //         this, &SearchingWindow::onGameCreated);
+    // connect(lobbyClient, &ILobbyClient::gameJoined, this,
+    //        &SearchingWindow::onGameJoined);
+    // connect(lobbyClient, &ILobbyClient::playersListUpdated,
+    //        this, &SearchingWindow::onPlayersListUpdated);
+    // connect(lobbyClient, &ILobbyClient::gameStarting,
+    //        this, &SearchingWindow::onGameStarting);
+    // connect(lobbyClient, &ILobbyClient::error, this,
+    // &SearchingWindow::onError);
+
+    // TODO(juli): cambiar
+    /*// Conectar señales del create game widget
+    connect(createGameWidget, &CreateGameDialog::submitRequested,
+            this, &SearchingWindow::onCreateGameSubmit);
+    connect(createGameWidget, &CreateGameDialog::cancelRequested,
+            this, &SearchingWindow::onCreateGameCancel);
+
+    // Conectar señales del car selection widget
+    connect(carSelectionWidget, &CarSelectionDialog::confirmRequested,
+            this, &SearchingWindow::onCarSelectionConfirm);
+    connect(carSelectionWidget, &CarSelectionDialog::cancelRequested,
+            this, &SearchingWindow::onCarSelectionCancel);
+
+    // Conectar señales del waiting room widget
+    connect(waitingRoomWidget, &WaitingRoomWidget::leaveGameRequested,
+            this, &SearchingWindow::onWaitingRoomLeaveRequested);
+    connect(waitingRoomWidget, &WaitingRoomWidget::readyStateChanged,
+            this, &SearchingWindow::onWaitingRoomReadyChanged);
+    connect(waitingRoomWidget, &WaitingRoomWidget::startGameRequested,
+            this, &SearchingWindow::onWaitingRoomStartGame);*/
+    // spdlog::trace("connected signals");
 
     // Conectar el cambio de tema global
     connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
@@ -45,7 +86,6 @@ void SearchingWindow::updateGamesList(const std::vector<SessionInfo>& games) {
         QListWidgetItem* emptyItem =
             new QListWidgetItem("No hay partidas disponibles");
         emptyItem->setFlags(Qt::ItemIsEnabled);  // No seleccionable
-        emptyItem->setForeground(QBrush(QColor("#ff0033")));
         gamesListWidget->addItem(emptyItem);
         return;
     }
@@ -133,12 +173,63 @@ void SearchingWindow::onGameDoubleClicked(QListWidgetItem* item) {
     statusLabel->setStyleSheet("color: orange;");
 }
 
+/*// Implementación de slots para respuestas del cliente
+void SearchingWindow::onConnected() { // ya esta conectado a la hora de crearse
+el widget statusLabel->setText("✅ Conectado al servidor");
+    statusLabel->setStyleSheet("color: green;");
+
+    // Solicitar lista de partidas al conectar
+    lobbyClient->requestGamesList();
+}*/
+
+/*void SearchingWindow::onGamesListReceived(std::vector<GameInfo> games) {
+    updateGamesList(games);
+
+    // Feedback visual de actualización exitosa
+    statusLabel->setText(
+        QString("✅ Lista actualizada (%1 partidas)").arg(games.size()));
+    statusLabel->setStyleSheet("color: green;");
+}*/
+
+/*void SearchingWindow::onGameCreated(int gameId) {
+    currentGameId = gameId;
+
+    statusLabel->setText("✅ Partida creada exitosamente");
+    statusLabel->setStyleSheet("color: green;");
+
+    int selectedCarType = carSelectionWidget->getSelectedCarType();
+
+    // Simular lista de jugadores inicial (tú como host)
+    std::vector<PlayerInfo> players = {
+        {1, "Tú", selectedCarType, false, true},  // Host
+    };
+
+    // Configurar y mostrar waiting room
+    waitingRoomWidget->setGameInfo(gameId, players);
+    stackedWidget->setCurrentIndex(3);
+    setWindowTitle("Need for Speed - Sala de Espera");
+}*/
+
 void SearchingWindow::on_join_response(const SessionInfo&,
-                                       const std::vector<CarStaticInfo>&) {
+                                       const std::vector<CarInfo>&) {
+    // Guardar el ID de la partida a la que nos unimos
+    // joiningGameId = gameId; se guarda en el servidor, se puede usar algun
+    // request para pedirlo
+
+    // Establecer modo: estamos UNIÉNDONOS a una partida
+    // carSelectionMode = CarSelectionMode::Joining; # TODO(nico): verificar si
+    // se puede borrar
+
+    // Cuando te unes a una partida, ir a selección de auto
+    // showCarSelectionPage();
+
     spdlog::trace("unido a partida");
 
     QMetaObject::invokeMethod(
         this, [this]() { emit joinGameClicked(); }, Qt::QueuedConnection);
+
+    // statusLabel->setText("✅ Unido a la partida - Selecciona tu auto");
+    // statusLabel->setStyleSheet("color: green;");
 }
 
 void SearchingWindow::onError(QString message) {
@@ -147,7 +238,15 @@ void SearchingWindow::onError(QString message) {
 
     QMessageBox::critical(this, "Error", message);
 }
-
+QString SearchingWindow::getCarEmoji(const QString& carType) const {
+    if (carType == "Deportivo") return "🏎️";
+    if (carType == "Sedán") return "🚗";
+    if (carType == "SUV") return "🚙";
+    if (carType == "Camión") return "🚚";
+    if (carType == "Muscle Car") return "🚗";
+    if (carType == "Compacto") return "🚕";
+    return "🚗";
+}
 void SearchingWindow::showEvent(QShowEvent* event) {
     api.request_search_all_sessions();
     QWidget::showEvent(event);
@@ -167,55 +266,57 @@ void SearchingWindow::onThemeChanged(int index) {
 }
 
 void SearchingWindow::applyTheme() {
+    // Obtener el tema actual
     ThemeManager& theme = ThemeManager::instance();
     const ColorPalette& palette = theme.getCurrentPalette();
 
-    setStyleSheet(QString("QWidget {"
-                          "    background-color: %1;"
-                          "}"
-                          "QLabel {"
-                          "    color: %2;"
-                          "    background-color: transparent;"
-                          "}")
-                      .arg(palette.cardBackgroundHover)
-                      .arg(palette.textPrimary));
-
-    // Botones
-    if (createGameButton)
+    // Actualizar estilos de botones
+    if (createGameButton) {
         createGameButton->setStyleSheet(theme.buttonPrimaryStyle());
-    if (joinGameButton)
+    }
+    if (joinGameButton) {
         joinGameButton->setStyleSheet(theme.buttonSecondaryStyle());
-    if (refreshButton) refreshButton->setStyleSheet(theme.buttonActionStyle());
-
-    // Título
-    if (titleLabel) {
-        titleLabel->setStyleSheet(
-            QString(
-                "color: %1; font-size: 18px; font-weight: bold; padding: 8px;")
-                .arg(palette.textPrimary));
+    }
+    if (refreshButton) {
+        refreshButton->setStyleSheet(theme.buttonActionStyle());
     }
 
-    // Status label con mejor contraste
+    // Actualizar título
+    if (titleLabel) {
+        titleLabel->setStyleSheet(QString("color: %1;"
+                                          "font-size: 18px;"
+                                          "font-weight: bold;")
+                                      .arg(palette.textPrimary));
+    }
+
+    // Actualizar labels
     if (statusLabel) {
-        QString text = statusLabel->text();
-        if (text.contains("❌") || text.toLower().contains("error")) {
+        // Mantener el color del status actual (verde/rojo/naranja) pero
+        // actualizar fuente
+        QString currentStyle = statusLabel->styleSheet();
+        if (!currentStyle.contains("color:")) {
             statusLabel->setStyleSheet(
-                "color: white; background-color: #e74c3c; padding: 6px 10px; "
-                "border-radius: 4px;");
-        } else if (text.contains("✅") || text.contains("Conectado")) {
-            statusLabel->setStyleSheet(
-                "color: white; background-color: #27ae60; padding: 6px 10px; "
-                "border-radius: 4px;");
-        } else {
-            statusLabel->setStyleSheet(
-                QString("color: %1; background-color: %2; padding: 6px 10px; "
-                        "border-radius: 4px;")
-                    .arg(palette.textPrimary)
-                    .arg(palette.cardBackground));
+                QString("color: %1;").arg(palette.textSecondary));
         }
     }
 
-    // Selector de temas mejorado
+    // Actualizar toolbar (si existe)
+    QList<QToolBar*> toolbars = findChildren<QToolBar*>();
+    for (QToolBar* toolbar : toolbars) {
+        toolbar->setStyleSheet(QString("QToolBar {"
+                                       "    background-color: %1;"
+                                       "    border-bottom: 2px solid %2;"
+                                       "    padding: 5px;"
+                                       "}"
+                                       "QLabel {"
+                                       "    color: %3;"
+                                       "}")
+                                   .arg(palette.cardBackground)
+                                   .arg(palette.primaryColor)
+                                   .arg(palette.textPrimary));
+    }
+
+    // Actualizar selector de temas
     if (themeSelector) {
         themeSelector->setStyleSheet(
             QString("QComboBox {"
@@ -223,16 +324,20 @@ void SearchingWindow::applyTheme() {
                     "    color: %2;"
                     "    border: 2px solid %3;"
                     "    border-radius: 4px;"
-                    "    padding: 6px;"
-                    "    min-width: 180px;"
+                    "    padding: 5px;"
+                    "    min-width: 200px;"
                     "}"
                     "QComboBox:hover {"
                     "    border-color: %4;"
+                    "}"
+                    "QComboBox::drop-down {"
+                    "    border: none;"
                     "}"
                     "QComboBox QAbstractItemView {"
                     "    background-color: %1;"
                     "    color: %2;"
                     "    selection-background-color: %4;"
+                    "    selection-color: white;"
                     "}")
                 .arg(palette.cardBackground)
                 .arg(palette.textPrimary)
@@ -240,25 +345,7 @@ void SearchingWindow::applyTheme() {
                 .arg(palette.secondaryColor));
     }
 
-    // Lista de juegos
-    if (gamesListWidget) {
-        gamesListWidget->setStyleSheet(
-            QString("QListWidget {"
-                    "    background-color: %1;"
-                    "    border: 1px solid %2;"
-                    "    border-radius: 5px;"
-                    "}"
-                    "QListWidget::item {"
-                    "    border-bottom: 1px solid %2;"
-                    "}"
-                    "QListWidget::item:selected {"
-                    "    background-color: %3;"
-                    "}")
-                .arg(palette.cardBackground)
-                .arg(palette.borderColor)
-                .arg(palette.primaryColor));
-    }
-
+    // Recrear las tarjetas de juegos con el nuevo tema
     updateGamesList(currentGames);
 }
 
@@ -343,9 +430,136 @@ void SearchingWindow::createThis() {
     layout->addLayout(buttonLayout);
 }
 
+// ========== SLOTS DE FORMULARIO DE CREAR PARTIDA ==========
+
+/*void SearchingWindow::onCreateGameSubmit() {
+    // Obtener configuración del widget
+    auto config = createGameWidget->getConfig();
+
+    // Validar nombre (el widget ya debería validar, pero por seguridad)
+    if (config.name.isEmpty()) {
+        QMessageBox::warning(this, "Error", "Debes ingresar un nombre para la
+partida"); return;
+    }
+
+    // Establecer modo: estamos CREANDO una partida
+    carSelectionMode = CarSelectionMode::Creating;
+
+    // Ir a selección de auto
+    showCarSelectionPage();
+}*/
+
+/*void SearchingWindow::onCreateGameCancel() {
+    showLobbyPage();
+}*/
+
+// ========== SLOTS DE SELECCIÓN DE AUTO ==========
+
+/*void SearchingWindow::onCarSelectionConfirm() {
+    int selectedCarType = carSelectionWidget->getSelectedCarType();
+
+    if (selectedCarType == -1) {
+        QMessageBox::warning(this, "Error", "Debes seleccionar un auto");
+        return;
+    }
+
+    if (carSelectionMode == CarSelectionMode::Creating) {
+        // MODO: Crear nueva partida
+        auto config = createGameWidget->getConfig();
+
+        GameConfig gameConfig;
+        gameConfig.name = config.name;
+        gameConfig.maxPlayers = config.maxPlayers;
+        gameConfig.raceCount = config.raceCount;
+        gameConfig.lapCount = config.lapCount;
+        gameConfig.city = config.city;
+        gameConfig.carType = selectedCarType;
+
+        lobbyClient->createGame(gameConfig);
+
+        // No volver al lobby, onGameCreated() nos llevará a la sala de espera
+        statusLabel->setText("⏳ Creando partida...");
+
+    } else if (carSelectionMode == CarSelectionMode::Joining) {
+        // MODO: Unirse a partida existente
+
+        // TODO: Cuando implementes el protocolo real, agregar:
+        // lobbyClient->selectCar(joiningGameId, selectedCarType);
+
+        // Simular unión exitosa - ir a sala de espera
+        std::vector<PlayerInfo> players = {
+            {1, "Host", 1, true, true},        // Host (ready)
+            {2, "Tú", selectedCarType, false, false},  // Tú (not ready)
+            {3, "Player3", 3, false, false},   // Otro jugador
+        };
+        currentGameId = joiningGameId;
+
+        // Configurar y mostrar waiting room
+        waitingRoomWidget->setGameInfo(currentGameId, players);
+        stackedWidget->setCurrentIndex(3);
+
+        statusLabel->setText("✅ Te has unido a la partida");
+        statusLabel->setStyleSheet("color: green;");
+    }
+}*/
+
+/*void SearchingWindow::onCarSelectionCancel() {
+    if (carSelectionMode == CarSelectionMode::Creating) {
+        // Si estábamos creando, volver al formulario
+        showCreateGamePage();
+    } else {
+        // Si estábamos uniéndonos, volver al lobby
+        showLobbyPage();
+        statusLabel->setText("❌ Cancelado - No te uniste a la partida");
+        statusLabel->setStyleSheet("color: orange;");
+    }
+}*/
+
 // ========== MODIFICACIÓN DEL SLOT ORIGINAL ==========
 
 void SearchingWindow::onCreateGameClicked() {
     // showCreateGamePage();
     emit createGameClicked();
 }
+
+// ========== SLOTS DELEGADOS DE SALA DE ESPERA ==========
+
+/*void SearchingWindow::onWaitingRoomLeaveRequested() {
+    lobbyClient->leaveGame();
+    showLobbyPage();
+    statusLabel->setText("Has salido de la partida");
+    statusLabel->setStyleSheet("color: orange;");
+}*/
+
+/*void SearchingWindow::onWaitingRoomReadyChanged(bool ready) {
+    lobbyClient->setReady(ready);
+}*/
+
+/*void SearchingWindow::onWaitingRoomStartGame() {
+    QMessageBox::information(this, "🏁 ¡La Carrera Comienza!",
+                            "¡Todos los jugadores están listos!\n\n"
+                            "La carrera comenzará en breve...");
+
+    // TODO: Iniciar ventana del juego
+    showLobbyPage();
+    lobbyClient->requestGamesList();
+}*/
+
+/*void SearchingWindow::onPlayersListUpdated(std::vector<PlayerInfo> players) {
+    waitingRoomWidget->updatePlayersList(players);
+}*/
+
+/*void SearchingWindow::onGameStarting() {
+    QMessageBox::information(this, "🏁 ¡La Carrera Comienza!",
+                            "¡Todos los jugadores están listos!\n\n"
+                            "La carrera comenzará en breve...");
+
+    // TODO: Aquí iniciar la ventana del juego SDL2
+    // gameWindow = new GameWindow(currentGameId);
+    // gameWindow->show();
+    // this->hide();
+
+    // Por ahora, volver al lobby
+    showLobbyPage();
+    lobbyClient->requestGamesList();
+}*/

@@ -1,0 +1,177 @@
+// FIXME(franco): varios errores de dependencia mutua me forzaron a unir todas
+// las clases, luego replantear como modularizar el codigo correctamente... por
+// ahora, "make it work, make it right, make it fast"
+
+#pragma once
+
+#include <SDL2pp/SDL2pp.hh>
+#include <string>
+#include <unordered_map>
+#include <vector>
+
+#include "client/connexion/connexion.h"
+#include "client/constants.h"
+#include "client/game/assets.h"
+#include "client/game/map.h"
+#include "common/macros.h"
+#include "common/structs.h"
+
+class Game;
+
+class Car final {
+   private:
+    Game& game;
+    SDL2pp::Texture& sprite;
+
+   public:
+    Car(Game& game, const PlayerSnapshot& base);
+
+    // Parametros
+    const int id;
+    const std::string name;
+    const float x;
+    const float y;
+    const float angle;
+    const float speed;
+    const float health;
+    const uint32_t next_checkpoint;
+    const bool finished;
+    const float elapsed_time;
+    const bool braking;
+    const RenderLayer layer;
+
+    // Constantes utiles
+    const int WIDTH;
+    const int HEIGHT;
+
+    void set_camera();
+    void draw(bool with_name);
+
+    // Calcula el angulo desde su centro al centro del siguiente checkpoint
+    // Setea has_angle relativo a si el angulo existe
+    float get_angle_to_next_checkpoint(bool& has_angle) const;
+
+    MAKE_FIXED(Car)
+};
+
+class Screen final {
+   private:
+    SDL2pp::Renderer& renderer;
+    Game& game;
+
+    Car* my_car = nullptr;
+
+    // Pasos de renderizado
+    void draw_ciudad();
+    void draw_next_checkpoint();
+    void draw_coches(RenderLayer capa);
+    void draw_bridges();
+    void draw_overpasses();
+    void draw_hud();
+
+   public:
+    Screen(SDL2pp::Renderer& renderer, Game& game);
+
+    // Constantes utiles
+    const int WIDTH;
+    const int HEIGHT;
+
+    void update();
+
+    // Metodos de renderizado
+    //
+    // Con in_world == true se dibuja relativo al mundo, no la pantalla.
+    // Modificar cam_x e cam_y para impactar donde dibujar.
+    // TODO(franco): migrar la camara a screen.
+    // TODO(franco): esto no deberia ser private? refactorizar car?
+    void render(SDL2pp::Texture& surface, SDL2pp::Point pos, double angle = 0,
+                bool in_world = true);
+
+    void render_slice(SDL2pp::Texture& texture, SDL2pp::Rect section,
+                      SDL2pp::Point pos, bool in_world = true);
+
+    void render_text(const std::string& texto, SDL2pp::Point pos,
+                     bool in_world = true);
+
+    void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
+                      bool in_world = true);
+    void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
+                      double angle, bool in_world = true);
+
+    MAKE_FIXED(Screen)
+};
+
+class Sound final {
+   private:
+    SDL2pp::Mixer& mixer;
+    Game& game;
+
+    bool old_braking = false;
+    bool old_finished = false;
+
+    int get_vol(const Car& car) const;
+
+   public:
+    Sound(SDL2pp::Mixer& mixer, Game& game);
+
+    void crash(const Car& car) const;
+    void test_brake(const Car& car);
+    void test_finish(const Car& car);
+
+    MAKE_FIXED(Sound)
+};
+
+class Game final : Connexion::Responder {
+    friend class Car;
+    friend class Screen;
+    friend class Sound;
+
+   private:
+    // Componentes graficos
+    Screen screen;
+    Sound sound;
+    Assets assets;
+
+    // Componentes de conexion y configuracion
+    Api& api;
+    const PlayerId my_id;
+    Map map;
+    const CityInfo& city_info;
+    const RaceInfo& race_info;
+
+    // Componentes de snapshot update
+    std::mutex snapshot_mutex;
+
+    float time_elapsed = 0;
+    std::vector<PlayerSnapshot> player_snapshots;
+    void on_game_snapshot(
+        const float time_elapsed,
+        const std::vector<PlayerSnapshot>& player_snapshots) override;
+
+    std::unordered_map<PlayerId, Car> cars;
+    Car* my_car = nullptr;
+
+    // Componentes de colisiones
+    Queue<CollisionEvent> collisions;
+    void on_collision_event(const CollisionEvent& collision_event) override;
+
+    // Metodos de actualizacion internos
+    bool send_events();
+    void update_state();
+    void manage_sounds();
+
+    // TODO(franco): migrar la camara a screen.
+    int cam_x = 0;
+    int cam_y = 0;
+    double cam_world_x = 0;
+    double cam_world_y = 0;
+
+   public:
+    Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer, Connexion& connexion,
+         const GameSetUp& setup);
+    ~Game();
+
+    bool start();
+
+    MAKE_FIXED(Game)
+};
