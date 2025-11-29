@@ -15,9 +15,6 @@ class Player {
 
     float totalAccumulated{0.0f};
 
-    // Upgrades elegidos por el jugador y TODAVIA no aplicados
-    std::vector<UpgradeChoice> pendingUpgrades;
-
    public:
     Player(const PlayerId id, const std::string& name,
            std::unique_ptr<Car>&& car)
@@ -28,7 +25,7 @@ class Player {
     // ------------------------------
     void applyInput(CarInput input) { car->applyInput(input); }
     void update(float dt) { car->update(dt); }
-    const Car* getCar() const { return car.get(); }
+    Car* getCar() const { return car.get(); }
 
     // ------------------------------
     //  ESTADO DE CARRERA
@@ -77,22 +74,6 @@ class Player {
     float getTotalAccumulated() const { return totalAccumulated; }
 
     // ------------------------------
-    //  UPGRADES
-    // ------------------------------
-    void setUpgrades(const std::vector<UpgradeChoice>& ups) {
-        pendingUpgrades = ups;
-    }
-    const std::vector<UpgradeChoice>& getUpgrades() const {
-        return pendingUpgrades;
-    }
-    void applyUpgrades() {
-        for (const auto& up : pendingUpgrades) {
-            car->upgrade(up);
-        }
-        pendingUpgrades.clear();
-    }
-
-    // ------------------------------
     //  SNAPSHOT PARA EL CLIENTE
     // ------------------------------
     PlayerSnapshot buildSnapshot() const {
@@ -100,7 +81,7 @@ class Player {
         ps.id = id;
         ps.name = name;
         ps.car = car->getSnapshot();
-
+        ps.upgrades = car->getUpgrades();
         RaceProgressSnapshot rp;
         rp.nextCheckpoint = static_cast<uint32_t>(raceState.nextCheckpoint);
         rp.finished = raceState.finished;

@@ -13,6 +13,12 @@ penalties:
   acceleration: 2.0
   control: 1.5
   health: 1.0
+
+upgrades:
+  max_speed: 5.0        # cuánto suma cada upgrade
+  acceleration: 10.0
+  nitro: 2.0
+  health: 20.0
 # ===================================
 # TIPOS DE AUTOS DISPONIBLES
 # ===================================

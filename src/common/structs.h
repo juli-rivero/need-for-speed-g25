@@ -162,11 +162,20 @@ struct RaceProgressSnapshot {
     float elapsedTime;
 };
 
+struct UpgradeStats {
+    float bonusMaxSpeed = 0;
+    float bonusAcceleration = 0;
+    float bonusHealth = 0;
+    float bonusNitro = 0;
+};
+
 struct PlayerSnapshot {
     PlayerId id;       // ID del jugador
     std::string name;  // nombre del jugador
     CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
+
+    UpgradeStats upgrades;
 };
 struct NpcSnapshot {
     CarType type;

@@ -11,6 +11,7 @@
 #include "Entity.h"
 #include "box2d/box2d.h"
 #include "box2d/types.h"
+#include "common/structs.h"
 #include "server/session/logic/types.h"
 #include "server/session/physics/IPhysicalBody.h"
 #include "spdlog/spdlog.h"
@@ -25,13 +26,6 @@ enum class CarInput {
     StartReversing,
     StopReversing,
     StartUsingNitro,
-};
-
-struct UpgradeStats {
-    float bonusMaxSpeed = 0;
-    float bonusAcceleration = 0;
-    float bonusHealth = 0;
-    float bonusNitro = 0;
 };
 
 class Car : public Entity {
@@ -68,7 +62,7 @@ class Car : public Entity {
     static constexpr EntityType Type = EntityType::Car;
     std::shared_ptr<IPhysicalBody> getBody() { return body; }
     CarType getType() const { return carType; }
-
+    UpgradeStats getUpgrades() const { return upgrades; }
     void setLayer(RenderLayer l) {
         layer = l;
 
@@ -260,24 +254,24 @@ class Car : public Entity {
     // los atributos del coche con los del yaml para casos aislados como el fin
     // de partida en caso de que se quiera mostrar cada penalizacion (¿se quiere
     // eso?)
-    void upgrade(const UpgradeChoice up) {
+    void upgrade(const UpgradeChoice up, float amount) {
         switch (up.stat) {
             case UpgradeStat::MaxSpeed:
-                upgrades.bonusMaxSpeed += up.delta;
+                upgrades.bonusMaxSpeed += amount;
                 break;
 
             case UpgradeStat::Acceleration:
-                upgrades.bonusAcceleration += up.delta;
+                upgrades.bonusAcceleration += amount;
                 break;
 
             case UpgradeStat::Health:
-                upgrades.bonusHealth += up.delta;
-                health += up.delta;  // TODO(elvis): no se resetea la vida en
-                                     // cada carrera?
+                upgrades.bonusHealth += amount;
+                health += amount;  // TODO(elvis): no se resetea la vida en
+                                   // cada carrera?
                 break;
 
             case UpgradeStat::Nitro:
-                upgrades.bonusNitro += up.delta;
+                upgrades.bonusNitro += amount;
                 break;
         }
     }

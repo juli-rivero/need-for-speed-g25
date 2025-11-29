@@ -22,7 +22,21 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
+        if (root["penalties"]) {
+            for (auto it : root["penalties"]) {
+                std::string key = it.first.as<std::string>();
+                float val = it.second.as<float>();
+                penaltiesTable[key] = val;
+            }
+        }
 
+        if (root["upgrades"]) {
+            for (auto it : root["upgrades"]) {
+                std::string key = it.first.as<std::string>();
+                float val = it.second.as<float>();
+                upgradesTable[key] = val;
+            }
+        }
         // === Sección "car_types" ===
         if (root["car_types"]) {
             for (const auto& c : root["car_types"]) {
