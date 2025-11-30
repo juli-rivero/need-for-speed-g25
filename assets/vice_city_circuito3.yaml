@@ -2,3 +2,139 @@ include: "vice_city_map.yaml"
 
 map:
   name: "Vice City - Circuito 3"
+  checkpoints:
+    - type: start
+      x: 1797.48
+      y: 1063.27
+      rotation: 0
+      width: 100
+      order: 0
+    - type: intermediate
+      x: 1786.61
+      y: 485.847
+      rotation: 0
+      width: 100
+      order: 1
+    - type: intermediate
+      x: 1682.61
+      y: 198.685
+      rotation: 0
+      width: 100
+      order: 2
+    - type: intermediate
+      x: 2297.29
+      y: 434.623
+      rotation: 90
+      width: 100
+      order: 3
+    - type: intermediate
+      x: 3107.56
+      y: 240.595
+      rotation: 90
+      width: 100
+      order: 4
+    - type: intermediate
+      x: 4128.92
+      y: 678.323
+      rotation: 180
+      width: 100
+      order: 5
+    - type: intermediate
+      x: 3830.89
+      y: 833.545
+      rotation: 175
+      width: 100
+      order: 6
+    - type: intermediate
+      x: 3515.79
+      y: 2016.34
+      rotation: 270
+      width: 100
+      order: 7
+    - type: intermediate
+      x: 2966.3
+      y: 2391.98
+      rotation: 180
+      width: 100
+      order: 8
+    - type: intermediate
+      x: 3341.94
+      y: 2882.48
+      rotation: 90
+      width: 100
+      order: 9
+    - type: intermediate
+      x: 3371.43
+      y: 3478.54
+      rotation: 180
+      width: 100
+      order: 10
+    - type: intermediate
+      x: 2629.47
+      y: 3734.65
+      rotation: 180
+      width: 100
+      order: 11
+    - type: intermediate
+      x: 2340.76
+      y: 4119.61
+      rotation: 180
+      width: 100
+      order: 12
+    - type: intermediate
+      x: 3317.11
+      y: 4248.44
+      rotation: 90
+      width: 100
+      order: 13
+    - type: intermediate
+      x: 4457.99
+      y: 4173.93
+      rotation: 0
+      width: 100
+      order: 14
+    - type: intermediate
+      x: 4017.16
+      y: 2587.56
+      rotation: 0
+      width: 100
+      order: 15
+    - type: intermediate
+      x: 3950.41
+      y: 1592.58
+      rotation: 270
+      width: 100
+      order: 16
+    - type: intermediate
+      x: 2537.89
+      y: 1393.9
+      rotation: 270
+      width: 100
+      order: 17
+    - type: intermediate
+      x: 2207.26
+      y: 1721.42
+      rotation: 180
+      width: 100
+      order: 18
+    - type: intermediate
+      x: 2612.4
+      y: 1991.51
+      rotation: 90
+      width: 100
+      order: 19
+    - type: finish
+      x: 2992.69
+      y: 2210.37
+      rotation: 180
+      width: 100
+      order: 20
+  spawn_points:
+    - { x: 1760, y: 1090, angle: 270 }
+    - { x: 1780, y: 1090, angle: 270 }
+    - { x: 1800, y: 1090, angle: 270 }
+    - { x: 1820, y: 1090, angle: 270 }
+    - { x: 1760, y: 1125, angle: 270 }
+    - { x: 1780, y: 1125, angle: 270 }
+    - { x: 1800, y: 1125, angle: 270 }
+    - { x: 1820, y: 1125, angle: 270 }
