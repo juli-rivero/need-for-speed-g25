@@ -10,8 +10,7 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
     : _cfg(cfg),
       _world(world),
       _raceFiles(std::move(raceFiles)),
-      _playerConfigs(std::move(playersCfg)),
-      _upgradeSystem(cfg) {
+      _playerConfigs(std::move(playersCfg)) {
     if (_raceFiles.empty()) {
         _state = MatchState::Finished;
         return;
@@ -33,7 +32,6 @@ void MatchSession::update(float dt) {
             _race->update(dt);
 
             if (_race->isFinished()) {
-                pendingEndRacePacket = finishRaceAndComputeTotals();
                 startIntermission();
             }
             break;

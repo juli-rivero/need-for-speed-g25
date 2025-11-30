@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -76,6 +77,7 @@ struct CarStaticStats {
     // --- físicas ---
     float width;
     float height;
+    float driftFactor;
 
     float density;
     float friction;
@@ -168,17 +170,44 @@ struct RaceProgressSnapshot {
     float elapsedTime;
 };
 
+struct UpgradeStats {
+    float bonusMaxSpeed = 0;
+    float bonusAcceleration = 0;
+    float bonusHealth = 0;
+    float bonusNitro = 0;
+};
+
 struct PlayerSnapshot {
     PlayerId id;       // ID del jugador
     std::string name;  // nombre del jugador
     CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
+
+    UpgradeStats upgrades;
 };
 struct NpcSnapshot {
     CarType type;
     RenderLayer layer;
     Bound bound;
     float angle;
+};
+
+// Dejo todos los datos asi el cliente simplemente lo muestra y no calcula nada
+// total solo se envia una vez
+struct FinalPlayerResult {
+    PlayerId id;
+    std::string name;
+    CarType carType;
+
+    float rawTime;  // tiempo crudo final de TODAS las carreras
+    float penalty;  // penalidad total acumulada
+    float netTime;  // rawTime + penalty
+
+    int position;  // 1°, 2°, 3°, ...
+};
+struct FinalMatchSummary {
+    std::vector<FinalPlayerResult> players;
+    PlayerId winner;  // ID del campeón absoluto
 };
 
 enum class RaceState { Countdown, Running, Finished };
@@ -201,4 +230,8 @@ struct GameSnapshot {
 
     std::vector<PlayerSnapshot> players;
     std::vector<NpcSnapshot> npcs;
+
+    std::vector<PlayerId> positionsOrdered;
+
+    std::optional<FinalMatchSummary> matchSummary;  // TODO(juli)
 };

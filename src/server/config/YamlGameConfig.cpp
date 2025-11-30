@@ -29,7 +29,21 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
+        if (root["penalties"]) {
+            for (auto it : root["penalties"]) {
+                std::string key = it.first.as<std::string>();
+                float val = it.second.as<float>();
+                penaltiesTable[key] = val;
+            }
+        }
 
+        if (root["upgrades"]) {
+            for (auto it : root["upgrades"]) {
+                std::string key = it.first.as<std::string>();
+                float val = it.second.as<float>();
+                upgradesTable[key] = val;
+            }
+        }
         // === Sección "car_types" ===
         if (root["car_types"]) {
             for (const auto& c : root["car_types"]) {
@@ -55,6 +69,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                 stats.width = c["width"].as<float>();
                 stats.height = c["height"].as<float>();
 
+                stats.driftFactor = c["drift_factor"].as<float>();
                 stats.density = c["density"] ? c["density"].as<float>() : 1.0f;
                 stats.friction =
                     c["friction"] ? c["friction"].as<float>() : 0.8f;
