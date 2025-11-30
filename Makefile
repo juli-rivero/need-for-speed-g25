@@ -6,7 +6,7 @@
 #	cmake --build  build/ $(EXTRA_COMPILE)
 
 build:
-	cmake --build  build/
+	cmake --build  build/ -j
 
 tests: build
 	./build/taller_tests
