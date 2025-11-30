@@ -14,6 +14,8 @@ set(CMAKE_CXX_EXTENSIONS ON)
 # Genera el compile_commands.json para los clang
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "")
+
 project(taller_tp
         VERSION 1.0
         HOMEPAGE_URL "https://github.com/URL-HERE"
@@ -51,4 +53,4 @@ include(cmake/Dependencies.cmake)
 
 include(cmake/Executables.cmake)
 
-include(cmake/Assets.cmake)
+include(cmake/StaticData.cmake)

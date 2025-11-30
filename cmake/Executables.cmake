@@ -56,7 +56,9 @@ if (TALLER_EDITOR)
     add_executable(taller_editor)
 
     # Make them depend on taller_common lib
-    add_dependencies(taller_editor taller_common Qt6::Core Qt6::Widgets)
+    add_dependencies(taller_editor taller_common Qt6::Core Qt6::Widgets yaml-cpp)
+
+    target_include_directories(taller_editor PRIVATE yaml-cpp)
 
     # Add source files and enable warnings
     add_subdirectory(src/editor)
@@ -64,7 +66,7 @@ if (TALLER_EDITOR)
     set_project_warnings(taller_editor ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 
     # Link the taller_common lib target
-    target_link_libraries(taller_editor taller_common Qt6::Core Qt6::Widgets)
+    target_link_libraries(taller_editor taller_common Qt6::Core Qt6::Widgets yaml-cpp)
 endif ()
 
 
