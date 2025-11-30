@@ -19,6 +19,7 @@ class Player {
            std::unique_ptr<Car>&& car)
         : id(id), name(name), car(std::move(car)) {}
 
+    const std::string getName() { return name; }
     // ------------------------------
     //  LÓGICA DEL AUTO
     // ------------------------------

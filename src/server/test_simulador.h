@@ -438,7 +438,7 @@ inline int test(const YamlGameConfig& cfg) {
             SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
-        std::string race = "assets/liberty_city_circuito3.yaml";
+        std::string race = "assets/san_andreas_circuito1.yaml";
         PlayerConfig playerConfig1{1, "Tester", CarType::Speedster};
         PlayerConfig playerConfig2{2, "Ghost", CarType::Ghost};
         std::vector<std::string> raceFiles{race};
