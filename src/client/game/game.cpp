@@ -6,17 +6,36 @@
 #include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
+//
+// INICIALIZACION
+//
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
-    : screen(renderer, *this),
+    : api(connexion.get_api()),
+      my_id(connexion.unique_id),
+      screen(renderer, *this),
       sound(mixer, *this),
       assets(renderer),
-      api(connexion.get_api()),
-      my_id(connexion.unique_id),
-      map(setup.city_info, setup.race_info),
       city_info(setup.city_info),
       race_info(setup.race_info) {
-    spdlog::info("map: {}", map.name);
+    // Configurar componentes de snapshot estatico
+    for (const Bound& b : city_info.bridges) {
+        spdlog::info("bridge: {} {} {} {}", b.pos.x, b.pos.y, b.width,
+                     b.height);
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.railings) {
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.overpasses) {
+        overpasses.emplace_back(b);
+    }
+    for (const CheckpointInfo& ci : race_info.checkpoints) {
+        checkpoints.emplace_back(ci.bound, ci.angle);
+    }
+    checkpoint_amount = checkpoints.size();
+
+    spdlog::info("map: {}", city_info.name);
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
@@ -27,7 +46,7 @@ Game::~Game() { Responder::unsubscribe(); }
 void Game::on_game_snapshot(const GameSnapshot& game_snapshot) {
     std::lock_guard lock(snapshot_mutex);
 
-    last_snapshot = game_snapshot;
+    current_snapshot = game_snapshot;
 }
 
 void Game::on_collision_event(const CollisionEvent& collision_event) {
@@ -35,7 +54,16 @@ void Game::on_collision_event(const CollisionEvent& collision_event) {
 }
 
 //
-// PRINCIPAL
+// CAMARA
+//
+void Game::set_camera(const PlayerCar& car) {
+    SDL2pp::Point center = car.pos.get_center();
+    cam_x = center.GetX();
+    cam_y = center.GetY();
+}
+
+//
+// PASOS ACTUALIZACION
 //
 bool Game::send_events() {
     SDL_Event event;
@@ -75,11 +103,19 @@ void Game::update_state() {
     std::lock_guard lock(snapshot_mutex);
 
     cars.clear();
-    for (auto& player : last_snapshot.players) {
-        cars.emplace(std::piecewise_construct, std::forward_as_tuple(player.id),
-                     std::forward_as_tuple(*this, player));
+    for (auto& player : current_snapshot.players) {
+        cars.emplace(player.id, player);
         if (player.id == my_id) my_car = &cars.at(player.id);
     }
+
+    npcs.clear();
+    for (auto& npc : current_snapshot.npcs) {
+        npcs.emplace_back(npc);
+    }
+
+    time_elapsed = current_snapshot.race.raceElapsed;
+    time_countdown = current_snapshot.race.raceCountdown;
+    time_left = current_snapshot.race.raceTimeLeft;
 }
 
 void Game::manage_sounds() {
@@ -90,7 +126,7 @@ void Game::manage_sounds() {
         std::visit([&](const auto& collision) { id = collision.player; },
                    collision);
 
-        Car& car = cars.at(id);
+        PlayerCar& car = cars.at(id);
         sound.crash(car);
     }
 
@@ -101,6 +137,9 @@ void Game::manage_sounds() {
     sound.test_finish(*my_car);
 }
 
+//
+// PRINCIPAL
+//
 bool Game::start() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);
     TimerIterator iterator(dt);
@@ -108,6 +147,8 @@ bool Game::start() {
     while (1) {
         bool quit = send_events();
         update_state();
+
+        if (my_car) set_camera(*my_car);
         screen.update();
         manage_sounds();
 
