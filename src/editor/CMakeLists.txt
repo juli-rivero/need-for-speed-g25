@@ -9,6 +9,7 @@ target_sources(taller_editor
     checkpoint_item.cpp
     building_item.cpp
     sensor_item.cpp
+    overpass_item.cpp
 
     PUBLIC
     # .h files
@@ -20,6 +21,7 @@ target_sources(taller_editor
     map_item.h
     checkpoint_item.h
     building_item.h
+    overpass_item.h
 )
 
 # Buscar yaml-cpp usando pkg-config
