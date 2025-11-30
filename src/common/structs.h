@@ -71,6 +71,7 @@ struct CarStaticStats {
     // --- físicas ---
     float width;
     float height;
+    float driftFactor;
 
     float density;
     float friction;
