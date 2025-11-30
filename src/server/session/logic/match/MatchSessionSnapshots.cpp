@@ -69,11 +69,14 @@ GameSnapshot MatchSession::getSnapshot() const {
             npcs.push_back(npc_logic->buildSnapshot());
     }
 
-    return GameSnapshot{.match = match,
-                        .race = race,
-                        .players = players,
-                        .npcs = npcs,
-                        .positionsOrdered = computePositions()};
+    return GameSnapshot{
+        .match = match,
+        .race = race,
+        .players = players,
+        .npcs = npcs,
+        .positionsOrdered = computePositions(),
+        .matchSummary = getFinalSummary()  // TODO(juli)
+    };
 }
 
 CityInfo MatchSession::getCityInfo() const {
@@ -112,4 +115,33 @@ RaceInfo MatchSession::getRaceInfo() const {
         info.spawnPoints.push_back({{sp.x, sp.y}, sp.angle});
 
     return info;
+}
+
+FinalMatchSummary MatchSession::makeFinalSummary() const {
+    std::vector<FinalPlayerResult> results;
+
+    for (auto& [id, player] : _players) {
+        FinalPlayerResult r;
+        r.id = id;
+        r.name = player->getName();
+        r.carType = player->getCar()->getType();
+        r.rawTime = player->getTotalAccumulated();
+        r.penalty = player->getPenalty();
+        r.netTime = r.rawTime + r.penalty;
+
+        results.push_back(r);
+    }
+
+    // ASCENDENTE (menor tiempo = mejor)
+    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
+        return a.netTime < b.netTime;
+    });
+    for (int i = 0; i < static_cast<int>(results.size()); i++)
+        results[i].position = i + 1;
+
+    FinalMatchSummary summary;
+    summary.players = results;
+    summary.winner = results.front().id;
+
+    return summary;
 }
