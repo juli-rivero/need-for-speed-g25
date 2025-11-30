@@ -2,6 +2,46 @@
 
 #include "MatchSession.h"
 
+std::vector<PlayerId> MatchSession::computePositions() const {
+    struct Entry {
+        PlayerId id;
+        uint32_t checkpoint;
+        float distToNext;
+        float netTime;
+    };
+
+    std::vector<Entry> arr;
+
+    for (auto& [id, player] : _players) {
+        const auto snap = player->buildSnapshot();
+
+        uint32_t cp = snap.raceProgress.nextCheckpoint;
+        float dist = 999999.f;
+
+        if (auto nextCP = _race->nextCheckpointFor(id)) {
+            auto [cx, cy] = nextCP.value()->getPosition();
+            float dx = snap.car.bound.pos.x - cx;
+            float dy = snap.car.bound.pos.y - cy;
+            dist = std::sqrt(dx * dx + dy * dy);
+        }
+
+        float net = snap.raceProgress.elapsedTime + player->getPenalty();
+
+        arr.push_back({id, cp, dist, net});
+    }
+
+    std::sort(arr.begin(), arr.end(), [](const auto& a, const auto& b) {
+        if (a.checkpoint != b.checkpoint) return a.checkpoint > b.checkpoint;
+        if (a.distToNext != b.distToNext) return a.distToNext < b.distToNext;
+        return a.netTime < b.netTime;
+    });
+
+    std::vector<PlayerId> result;
+    for (auto& e : arr) result.push_back(e.id);
+
+    return result;
+}
+
 GameSnapshot MatchSession::getSnapshot() const {
     const MatchSnapshot match{
         .matchState = _state,
@@ -34,6 +74,8 @@ GameSnapshot MatchSession::getSnapshot() const {
         .race = race,
         .players = players,
         .npcs = npcs,
+        .positionsOrdered = computePositions(),
+        .matchSummary = getFinalSummary()  // TODO(juli)
     };
 }
 
@@ -73,4 +115,33 @@ RaceInfo MatchSession::getRaceInfo() const {
         info.spawnPoints.push_back({{sp.x, sp.y}, sp.angle});
 
     return info;
+}
+
+FinalMatchSummary MatchSession::makeFinalSummary() const {
+    std::vector<FinalPlayerResult> results;
+
+    for (auto& [id, player] : _players) {
+        FinalPlayerResult r;
+        r.id = id;
+        r.name = player->getName();
+        r.carType = player->getCar()->getType();
+        r.rawTime = player->getTotalAccumulated();
+        r.penalty = player->getPenalty();
+        r.netTime = r.rawTime + r.penalty;
+
+        results.push_back(r);
+    }
+
+    // ASCENDENTE (menor tiempo = mejor)
+    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
+        return a.netTime < b.netTime;
+    });
+    for (int i = 0; i < static_cast<int>(results.size()); i++)
+        results[i].position = i + 1;
+
+    FinalMatchSummary summary;
+    summary.players = results;
+    summary.winner = results.front().id;
+
+    return summary;
 }

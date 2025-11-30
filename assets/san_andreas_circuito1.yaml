@@ -1,20 +1,123 @@
+include: "san_andreas_map.yaml"
+
 map:
   name: "San Andreas - Circuito 1"
-  gravity: [0.0, 0.0]
-  city: "SanAndreas"
-
-  walls:
-    - { id: 1, x: 0, y: 0, w: 150, h: 2 }
-    - { id: 2, x: 0, y: 70, w: 150, h: 2 }
-
   checkpoints:
-    - { id: 200, x: 10, y: 10, w: 12, h: 2, order: 1 }
-    - { id: 201, x: 70, y: 30, w: 12, h: 2, order: 2 }
-    - { id: 202, x: 130, y: 10, w: 12, h: 2, order: 3 }
-
-  hints:
-    - { id: 300, x: 40, y: 20, angle: 0.0 }
-    - { id: 301, x: 100, y: 15, angle: 0.1 }
+    - type: start
+      x: 1653.12
+      y: 521.548
+      rotation: 90
+      width: 100
+      order: 0
+    - type: intermediate
+      x: 2550.31
+      y: 516.891
+      rotation: 90
+      width: 100
+      order: 1
+    - type: intermediate
+      x: 3006.66
+      y: 692.293
+      rotation: 180
+      width: 100
+      order: 2
+    - type: intermediate
+      x: 3158.78
+      y: 1002.74
+      rotation: 90
+      width: 100
+      order: 3
+    - type: intermediate
+      x: 3248.81
+      y: 1429.6
+      rotation: 180
+      width: 100
+      order: 4
+    - type: intermediate
+      x: 2842.12
+      y: 1722.97
+      rotation: 270
+      width: 100
+      order: 5
+    - type: intermediate
+      x: 2655.86
+      y: 2024.1
+      rotation: 180
+      width: 100
+      order: 6
+    - type: intermediate
+      x: 2461.83
+      y: 2880.93
+      rotation: 180
+      width: 100
+      order: 7
+    - type: intermediate
+      x: 3255.02
+      y: 2811.08
+      rotation: 0
+      width: 100
+      order: 8
+    - type: intermediate
+      x: 3641.52
+      y: 2562.72
+      rotation: 90
+      width: 100
+      order: 9
+    - type: intermediate
+      x: 3886.77
+      y: 2711.74
+      rotation: 90
+      width: 100
+      order: 10
+    - type: intermediate
+      x: 4484.38
+      y: 2787.8
+      rotation: 0
+      width: 100
+      order: 11
+    - type: intermediate
+      x: 4454.89
+      y: 1962.01
+      rotation: 0
+      width: 100
+      order: 12
+    - type: intermediate
+      x: 4308.98
+      y: 973.245
+      rotation: 0
+      width: 100
+      order: 13
+    - type: intermediate
+      x: 4305.87
+      y: 358.564
+      rotation: 0
+      width: 100
+      order: 14
+    - type: intermediate
+      x: 3410.24
+      y: 284.057
+      rotation: 270
+      width: 100
+      order: 15
+    - type: intermediate
+      x: 1614.31
+      y: 38.8056
+      rotation: 270
+      width: 100
+      order: 16
+    - type: finish
+      x: 1383.03
+      y: 473.429
+      rotation: 180
+      width: 100
+      order: 17
 
   spawn_points:
-    - { x: 5, y: 5, angle: 0.0 }
+    - { x: 1600, y: 490, angle: 0}
+    - { x: 1600, y: 510, angle: 0 }
+    - { x: 1600, y: 526, angle: 0 }
+    - { x: 1600, y: 538, angle: 0 }
+    - { x: 1585, y: 490, angle: 0 }
+    - { x: 1585, y: 510, angle: 0 }
+    - { x: 1585, y: 526, angle: 0 }
+    - { x: 1585, y: 538, angle: 0 }

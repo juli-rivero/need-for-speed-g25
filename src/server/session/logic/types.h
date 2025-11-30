@@ -32,26 +32,9 @@ struct PlayerRaceData {
     float penaltyTime{0.0f};  // penalización a aplicar en esta carrera
 };
 
-struct PlayerResult {
-    PlayerId id{};
-    float rawTime{0.0f};  // tiempo crudo al llegar a meta
-    float penalty{0.0f};  // penalización aplicada en esta carrera
-    float netTime{0.0f};  // rawTime - penalty
-    bool dnf{false};      // no terminó / descalificado
-};
-
 enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
 struct UpgradeChoice {
     UpgradeStat stat;
-    float delta;  // cuanto aumenta al stat, +1, +2 ,..
-};
-struct EndRaceUpgradeReport {
-    PlayerId id;
-    float penaltyTime;
-    std::vector<UpgradeChoice> upgrades;
-};
-
-struct EndRaceSummaryPacket {
-    uint32_t raceIndex;
-    std::vector<EndRaceUpgradeReport> results;
+    float delta;    // cuánto aumenta el stat
+    float penalty;  // penalidad por aplicar este upgrade
 };

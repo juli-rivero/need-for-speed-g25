@@ -74,7 +74,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
                   racePlayers);
 
     //  sistema NPC
-    _traffic = std::make_unique<TrafficSystem>(factory);
+    _traffic = std::make_unique<TrafficSystem>(factory, spawnPoints);
     initRoadGraph(_roadGraph, roadShapes);
     _traffic->loadGraph(&_roadGraph);
     spawnNPCs(*_traffic, _cfg.getMaxNPCS());

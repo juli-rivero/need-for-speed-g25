@@ -38,10 +38,10 @@ void GameSessionFacade::run() {
         }
 
         // TODO(juli)
-        //  if (match->hasPendingEndRacePacket()) {
-        //      auto pkt = match->consumeEndRacePacket();
-        //      onRaceFinished(pkt);
-        //  }
+        // if (match.hasFinalSummary()) {
+        //     auto pkt = match.consumeFinalSummary();
+        //     emitter.dispatch(&Listener::on_match_finished, pkt);
+        // }
 
         passed_iterations = iterator.next();
     }

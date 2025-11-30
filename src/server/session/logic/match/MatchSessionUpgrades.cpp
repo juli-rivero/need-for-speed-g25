@@ -1,32 +1,30 @@
 #include "MatchSession.h"
 
-EndRaceSummaryPacket MatchSession::finishRaceAndComputeTotals() {
-    auto results = _race->makeResults();
-    EndRaceSummaryPacket summary;
-    summary.raceIndex = _currentRace;
-
-    for (auto& r : results) {
-        auto it = _players.find(r.id);
-        if (it == _players.end()) continue;
-
-        auto& player = it->second;
-
-        player->setPenalty(r.penalty);
-        player->accumulateTotal();
-
-        EndRaceUpgradeReport rep;
-        rep.id = r.id;
-        rep.penaltyTime = r.penalty;
-
-        if (auto itU = _queuedUpgrades.find(r.id); itU != _queuedUpgrades.end())
-            rep.upgrades = itU->second;
-
-        summary.results.push_back(rep);
+const char* MatchSession::toPenaltyKey(UpgradeStat s) {
+    switch (s) {
+        case UpgradeStat::MaxSpeed:
+            return "max_speed";
+        case UpgradeStat::Acceleration:
+            return "acceleration";
+        case UpgradeStat::Health:
+            return "health";
+        case UpgradeStat::Nitro:
+            return "nitro";  // si querés, agregás esto en el YAML
+        default:
+            return nullptr;
     }
-    return summary;
 }
 
-void MatchSession::queueUpgrades(
-    const std::unordered_map<PlayerId, std::vector<UpgradeChoice>>& ups) {
-    _queuedUpgrades = ups;
+void MatchSession::applyUpgrade(PlayerId id, UpgradeStat stat) {
+    auto& player = _players.at(id);
+
+    const auto& upgrades = _cfg.getUpgrades();
+    const auto& penalties = _cfg.getPenalties();
+
+    const char* key = toPenaltyKey(stat);
+
+    float delta = upgrades.at(key);
+    float penalty = penalties.at(key);
+
+    player->applyUpgrade(stat, delta, penalty);
 }
