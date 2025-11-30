@@ -56,7 +56,7 @@ ProtocolSender& operator<<(ProtocolSender& p, const CarStaticStats& s) {
     p << s.nitroMultiplier << s.nitroDuration << s.nitroCooldown;
     p << s.width << s.height;
     p << s.density << s.friction << s.restitution << s.linearDamping
-      << s.angularDamping;
+      << s.angularDamping << s.driftFactor;
     return p;
 }
 
@@ -65,7 +65,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CarStaticStats& s) {
     p >> s.nitroMultiplier >> s.nitroDuration >> s.nitroCooldown;
     p >> s.width >> s.height;
     p >> s.density >> s.friction >> s.restitution >> s.linearDamping >>
-        s.angularDamping;
+        s.angularDamping >> s.driftFactor;
     return p;
 }
 

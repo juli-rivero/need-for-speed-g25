@@ -62,6 +62,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                 stats.width = c["width"].as<float>();
                 stats.height = c["height"].as<float>();
 
+                stats.driftFactor = c["drift_factor"].as<float>();
                 stats.density = c["density"] ? c["density"].as<float>() : 1.0f;
                 stats.friction =
                     c["friction"] ? c["friction"].as<float>() : 0.8f;

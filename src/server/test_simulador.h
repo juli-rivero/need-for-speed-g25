@@ -337,7 +337,8 @@ static void renderCheckpoints(SDL_Renderer* r, const RaceInfo& info,
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
 static void renderPlayer(SDL_Renderer* r, const PlayerSnapshot& player,
-                         const float camX, float camY, bool isLocalPlayer) {
+                         const float camX, float camY, bool isLocalPlayer,
+                         TTF_Font* font = nullptr) {
     const auto& car = player.car;
     const auto& [pos, width, height] = car.bound;
 
@@ -366,6 +367,16 @@ static void renderPlayer(SDL_Renderer* r, const PlayerSnapshot& player,
     float nx = px + std::cos(car.angle) * noseLen;
     float ny = py + std::sin(car.angle) * noseLen;
     SDL_RenderDrawLineF(r, px, py, nx, ny);
+
+    if (isLocalPlayer && font) {
+        float kmh = car.speed * 3.6f;
+
+        std::string speedText = std::to_string(static_cast<int>(kmh)) + " km/h";
+        SDL_Color cyan = {40, 200, 255, 255};
+
+        drawText(r, font, static_cast<int>(px - 20),
+                 static_cast<int>(py - height * PPM * 0.8f), speedText, cyan);
+    }
 }
 static void renderNPCs(SDL_Renderer* r, const NpcSnapshot& npc, float camX,
                        float camY) {
@@ -439,7 +450,7 @@ inline int test(const YamlGameConfig& cfg) {
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         std::string race = "assets/san_andreas_circuito1.yaml";
-        PlayerConfig playerConfig1{1, "Tester", CarType::Speedster};
+        PlayerConfig playerConfig1{1, "Elvis", CarType::Tank};
         PlayerConfig playerConfig2{2, "Ghost", CarType::Ghost};
         std::vector<std::string> raceFiles{race};
         std::vector<PlayerConfig> playersConfig{playerConfig1, playerConfig2};
@@ -539,7 +550,7 @@ inline int test(const YamlGameConfig& cfg) {
             for (const auto& player : dyn.players) {
                 if (player.car.layer == RenderLayer::UNDER) {
                     renderPlayer(renderer, player, camX, camY,
-                                 player.id == localPlayerId);
+                                 player.id == localPlayerId, font);
                 }
             }
             // NPCs que están UNDER
@@ -555,7 +566,7 @@ inline int test(const YamlGameConfig& cfg) {
             for (const auto& player : dyn.players) {
                 if (player.car.layer == RenderLayer::OVER) {
                     renderPlayer(renderer, player, camX, camY,
-                                 player.id == localPlayerId);
+                                 player.id == localPlayerId, font);
                 }
             }
             renderOverpassesOnTop(renderer, city_info, camX, camY);

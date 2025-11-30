@@ -133,31 +133,57 @@ class Car : public Entity {
 
     void killLateralVelocity() {
         Vec2 vel = body->getLinearVelocity();
+        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+        float maxSpeed = staticStats.maxSpeed + upgrades.bonusMaxSpeed;
+
+        // dirección del auto
         Vec2 dir = getDirection();
         Vec2 lateralNormal = {-dir.y, dir.x};
 
+        // proyección lateral
         float lateralSpeed = vel.x * lateralNormal.x + vel.y * lateralNormal.y;
 
-        Vec2 lateralVel = {lateralNormal.x * lateralSpeed,
-                           lateralNormal.y * lateralSpeed};
+        // cuando estás quieto: NO derrapa nada
+        // a máxima velocidad: derrape leve (configurado por YAML)
+        float t = std::clamp(speed / maxSpeed, 0.0f, 1.0f);
+
+        // interpolación:
+        // quieto -> menos slip (0.98)
+        // rápido -> driftFactor (0.90)
+        float slip =
+            std::lerp(0.98f, static_cast<float>(staticStats.driftFactor), t);
+
+        Vec2 lateralVel = {lateralNormal.x * lateralSpeed * slip,
+                           lateralNormal.y * lateralSpeed * slip};
 
         body->setLinearVelocity(vel.x - lateralVel.x, vel.y - lateralVel.y);
     }
 
     void turn() {
-        // la magnitud de giro depende de la velocidad
         Vec2 vel = body->getLinearVelocity();
         float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
 
-        if (speed < 0.5f) return;  // NO girasi está casi quieto
+        // No gira en el lugar
+        // Para simular tracción delantera: si el auto está casi quieto, NO
+        // gira.
+        if (speed < 2.0f) {  // podés ajustar 1.5f / 2.0f según gusto
+            body->setAngularVelocity(0.0f);
+            return;
+        }
 
-        float steerStrength = staticStats.control;
-        float turnRate = steerStrength * (speed / staticStats.maxSpeed);
+        // A partir de aquí, velocidad suficiente para girar
+        float speedNorm =
+            std::clamp(speed / (staticStats.maxSpeed + 0.1f), 0.0f, 1.0f);
+
+        // Curva suave: menos giro a alta velocidad, más en media velocidad
+        float speedFactor = 0.3 * (1.0f - speedNorm);
+
+        float turnRate = staticStats.control * speedFactor;
 
         if (turning == TurnDirection::Left)
-            body->setAngularVelocity(-turnRate * 5.0f);
+            body->setAngularVelocity(-turnRate);
         else if (turning == TurnDirection::Right)
-            body->setAngularVelocity(turnRate * 5.0f);
+            body->setAngularVelocity(turnRate);
         else
             body->setAngularVelocity(0.0f);
     }
@@ -245,15 +271,6 @@ class Car : public Entity {
         }
     }
 
-    // TODO(elvis): esto no es de upgrades?
-    // Fijate si te gusta mas usar upgradeStats como valores o directamente
-    // modificar el CarStaticStats (hacerlo no const) para no andar sumando los
-    // upgrades todo el tiempo, y utilizar los tiempos de penalizacion de otra
-    // manera, por ejemplo, una sola variable que suma los tiempos de
-    // penalizacion para casos rapidos como los snapshots o comparacion entre
-    // los atributos del coche con los del yaml para casos aislados como el fin
-    // de partida en caso de que se quiera mostrar cada penalizacion (¿se quiere
-    // eso?)
     void upgrade(const UpgradeStat up, float amount) {
         switch (up) {
             case UpgradeStat::MaxSpeed:
