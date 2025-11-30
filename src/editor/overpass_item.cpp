@@ -4,6 +4,7 @@ OverpassItem::OverpassItem(QGraphicsItem* parent)
     : MapItem(), finished(false) {
     Q_UNUSED(parent);
     setZValue(5); 
+    setFlag(QGraphicsItem::ItemIsSelectable); 
 }
 
 void OverpassItem::addVertex(const QPointF& point) {
@@ -33,6 +34,14 @@ QRectF OverpassItem::boundingRect() const {
     }
 
     return QRectF(minX, minY, maxX - minX, maxY - minY).adjusted(-2, -2, 2, 2);
+}
+
+QPainterPath OverpassItem::shape() const {
+    QPainterPath path;
+    if (vertices.size() > 2) {
+        path.addPolygon(QPolygonF(vertices.toVector()));
+    }
+    return path;
 }
 
 void OverpassItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,

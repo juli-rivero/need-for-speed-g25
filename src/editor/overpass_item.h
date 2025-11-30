@@ -18,6 +18,7 @@ class OverpassItem : public MapItem {
     bool isFinished() const { return finished; }
 
     QRectF boundingRect() const override;
+    QPainterPath shape() const override;
     void paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
                QWidget* widget) override;
 
