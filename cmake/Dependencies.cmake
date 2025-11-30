@@ -87,6 +87,11 @@ if (TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
+    FetchContent_MakeAvailable(box2d)
+endif ()
+
+if (TALLER_SERVER OR TALLER_EDITOR)
+    include(FetchContent)
     FetchContent_Declare(
             yaml
             GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -95,8 +100,7 @@ if (TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
-
-    FetchContent_MakeAvailable(box2d yaml)
+    FetchContent_MakeAvailable(yaml)
 endif ()
 
 if (TALLER_CLIENT OR TALLER_EDITOR)
