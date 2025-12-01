@@ -50,9 +50,6 @@ if (TALLER_CLIENT OR TALLER_SERVER)
             OVERRIDE_FIND_PACKAGE
     )
     set(SDL2MIXER_MIDI OFF CACHE BOOL "" FORCE)
-    set(SDL2MIXER_OPUS OFF CACHE BOOL "" FORCE)
-    set(SDL2MIXER_VORBIS OFF CACHE BOOL "" FORCE)
-    set(SDL2MIXER_WAVPACK OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
             SDL2_mixer
             GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
