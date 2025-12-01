@@ -36,20 +36,20 @@ install_base() {
   _apt install \
     build-essential git unzip pkg-config ca-certificates \
     ninja-build python3 python3-pip \
-    gcc g++ rsync wget gpg software-properties-common wget gnupg2
+    gcc g++ rsync wget gpg software-properties-common wget gnupg2 curl
 }
 
 install_cmake() {
-  # Limpiar intentos previos
+
   sudo rm -f /usr/share/keyrings/kitware-archive.gpg
   sudo rm -f /etc/apt/sources.list.d/kitware.list
 
-  # Agregar clave oficial
+
   curl -fsSL https://apt.kitware.com/keys/kitware-archive-latest.asc \
     | gpg --dearmor \
     | sudo tee /usr/share/keyrings/kitware-archive.gpg > /dev/null
 
-  # Agregar repo
+
   echo "deb [signed-by=/usr/share/keyrings/kitware-archive.gpg] https://apt.kitware.com/ubuntu/ jammy main" \
     | sudo tee /etc/apt/sources.list.d/kitware.list > /dev/null
 
@@ -78,7 +78,6 @@ install_multimedia_dependencies() {
   _apt install gnome-terminal
 }
 install_qt() {
-  sudo add-apt-repository ppa:okirby/qt6-backports
   _apt install \
     qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
 }
