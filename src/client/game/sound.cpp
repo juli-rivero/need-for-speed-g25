@@ -63,6 +63,10 @@ void Sound::try_crash(const PlayerCar& car) {
     try_play(car, crashes, assets.crash);
 }
 
+void Sound::try_explosion(const PlayerCar& car) {
+    try_play(car, explosions, assets.explosion);
+}
+
 void Sound::play_checkpoint() {
     // Reproducir globalmente, solo lo origino de mi propio car.
     int channel_id = mixer.PlayChannel(-1, assets.checkpoint);
@@ -121,6 +125,14 @@ void Sound::update() {
     }
 
     // Descalificaciones
+    for (auto& [id, car] : game.cars) {
+        // Solo reproducir al inicio del freno
+        if (game.old_disqualified[id] == true) continue;
+        if (car.disqualified == false) continue;
+
+        // Ahora si, intentarlo
+        try_explosion(car);
+    }
 
     // Checkpoints / final
     if (game.my_car == nullptr) return;

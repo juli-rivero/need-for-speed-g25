@@ -26,8 +26,6 @@ class Screen final {
     Game& game;
     AssetsScreen assets;
 
-    PlayerCar* my_car = nullptr;
-
     // Constantes utiles
     const int WIDTH;
     const int HEIGHT;
@@ -39,6 +37,7 @@ class Screen final {
     void draw_bridges();
     void draw_overpasses();
     void draw_hud();
+    void draw_end_overlay(bool finished);
 
     // Metodos de renderizado
     //
@@ -55,7 +54,7 @@ class Screen final {
                       SDL2pp::Point pos, bool in_world = true);
 
     void render_text(const std::string& texto, SDL2pp::Point pos,
-                     bool in_world = true);
+                     const SDL2pp::Color color, bool in_world = true);
 
     void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
                       bool in_world = true);
@@ -89,10 +88,12 @@ class Sound final {
     };
     std::list<SoundInfo> brakes;
     std::list<SoundInfo> crashes;
+    std::list<SoundInfo> explosions;
 
     // Reproduccion de efectos
     void try_brake(const PlayerCar& car);
     void try_crash(const PlayerCar& car);
+    void try_explosion(const PlayerCar& car);
     void play_checkpoint();
     void play_goal();
 
@@ -160,6 +161,8 @@ class Game final : Connexion::Responder {
     float time_elapsed = 0;
     float time_countdown = 0;
     float time_left = 0;
+    RaceState race_state = RaceState::Countdown;
+    MatchState match_state = MatchState::Starting;
 
     // Componentes parseados de snapshot de actualizacion (sonido)
     Queue<CollisionEvent> collisions;
@@ -168,6 +171,11 @@ class Game final : Connexion::Responder {
     std::unordered_map<PlayerId, bool> old_disqualified;
     uint32_t old_checkpoint = 0;
     bool old_finished = false;
+
+    // Componentes miscelaneos
+    unsigned int upgrade_chosen = 0;
+    bool cheat_mode = false;
+    bool cheat_used = false;
 
     // Componentes de camara a usar
     int cam_x = 0;
