@@ -12,9 +12,9 @@ set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
 # Eliminar warnings de deprecación de cmake de las dependencias
 set(OLD_CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1)
-add_subdirectory(_deps/sdl2-src EXCLUDE_FROM_ALL)
+#[[add_subdirectory(_deps/sdl2-src EXCLUDE_FROM_ALL)
 add_subdirectory(_deps/yaml-src EXCLUDE_FROM_ALL)
-add_subdirectory(_deps/googletest-src EXCLUDE_FROM_ALL)
+add_subdirectory(_deps/googletest-src EXCLUDE_FROM_ALL)]]
 set(OLD_CMAKE_SUPPRESS_DEVELOPER_WARNINGS 0)
 
 set(CMAKE_CXX_EXTENSIONS ON)
