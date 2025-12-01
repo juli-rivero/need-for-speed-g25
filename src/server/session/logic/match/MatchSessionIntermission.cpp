@@ -11,6 +11,5 @@ void MatchSession::endIntermissionAndPrepareNextRace() {
         startRace(_currentRace + 1);
     } else {
         _state = MatchState::Finished;
-        _finalSummary = makeFinalSummary();  // TODO(juli)
     }
 }

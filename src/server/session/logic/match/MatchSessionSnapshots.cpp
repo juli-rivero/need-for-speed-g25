@@ -2,7 +2,8 @@
 
 #include "MatchSession.h"
 
-std::vector<PlayerId> MatchSession::computePositions() const {
+std::vector<PlayerId> MatchSession::computeRacePositions(
+    const std::vector<PlayerSnapshot>& players) const {
     struct Entry {
         PlayerId id;
         uint32_t checkpoint;
@@ -12,25 +13,24 @@ std::vector<PlayerId> MatchSession::computePositions() const {
 
     std::vector<Entry> arr;
 
-    for (auto& [id, player] : _players) {
-        const auto snap = player->buildSnapshot();
-
-        uint32_t cp = snap.raceProgress.nextCheckpoint;
+    for (const auto& player : players) {
+        const PlayerId id = player.id;
+        uint32_t cp = player.raceProgress.nextCheckpoint;
         float dist = 999999.f;
 
         if (auto nextCP = _race->nextCheckpointFor(id)) {
             auto [cx, cy] = nextCP.value()->getPosition();
-            float dx = snap.car.bound.pos.x - cx;
-            float dy = snap.car.bound.pos.y - cy;
+            float dx = player.car.bound.pos.x - cx;
+            float dy = player.car.bound.pos.y - cy;
             dist = std::sqrt(dx * dx + dy * dy);
         }
 
-        float net = snap.raceProgress.elapsedTime + player->getPenalty();
+        float net = player.raceProgress.elapsedTime + player.penalty;
 
         arr.push_back({id, cp, dist, net});
     }
 
-    std::sort(arr.begin(), arr.end(), [](const auto& a, const auto& b) {
+    std::ranges::sort(arr, [](const auto& a, const auto& b) {
         if (a.checkpoint != b.checkpoint) return a.checkpoint > b.checkpoint;
         if (a.distToNext != b.distToNext) return a.distToNext < b.distToNext;
         return a.netTime < b.netTime;
@@ -42,20 +42,22 @@ std::vector<PlayerId> MatchSession::computePositions() const {
     return result;
 }
 
-GameSnapshot MatchSession::getSnapshot() const {
-    const MatchSnapshot match{
-        .matchState = _state,
-        .currentRaceIndex = static_cast<uint32_t>(_currentRace),
-        .time = _world.getTime(),
-    };
-    const RaceSnapshot race{
-        .raceState = _race->getState(),
-        .raceElapsed = _race->elapsedRaceTime(),
-        .raceCountdown = _race->countdownRemaining(),
-        .raceTimeLeft = std::max(
-            0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime()),
-    };
+std::vector<PlayerId> MatchSession::computeMatchPositions(
+    std::vector<PlayerSnapshot>& players) const {
+    std::vector<PlayerId> result;
+    result.reserve(players.size());
+    std::ranges::sort(players, [](const auto& a, const auto& b) {
+        if (a.raceProgress.disqualified and not b.raceProgress.disqualified)
+            return true;
+        if (not a.raceProgress.disqualified and b.raceProgress.disqualified)
+            return false;
+        return a.netTime < b.netTime;
+    });
+    for (const auto& p : players) result.push_back(p.id);
+    return result;
+}
 
+GameSnapshot MatchSession::getSnapshot() const {
     std::vector<PlayerSnapshot> players;
     players.reserve(_players.size());
     for (const auto& p : _players | std::views::values)
@@ -68,14 +70,26 @@ GameSnapshot MatchSession::getSnapshot() const {
         for (auto& npc_logic : logic_npcs)
             npcs.push_back(npc_logic->buildSnapshot());
     }
+    const MatchSnapshot match{
+        .matchState = _state,
+        .currentRaceIndex = static_cast<uint32_t>(_currentRace),
+        .time = _world.getTime(),
+        .positions = computeMatchPositions(players),
+    };
+    const RaceSnapshot race{
+        .raceState = _race->getState(),
+        .raceElapsed = _race->elapsedRaceTime(),
+        .raceCountdown = _race->countdownRemaining(),
+        .raceTimeLeft = std::max(
+            0.0f, _cfg.getRaceTimeLimitSec() - _race->elapsedRaceTime()),
+        .positions = computeRacePositions(players),
+    };
 
     return GameSnapshot{
-        .match = match,
-        .race = race,
         .players = players,
         .npcs = npcs,
-        .positionsOrdered = computePositions(),
-        .matchSummary = getFinalSummary()  // TODO(juli)
+        .match = match,
+        .race = race,
     };
 }
 
@@ -115,33 +129,4 @@ RaceInfo MatchSession::getRaceInfo() const {
         info.spawnPoints.push_back({{sp.x, sp.y}, sp.angle});
 
     return info;
-}
-
-FinalMatchSummary MatchSession::makeFinalSummary() const {
-    std::vector<FinalPlayerResult> results;
-
-    for (auto& [id, player] : _players) {
-        FinalPlayerResult r;
-        r.id = id;
-        r.name = player->getName();
-        r.carType = player->getCar()->getType();
-        r.rawTime = player->getTotalAccumulated();
-        r.penalty = player->getPenalty();
-        r.netTime = r.rawTime + r.penalty;
-
-        results.push_back(r);
-    }
-
-    // ASCENDENTE (menor tiempo = mejor)
-    std::sort(results.begin(), results.end(), [](const auto& a, const auto& b) {
-        return a.netTime < b.netTime;
-    });
-    for (int i = 0; i < static_cast<int>(results.size()); i++)
-        results[i].position = i + 1;
-
-    FinalMatchSummary summary;
-    summary.players = results;
-    summary.winner = results.front().id;
-
-    return summary;
 }

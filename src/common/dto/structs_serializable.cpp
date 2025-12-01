@@ -224,12 +224,28 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceProgressSnapshot& s) {
     p >> s.elapsedTime;
     return p;
 }
+ProtocolSender& operator<<(ProtocolSender& p, const UpgradeStats& s) {
+    p << s.bonusAcceleration;
+    p << s.bonusHealth;
+    p << s.bonusMaxSpeed;
+    p << s.bonusNitro;
+    return p;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, UpgradeStats& s) {
+    p >> s.bonusAcceleration;
+    p >> s.bonusHealth;
+    p >> s.bonusMaxSpeed;
+    p >> s.bonusNitro;
+    return p;
+}
 
 ProtocolSender& operator<<(ProtocolSender& p, const PlayerSnapshot& s) {
     p << s.id;
     p << s.name;
     p << s.car;
     p << s.raceProgress;
+    p << s.upgrades;
+    p << s.rawTime << s.penalty << s.netTime;
     return p;
 }
 
@@ -238,6 +254,8 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, PlayerSnapshot& s) {
     p >> s.name;
     p >> s.car;
     p >> s.raceProgress;
+    p >> s.upgrades;
+    p >> s.rawTime >> s.penalty >> s.netTime;
     return p;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const NpcSnapshot& s) {
@@ -247,18 +265,18 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcSnapshot& s) {
     return p >> s.type >> s.layer >> s.bound >> s.angle;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const MatchSnapshot& m) {
-    return p << m.matchState << m.currentRaceIndex << m.time;
+    return p << m.matchState << m.currentRaceIndex << m.time << m.positions;
 }
 ProtocolReceiver& operator>>(ProtocolReceiver& p, MatchSnapshot& m) {
-    return p >> m.matchState >> m.currentRaceIndex >> m.time;
+    return p >> m.matchState >> m.currentRaceIndex >> m.time >> m.positions;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const RaceSnapshot& r) {
     return p << r.raceState << r.raceElapsed << r.raceCountdown
-             << r.raceTimeLeft;
+             << r.raceTimeLeft << r.positions;
 }
 ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceSnapshot& r) {
     return p >> r.raceState >> r.raceElapsed >> r.raceCountdown >>
-           r.raceTimeLeft;
+           r.raceTimeLeft >> r.positions;
 }
 
 ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& s) {
