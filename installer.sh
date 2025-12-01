@@ -65,7 +65,7 @@ install_compiler() {
 }
 install_multimedia_dependencies() {
   _apt install \
-    libasound2 libasound2-dev pulseaudio \
+    libasound2t64 libasound2-dev pulseaudio \
     libopusfile0 libopusfile-dev libmodplug1 libmodplug-dev \
     libsndfile1 libsndfile1-dev libmpg123-0 libmpg123-dev \
     libogg0 libogg-dev libvorbis0a libvorbisenc2 libvorbis-dev \
