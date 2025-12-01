@@ -63,6 +63,10 @@ void Receiver::recv(const dto_game::CheatMessage& request) {
     log->trace("Received CheatMessage");
     emitter.dispatch(&Listener::on_cheat, request.type);
 }
+void Receiver::recv(const dto_game::UpgradeRequest& request) {
+    log->trace("Received UpgradeRequest");
+    emitter.dispatch(&Listener::on_upgrade_request, request.stat);
+}
 
 // -------------------- Game requests --------------------
 void Receiver::recv(const dto_game::TurnRequest& request) {

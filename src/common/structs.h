@@ -222,3 +222,10 @@ enum class Cheat {
     DestroyAllCars,
     InfiniteHealth,
 };
+
+enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
+struct UpgradeChoice {
+    UpgradeStat stat;
+    float delta;    // cuánto aumenta el stat
+    float penalty;  // penalidad por aplicar este upgrade
+};

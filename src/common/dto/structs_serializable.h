@@ -41,4 +41,7 @@ DECLARE_SERIALIZABLE(GameSnapshot)
 
 MAKE_ENUM_SERIALIZABLE(Cheat, uint8_t)
 
+MAKE_ENUM_SERIALIZABLE(UpgradeStat, uint8_t)
+DECLARE_SERIALIZABLE(UpgradeChoice)
+
 #include "common/dto/macros_undef.inl"

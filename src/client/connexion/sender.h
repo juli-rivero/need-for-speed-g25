@@ -27,6 +27,7 @@ struct Api {
     virtual void start_using_nitro() = 0;
 
     virtual void cheat(Cheat) = 0;
+    virtual void upgrade(UpgradeStat) = 0;
 
     virtual ~Api() = default;
 };
@@ -62,4 +63,5 @@ class Sender final : public Thread, public Api {
     void start_using_nitro() override;
 
     void cheat(Cheat) override;
+    void upgrade(UpgradeStat) override;
 };

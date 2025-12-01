@@ -29,19 +29,32 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
-        if (root["penalties"]) {
-            for (auto it : root["penalties"]) {
-                std::string key = it.first.as<std::string>();
-                float val = it.second.as<float>();
-                penaltiesTable[key] = val;
-            }
-        }
 
         if (root["upgrades"]) {
-            for (auto it : root["upgrades"]) {
-                std::string key = it.first.as<std::string>();
-                float val = it.second.as<float>();
-                upgradesTable[key] = val;
+            const auto& upgrades = root["upgrades"];
+            if (upgrades["max_speed"]) {
+                const auto& upgrade = upgrades["max_speed"];
+                upgradesTable[UpgradeStat::MaxSpeed] = {
+                    UpgradeStat::MaxSpeed, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["acceleration"]) {
+                const auto& upgrade = upgrades["acceleration"];
+                upgradesTable[UpgradeStat::Acceleration] = {
+                    UpgradeStat::Acceleration, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["nitro"]) {
+                const auto& upgrade = upgrades["nitro"];
+                upgradesTable[UpgradeStat::Nitro] = {
+                    UpgradeStat::Nitro, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["health"]) {
+                const auto& upgrade = upgrades["health"];
+                upgradesTable[UpgradeStat::Health] = {
+                    UpgradeStat::Health, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
             }
         }
         // === Sección "car_types" ===

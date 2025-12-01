@@ -34,7 +34,8 @@ class SessionController final : Session::Listener, Receiver::Listener {
     void on_leave_request() override;
 
     void on_start_game(GameSessionFacade& game, const CityInfo&,
-                       const RaceInfo&) override;
+                       const RaceInfo&,
+                       const std::vector<UpgradeChoice>&) override;
     void on_session_updated(const SessionConfig&,
                             const std::vector<PlayerInfo>& players) override;
 };

@@ -31,10 +31,3 @@ struct PlayerRaceData {
     float elapsed{0.0f};      // tiempo crudo
     float penaltyTime{0.0f};  // penalización a aplicar en esta carrera
 };
-
-enum class UpgradeStat { Acceleration, MaxSpeed, Nitro, Health };
-struct UpgradeChoice {
-    UpgradeStat stat;
-    float delta;    // cuánto aumenta el stat
-    float penalty;  // penalidad por aplicar este upgrade
-};

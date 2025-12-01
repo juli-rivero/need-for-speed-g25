@@ -30,7 +30,8 @@ class Receiver final : public Thread {
         virtual void on_join_response(const SessionInfo&,
                                       const std::vector<CarInfo>&) {}
         virtual void on_leave_response() {}
-        virtual void on_start_game(const CityInfo&, const RaceInfo&) {}
+        virtual void on_start_game(const CityInfo&, const RaceInfo&,
+                                   const std::vector<UpgradeChoice>&) {}
         virtual void on_session_snapshot(const SessionConfig&,
                                          const std::vector<PlayerInfo>&) {}
 

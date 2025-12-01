@@ -71,3 +71,11 @@ void MatchSession::applyCheat(const PlayerId id, const Cheat cheat) const {
             break;
     }
 }
+
+void MatchSession::applyUpgrade(const PlayerId id, const UpgradeStat upgrade) {
+    auto& player = _players.at(id);
+
+    const auto& data = _cfg.getUpgradesMap().at(upgrade);
+
+    player->applyUpgrade(upgrade, data.delta, data.penalty);
+}
