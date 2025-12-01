@@ -36,9 +36,8 @@ void Screen::render_slice(SDL2pp::Texture& texture, SDL2pp::Rect section,
 }
 
 void Screen::render_text(const std::string& texto, SDL2pp::Point pos,
-                         bool in_world) {
-    SDL2pp::Surface s =
-        assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
+                         const SDL2pp::Color color, bool in_world) {
+    SDL2pp::Surface s = assets.font.RenderText_Solid(texto, color);
     SDL2pp::Texture t(renderer, s);
 
     render(t, pos, 0, in_world);
@@ -71,12 +70,16 @@ void Screen::render_car(NpcCar& car) {
 }
 
 void Screen::render_car(PlayerCar& car, bool with_name) {
+    if (car.disqualified) return;
+    // TODO(franco): explosion
+
     SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     SDL2pp::Point pos = car.pos.get_top_left();
 
     render(sprite, pos, car.pos.get_angle());
     if (with_name)
-        render_text(car.name, pos - SDL2pp::Point(0, sprite.GetHeight() + 10));
+        render_text(car.name, pos - SDL2pp::Point(0, sprite.GetHeight() + 10),
+                    {255, 255, 255, 255});
 }
 
 //
@@ -93,9 +96,9 @@ void Screen::update_camera() {
 void Screen::draw_ciudad() { render(*assets.city, {0, 0}); }
 
 void Screen::draw_next_checkpoint() {
-    if (!my_car) return;
+    if (!game.my_car) return;
 
-    auto next_checkpoint = my_car->next_checkpoint;
+    auto next_checkpoint = game.my_car->next_checkpoint;
     if (next_checkpoint < game.checkpoint_amount) {
         const BoundingBox& b = game.checkpoints[next_checkpoint];
 
@@ -137,30 +140,69 @@ static std::string format_time(float time) {
 }
 
 void Screen::draw_hud() {
-    if (!my_car) return;
+    render_solid({10, 10, game.my_car->health, 10}, {0, 255, 0, 255}, false);
+    render_solid({10, 30, game.my_car->speed, 10}, {255, 165, 0, 255}, false);
 
-    render_solid({10, 10, my_car->health, 10}, {0, 255, 0, 255}, false);
-    render_solid({10, 30, my_car->speed, 10}, {255, 165, 0, 255}, false);
+    if (game.cheat_used) {
+        render_text("TRAMPOSO", {10, 50}, {255, 255, 0, 255}, false);
+    } else {
+        render_text(format_time(game.time_elapsed), {10, 50},
+                    {255, 255, 255, 255}, false);
+    }
 
-    auto next_checkpoint = my_car->next_checkpoint;
+    auto next_checkpoint = game.my_car->next_checkpoint;
     if (next_checkpoint < game.checkpoint_amount) {
         const BoundingBox& b = game.checkpoints[next_checkpoint];
 
-        float angle = my_car->pos.angle_to(b);
+        float angle = game.my_car->pos.angle_to(b);
         render(assets.arrow, {WIDTH / 2 - assets.arrow.GetWidth() / 2, 10},
                angle, false);
     }
+}
 
-    if (my_car->finished) {
-        render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
-        // TODO(franco): pantalla de resultado
+void Screen::draw_end_overlay(bool finished) {
+    render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
+
+    if (finished) {
+        render_text("Carrera terminada!", {30, 30}, {255, 255, 255, 255},
+                    false);
+        render_text("Tu tiempo: " + format_time(game.my_car->time), {30, 70},
+                    {255, 255, 255, 255}, false);
     } else {
-        render_text(format_time(game.time_elapsed), {10, 50}, false);
+        render_text("Coche destruido...", {30, 30}, {255, 255, 255, 255},
+                    false);
+    }
+
+    if (game.match_state == MatchState::Racing) {
+        render_text("Esperando a que la carrera termine...", {30, 130},
+                    {255, 255, 255, 255}, false);
+    } else if (game.match_state == MatchState::Intermission) {
+        render_text("Elegi una mejora!", {30, 130}, {255, 255, 255, 255},
+                    false);
+
+        auto& upgrade = game.upgrade_chosen;
+        SDL2pp::Color upgrade_yes(255, 255, 0, 255);
+        SDL2pp::Color upgrade_no(255, 255, 255, 255);
+
+        render_text("1 - Mejor Aceleracion", {30, 170},
+                    (upgrade == 1) ? upgrade_yes : upgrade_no, false);
+        render_text("2 - Mejor Velocidad Maxima", {30, 190},
+                    (upgrade == 2) ? upgrade_yes : upgrade_no, false);
+        render_text("3 - Mejor Nitro", {30, 210},
+                    (upgrade == 3) ? upgrade_yes : upgrade_no, false);
+        render_text("4 - Mejor Vida Maxima", {30, 230},
+                    (upgrade == 4) ? upgrade_yes : upgrade_no, false);
+
+        // TODO(franco): como muestro el tiempo restante hasta la siguiente,
+        // donde esta? render_text("Siguiente carrera en: " +
+        // format_time(game.time_left), {30, 300}, false);
+    } else if (game.match_state == MatchState::Finished) {
+        render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
+                    false);
     }
 }
 
 void Screen::update() {
-    my_car = game.my_car;
     renderer.Clear();
     update_camera();
 
@@ -175,7 +217,13 @@ void Screen::update() {
     draw_overpasses();
 
     // Capa 3: interfaz
-    draw_hud();
+    if (game.my_car) {
+        if (game.my_car->finished || game.my_car->disqualified) {
+            draw_end_overlay(game.my_car->finished);
+        } else {
+            draw_hud();
+        }
+    }
 
     renderer.SetDrawColor(0, 0, 0, 255);
     renderer.Present();
