@@ -69,7 +69,7 @@ bool Game::send_events() {
         if (event.type == SDL_KEYDOWN) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
+            if (tecla == SDLK_ESCAPE) return true;
 
             if (tecla == SDLK_LEFT || tecla == SDLK_a)
                 api.start_turning(TurnDirection::Left);
@@ -79,6 +79,41 @@ bool Game::send_events() {
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.start_breaking();
 
             if (tecla == SDLK_SPACE) api.start_using_nitro();
+
+            if (tecla == SDLK_RALT) cheat_mode = true;
+            if (cheat_mode && tecla == SDLK_v) {
+                spdlog::info("EVENT: cheat - vida infinita");
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_g) {
+                spdlog::info("EVENT: cheat - ganar la carrera");
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_p) {
+                spdlog::info(
+                    "EVENT: cheat - perder la carrera (autodescalificarse)");
+                cheat_used = true;
+            }
+
+            if (match_state == MatchState::Intermission &&
+                upgrade_chosen == 0) {
+                if (tecla == SDLK_1) {
+                    spdlog::info("EVENT: mejora - aceleracion");
+                    upgrade_chosen = 1;
+                }
+                if (tecla == SDLK_2) {
+                    spdlog::info("EVENT: mejora - velocidad maxima");
+                    upgrade_chosen = 2;
+                }
+                if (tecla == SDLK_3) {
+                    spdlog::info("EVENT: mejora - nitro");
+                    upgrade_chosen = 3;
+                }
+                if (tecla == SDLK_4) {
+                    spdlog::info("EVENT: mejora - vida");
+                    upgrade_chosen = 4;
+                }
+            }
         }
 
         if (event.type == SDL_KEYUP) {
@@ -90,11 +125,14 @@ bool Game::send_events() {
                 api.stop_turning(TurnDirection::Right);
             if (tecla == SDLK_UP || tecla == SDLK_w) api.stop_accelerating();
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.stop_breaking();
+
+            if (tecla == SDLK_RALT) cheat_mode = false;
         }
     }
 
     return false;
 }
+
 void Game::update_state() {
     std::lock_guard lock(snapshot_mutex);
 
@@ -120,10 +158,13 @@ void Game::update_state() {
         npcs.emplace_back(npc);
     }
 
-    // Tiempo
+    // Tiempo y estado de carrera
     time_elapsed = current_snapshot.race.raceElapsed;
     time_countdown = current_snapshot.race.raceCountdown;
     time_left = current_snapshot.race.raceTimeLeft;
+    race_state = current_snapshot.race.raceState;
+    match_state = current_snapshot.match.matchState;
+    if (match_state != MatchState::Intermission) upgrade_chosen = 0;
 }
 
 //
