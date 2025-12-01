@@ -15,6 +15,10 @@ crash.ogg
 	"crash.wav" - por moxobna
 	https://freesound.org/people/moxobna/sounds/40158/
 
+explosion.ogg
+	"Explosion.mp3" - por Iwiploppenisse
+	https://freesound.org/people/Iwiploppenisse/sounds/156031/
+
 goal.ogg
 	"success.wav" - por grunz
 	https://freesound.org/people/grunz/sounds/109662/

@@ -26,6 +26,7 @@ struct PlayerCar : BaseCar {
     const int health;
     const int speed;
     const PlayerId id;
+    const float time;
 
     explicit PlayerCar(const PlayerSnapshot& snapshot);
 };
