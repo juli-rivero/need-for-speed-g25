@@ -8,6 +8,10 @@ NC='\033[0m'
 
 PROJECT_NAME="need-for-speed-g25"
 
+
+# Detectar versión mayor de Ubuntu (22, 23, 24...)
+UBUNTU_VERSION=$(lsb_release -rs | cut -d'.' -f1)
+
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
 say() { printf "${BLUE}[$PROJECT_NAME]${NC} $* "; }
@@ -78,8 +82,15 @@ install_multimedia_dependencies() {
   _apt install gnome-terminal
 }
 install_qt() {
-  _apt install \
-    qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
+  if [ "$UBUNTU_VERSION" -ge 24 ]; then
+      say "Qt6 desde repos oficiales (Ubuntu 24+)"
+      _apt install qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
+  else
+      say "Agregando PPA Qt6 (Ubuntu 22 / Linux Mint)"
+      sudo add-apt-repository -y ppa:okirby/qt6-backports
+      _apt update
+      _apt install qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
+  fi
 }
 prepare_system() {
   say "Actualizando indices"
