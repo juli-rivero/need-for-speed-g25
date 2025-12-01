@@ -31,7 +31,7 @@ static void attachPlayers(
         world.getCollisionManager().registerCar(car.get(), pc.id);
 
         auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
-        player->resetRaceState(0);
+        player->resetRaceState();
 
         racePlayers.push_back(player.get());
         outPlayers[pc.id] = std::move(player);

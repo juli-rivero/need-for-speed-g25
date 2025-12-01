@@ -19,7 +19,6 @@ class Player {
            std::unique_ptr<Car>&& car)
         : id(id), name(name), car(std::move(car)) {}
 
-    const std::string getName() { return name; }
     // ------------------------------
     //  LÓGICA DEL AUTO
     // ------------------------------
@@ -32,12 +31,12 @@ class Player {
     // ------------------------------
 
     // para reiniciar el estado de carrera para una nueva Race
-    void resetRaceState(float initialPenaltyTime = 0.0f) {
+    void resetRaceState() {
         raceState.nextCheckpoint = 0;
         raceState.finished = false;
         raceState.disqualified = false;
         raceState.elapsed = 0.0f;
-        raceState.penaltyTime = initialPenaltyTime;
+        // penalty sigue igual
     }
 
     void tickTime(float dt) {
@@ -63,19 +62,15 @@ class Player {
     //  TIEMPOS Y PENALIZACIONES
     // ------------------------------
     void setPenalty(float p) { raceState.penaltyTime = p; }
-    float getPenalty() const { return raceState.penaltyTime; }
     PlayerId getId() const { return id; }
-    float getRawTime() const { return raceState.elapsed; }
-    float getNetTime() const {
-        return raceState.elapsed + raceState.penaltyTime;
-    }
     void applyUpgrade(UpgradeStat stat, float delta, float penalty) {
         car->upgrade(stat, delta);
         float newPenalty = raceState.penaltyTime + penalty;
         raceState.penaltyTime = newPenalty;
     }
-    void accumulateTotal() { totalAccumulated += getNetTime(); }
-    float getTotalAccumulated() const { return totalAccumulated; }
+    void accumulateTotal() {
+        totalAccumulated += raceState.elapsed + raceState.penaltyTime;
+    }
 
     // ------------------------------
     //  SNAPSHOT PARA EL CLIENTE
@@ -93,6 +88,10 @@ class Player {
         rp.elapsedTime = raceState.elapsed;
 
         ps.raceProgress = rp;
+
+        ps.rawTime = totalAccumulated;
+        ps.penalty = raceState.penaltyTime;
+        ps.netTime = ps.rawTime + ps.penalty;
         return ps;
     }
 };

@@ -36,9 +36,6 @@ class MatchSession {
     MatchState _state{MatchState::Starting};
     float _intermissionClock{0.0f};
 
-    std::optional<FinalMatchSummary>
-        _finalSummary;  // TODO(juli): si lo mandas con el dispatch
-
     void startRace(std::size_t raceIndex);
     void startIntermission();
     void endIntermissionAndPrepareNextRace();
@@ -56,17 +53,6 @@ class MatchSession {
 
     MatchState state() const { return _state; }
 
-    // TODO(juli)
-    bool hasFinalSummary() const { return _finalSummary.has_value(); }
-    FinalMatchSummary consumeFinalSummary() {
-        auto s = *_finalSummary;
-        _finalSummary.reset();
-        return s;
-    }
-    const std::optional<FinalMatchSummary>& getFinalSummary() const {
-        return _finalSummary;
-    }
-
     const std::vector<std::unique_ptr<Wall>>& getWalls() const {
         return _buildings;
     }
@@ -75,7 +61,9 @@ class MatchSession {
         return _race->getSensors();
     }
     void applyUpgrade(PlayerId id, UpgradeStat stat);
-    std::vector<PlayerId> computePositions() const;
+    std::vector<PlayerId> computeRacePositions(
+        const std::vector<PlayerSnapshot>&) const;
+    std::vector<PlayerId> computeMatchPositions(
+        std::vector<PlayerSnapshot>&) const;
     static const char* toPenaltyKey(UpgradeStat s);
-    FinalMatchSummary makeFinalSummary() const;
 };

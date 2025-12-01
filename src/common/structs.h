@@ -1,7 +1,6 @@
 #pragma once
 
 #include <cstdint>
-#include <optional>
 #include <string>
 #include <variant>
 #include <vector>
@@ -182,8 +181,10 @@ struct PlayerSnapshot {
     std::string name;  // nombre del jugador
     CarSnapshot car;   // posición, velocidad, etc.
     RaceProgressSnapshot raceProgress;
-
     UpgradeStats upgrades;
+    float rawTime;  // tiempo crudo final de TODAS las carreras
+    float penalty;  // penalidad total acumulada
+    float netTime;  // rawTime + penalty
 };
 struct NpcSnapshot {
     CarType type;
@@ -192,30 +193,13 @@ struct NpcSnapshot {
     float angle;
 };
 
-// Dejo todos los datos asi el cliente simplemente lo muestra y no calcula nada
-// total solo se envia una vez
-struct FinalPlayerResult {
-    PlayerId id;
-    std::string name;
-    CarType carType;
-
-    float rawTime;  // tiempo crudo final de TODAS las carreras
-    float penalty;  // penalidad total acumulada
-    float netTime;  // rawTime + penalty
-
-    int position;  // 1°, 2°, 3°, ...
-};
-struct FinalMatchSummary {
-    std::vector<FinalPlayerResult> players;
-    PlayerId winner;  // ID del campeón absoluto
-};
-
 enum class RaceState { Countdown, Running, Finished };
 struct RaceSnapshot {
     RaceState raceState{RaceState::Countdown};
     float raceElapsed{0.0f};    // tiempo desde que empezo la carrera
     float raceCountdown{0.0f};  // tiempo restante antes de empezar la racha
     float raceTimeLeft{0.0f};   // tiempo restante si hay límite (10min)
+    std::vector<PlayerId> positions;
 };
 
 enum class MatchState { Starting, Racing, Intermission, Finished };
@@ -223,15 +207,12 @@ struct MatchSnapshot {
     MatchState matchState{MatchState::Starting};
     uint32_t currentRaceIndex{0};
     float time{0.0f};  // tiempo global simulado
+    std::vector<PlayerId> positions;
 };
 struct GameSnapshot {
-    MatchSnapshot match;
-    RaceSnapshot race;
-
     std::vector<PlayerSnapshot> players;
     std::vector<NpcSnapshot> npcs;
 
-    std::vector<PlayerId> positionsOrdered;
-
-    std::optional<FinalMatchSummary> matchSummary;  // TODO(juli)
+    MatchSnapshot match;
+    RaceSnapshot race;
 };
