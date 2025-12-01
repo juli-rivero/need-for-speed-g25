@@ -205,6 +205,12 @@ class Car : public Entity {
     bool isDestroyed() const { return health <= 0; }
 
     void update(float dt) {
+        if (isDestroyed()) {
+            body->setLinearVelocity(0.0, 0.0);
+            body->setAngularVelocity(0);
+            return;
+        }
+
         updateNitro(dt);
 
         if (accelerating) accelerate();
