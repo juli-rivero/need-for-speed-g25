@@ -71,15 +71,20 @@ install_compiler() {
 }
 install_multimedia_dependencies() {
 
-    # noble usa libasound2t64, jammy usa libasound2
-    if [ "$CODENAME" = "noble" ]; then
+    if apt-cache show libasound2t64 >/dev/null 2>&1; then
         ASOUND="libasound2t64"
     else
         ASOUND="libasound2"
     fi
 
+    if apt-cache show libasound2t64-dev >/dev/null 2>&1; then
+        ASOUND_DEV="libasound2t64-dev"
+    else
+        ASOUND_DEV="libasound2-dev"
+    fi
+
     _apt install \
-        $ASOUND libasound2-dev pulseaudio \
+        $ASOUND $ASOUND_DEV pulseaudio \
         libopusfile0 libopusfile-dev \
         libmodplug1 libmodplug-dev \
         libsndfile1 libsndfile1-dev \
