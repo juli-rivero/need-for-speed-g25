@@ -12,16 +12,13 @@
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
     : api(connexion.get_api()),
-      my_id(connexion.unique_id),
-      screen(renderer, *this),
-      sound(mixer, *this),
-      assets(renderer),
       city_info(setup.city_info),
-      race_info(setup.race_info) {
+      race_info(setup.race_info),
+      screen(renderer, *this, setup.city_info.name),
+      sound(mixer, *this, setup.city_info.name),
+      my_id(connexion.unique_id) {
     // Configurar componentes de snapshot estatico
     for (const Bound& b : city_info.bridges) {
-        spdlog::info("bridge: {} {} {} {}", b.pos.x, b.pos.y, b.width,
-                     b.height);
         bridges.emplace_back(b);
     }
     for (const Bound& b : city_info.railings) {
@@ -35,7 +32,6 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
     }
     checkpoint_amount = checkpoints.size();
 
-    spdlog::info("map: {}", city_info.name);
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
@@ -102,6 +98,17 @@ bool Game::send_events() {
 void Game::update_state() {
     std::lock_guard lock(snapshot_mutex);
 
+    // Estado para eventos de sonido
+    if (my_car != nullptr) {
+        old_checkpoint = my_car->next_checkpoint;
+        old_finished = my_car->finished;
+    }
+    for (auto& [id, car] : cars) {
+        old_braking[id] = car.braking;
+        old_disqualified[id] = car.disqualified;
+    }
+
+    // Sumado/reemplazo de jugadores y NPCs
     cars.clear();
     for (auto& player : current_snapshot.players) {
         cars.emplace(player.id, player);
@@ -113,28 +120,10 @@ void Game::update_state() {
         npcs.emplace_back(npc);
     }
 
+    // Tiempo
     time_elapsed = current_snapshot.race.raceElapsed;
     time_countdown = current_snapshot.race.raceCountdown;
     time_left = current_snapshot.race.raceTimeLeft;
-}
-
-void Game::manage_sounds() {
-    // Colisiones
-    CollisionEvent collision;
-    while (collisions.try_pop(collision)) {
-        PlayerId id;
-        std::visit([&](const auto& collision) { id = collision.player; },
-                   collision);
-
-        PlayerCar& car = cars.at(id);
-        sound.crash(car);
-    }
-
-    // Freno (y carrera completada)
-    // TODO(franco): reproducir frenos de otros coches, aparte del mio
-    if (!my_car) return;
-    sound.test_brake(*my_car);
-    sound.test_finish(*my_car);
 }
 
 //
@@ -144,13 +133,14 @@ bool Game::start() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);
     TimerIterator iterator(dt);
 
+    sound.start();
     while (1) {
         bool quit = send_events();
         update_state();
 
         if (my_car) set_camera(*my_car);
         screen.update();
-        manage_sounds();
+        sound.update();
 
         if (quit) return true;
 

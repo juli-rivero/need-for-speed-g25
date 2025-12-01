@@ -7,9 +7,11 @@
 #include "client/game/classes.h"
 #include "common/structs.h"
 
-Screen::Screen(SDL2pp::Renderer& renderer, Game& game)
+Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
+               const CityName& city_name)
     : renderer(renderer),
       game(game),
+      assets(renderer, city_name),
       WIDTH(renderer.GetOutputWidth()),
       HEIGHT(renderer.GetOutputHeight()) {
     renderer.Clear();
@@ -36,7 +38,7 @@ void Screen::render_slice(SDL2pp::Texture& texture, SDL2pp::Rect section,
 void Screen::render_text(const std::string& texto, SDL2pp::Point pos,
                          bool in_world) {
     SDL2pp::Surface s =
-        game.assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
+        assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
     SDL2pp::Texture t(renderer, s);
 
     render(t, pos, 0, in_world);
@@ -55,7 +57,7 @@ void Screen::render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
 
     // Ya que SDL2 no soporta rectangulos rotados, usar una textura blanca
     // generica
-    auto& white = game.assets.white;
+    auto& white = assets.white;
     white.SetColorAndAlphaMod(color);
     renderer.Copy(white, SDL2pp::NullOpt, rect, angle);
 }
@@ -64,13 +66,12 @@ void Screen::render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
 // METODOS DE RENDERIZADO COMPUESTOS
 //
 void Screen::render_car(NpcCar& car) {
-    SDL2pp::Texture& sprite = *game.assets.car_name.at(car.type);
-
+    SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     render(sprite, car.pos.get_top_left(), car.pos.get_angle());
 }
 
 void Screen::render_car(PlayerCar& car, bool with_name) {
-    SDL2pp::Texture& sprite = *game.assets.car_name.at(car.type);
+    SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     SDL2pp::Point pos = car.pos.get_top_left();
 
     render(sprite, pos, car.pos.get_angle());
@@ -89,10 +90,7 @@ void Screen::update_camera() {
 //
 // PASOS DE RENDERIZADO
 //
-void Screen::draw_ciudad() {
-    auto& city = *game.assets.city_name.at(game.city_info.name);
-    render(city, {0, 0});
-}
+void Screen::draw_ciudad() { render(*assets.city, {0, 0}); }
 
 void Screen::draw_next_checkpoint() {
     if (!my_car) return;
@@ -118,17 +116,13 @@ void Screen::draw_coches(RenderLayer capa) {
 }
 
 void Screen::draw_bridges() {
-    auto& city = *game.assets.city_name.at(game.city_info.name);
-
     for (const BoundingBox& b : game.bridges)
-        render_slice(city, b.as_rect(), b.get_top_left());
+        render_slice(*assets.city, b.as_rect(), b.get_top_left());
 }
 
 void Screen::draw_overpasses() {
-    auto& city = *game.assets.city_name.at(game.city_info.name);
-
     for (const BoundingBox& b : game.overpasses)
-        render_slice(city, b.as_rect(), b.get_top_left());
+        render_slice(*assets.city, b.as_rect(), b.get_top_left());
 }
 
 static std::string format_time(float time) {
@@ -153,9 +147,8 @@ void Screen::draw_hud() {
         const BoundingBox& b = game.checkpoints[next_checkpoint];
 
         float angle = my_car->pos.angle_to(b);
-        render(game.assets.arrow,
-               {WIDTH / 2 - game.assets.arrow.GetWidth() / 2, 10}, angle,
-               false);
+        render(assets.arrow, {WIDTH / 2 - assets.arrow.GetWidth() / 2, 10},
+               angle, false);
     }
 
     if (my_car->finished) {
