@@ -285,3 +285,10 @@ ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& s) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& s) {
     return p >> s.match >> s.race >> s.players >> s.npcs;
 }
+
+ProtocolSender& operator<<(ProtocolSender& p, const UpgradeChoice& s) {
+    return p << s.stat << s.delta << s.penalty;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, UpgradeChoice& s) {
+    return p >> s.stat >> s.delta >> s.penalty;
+}

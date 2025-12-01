@@ -13,14 +13,13 @@ struct ErrorResponse {
     std::string message;
 };
 
-using Request =
-    std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_search::CreateRequest,
-                 dto_search::StaticSessionDataRequest,
-                 dto_session::LeaveRequest, dto_session::StartRequest,
-                 dto_session::ChooseCarRequest, dto_game::TurnRequest,
-                 dto_game::AccelerateRequest, dto_game::UseBoostRequest,
-                 dto_game::ReverseRequest, dto_game::CheatMessage>;
+using Request = std::variant<
+    dto_search::SearchRequest, dto_search::JoinRequest,
+    dto_search::CreateRequest, dto_search::StaticSessionDataRequest,
+    dto_session::LeaveRequest, dto_session::StartRequest,
+    dto_session::ChooseCarRequest, dto_game::TurnRequest,
+    dto_game::AccelerateRequest, dto_game::UseBoostRequest,
+    dto_game::ReverseRequest, dto_game::CheatMessage, dto_game::UpgradeRequest>;
 
 using Response =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,

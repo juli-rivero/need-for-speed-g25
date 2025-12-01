@@ -11,17 +11,19 @@ config:
 
 # Penalizaciones por mejoras de auto
 # (se suman en segundos al tiempo de carrera)
-penalties:
-  max_speed: 3.0
-  acceleration: 2.0
-  control: 1.5
-  health: 1.0
-
 upgrades:
-  max_speed: 5.0        # cuánto suma cada upgrade
-  acceleration: 10.0
-  nitro: 2.0
-  health: 20.0
+  max_speed:
+    delta: 5.0        # cuánto suma cada upgrade
+    penalty: 3.0
+  acceleration:
+    delta: 10.0
+    penalty: 2.0
+  nitro:
+    delta: 2.0
+    penalty: 1.5
+  health:
+    delta: 20.0
+    penalty: 1.0
 # ===================================
 # TIPOS DE AUTOS DISPONIBLES
 # ===================================

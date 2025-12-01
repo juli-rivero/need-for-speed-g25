@@ -23,7 +23,8 @@ struct Api {
     virtual void send_session_snapshot(
         const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
     virtual void notify_game_started(const CityInfo& info,
-                                     const RaceInfo& first_race) = 0;
+                                     const RaceInfo& first_race,
+                                     const std::vector<UpgradeChoice>&) = 0;
 
     virtual void send_game_static_snapshot(const RaceInfo& info) = 0;
 
@@ -57,8 +58,8 @@ class Sender final : public Thread, public Api {
 
     void send_session_snapshot(const SessionConfig&,
                                const std::vector<PlayerInfo>& players) override;
-    void notify_game_started(const CityInfo& info,
-                             const RaceInfo& first_race) override;
+    void notify_game_started(const CityInfo& info, const RaceInfo& first_race,
+                             const std::vector<UpgradeChoice>&) override;
 
     void send_game_static_snapshot(const RaceInfo& info) override;
 

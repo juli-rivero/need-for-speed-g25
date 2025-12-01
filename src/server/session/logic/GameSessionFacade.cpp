@@ -31,6 +31,11 @@ void GameSessionFacade::run() {
             match.applyCheat(cheater.first, cheater.second);
         }
 
+        std::pair<PlayerId, UpgradeStat> upgrader;
+        while (queue_upgrades.try_pop(upgrader)) {
+            match.applyUpgrade(upgrader.first, upgrader.second);
+        }
+
         world.step(passed_iterations * dt.count());
         match.update(passed_iterations * dt.count());
 
@@ -84,4 +89,7 @@ void GameSessionFacade::useNitro(PlayerId id) {
 }
 void GameSessionFacade::cheat(PlayerId id, Cheat cheat) {
     queue_cheats.try_push({id, cheat});
+}
+void GameSessionFacade::upgrade(PlayerId id, UpgradeStat upgrade_stat) {
+    queue_upgrades.try_push({id, upgrade_stat});
 }

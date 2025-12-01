@@ -39,6 +39,10 @@ struct CheatMessage {
     Cheat type;
 };
 
+struct UpgradeRequest {
+    UpgradeStat stat;
+};
+
 }  // namespace dto_game
 
 #include "common/dto/macros.inl"
@@ -50,4 +54,5 @@ DECLARE_SERIALIZABLE(dto_game::ReverseRequest)
 DECLARE_SERIALIZABLE(dto_game::GameSnapshotPacket)
 DECLARE_SERIALIZABLE(dto_game::EventPacket)
 DECLARE_SERIALIZABLE(dto_game::CheatMessage)
+DECLARE_SERIALIZABLE(dto_game::UpgradeRequest)
 #include "common/dto/macros_undef.inl"

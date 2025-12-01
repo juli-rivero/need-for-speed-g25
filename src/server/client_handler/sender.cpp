@@ -77,10 +77,11 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started(const CityInfo& city_info,
-                                 const RaceInfo& first_race) {
+void Sender::notify_game_started(
+    const CityInfo& city_info, const RaceInfo& first_race,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{city_info, first_race});
+    responses.try_push(StartResponse{city_info, first_race, upgrade_choices});
 }
 
 void Sender::send_game_static_snapshot(const RaceInfo& race) {

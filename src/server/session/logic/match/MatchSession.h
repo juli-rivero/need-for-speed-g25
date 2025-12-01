@@ -47,6 +47,7 @@ class MatchSession {
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&) const;
     void applyCheat(PlayerId id, Cheat) const;
+    void applyUpgrade(PlayerId id, UpgradeStat stat);
 
     GameSnapshot getSnapshot() const;
     CityInfo getCityInfo() const;
@@ -61,10 +62,8 @@ class MatchSession {
     const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
         return _race->getSensors();
     }
-    void applyUpgrade(PlayerId id, UpgradeStat stat);
     std::vector<PlayerId> computeRacePositions(
         const std::vector<PlayerSnapshot>&) const;
     std::vector<PlayerId> computeMatchPositions(
         std::vector<PlayerSnapshot>&) const;
-    static const char* toPenaltyKey(UpgradeStat s);
 };

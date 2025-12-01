@@ -44,6 +44,7 @@ class Receiver final : public Thread {
         virtual void on_nitro() {}
 
         virtual void on_cheat(Cheat) {}
+        virtual void on_upgrade_request(UpgradeStat) {}
 
         ~Listener() override = default;
 
@@ -68,4 +69,5 @@ class Receiver final : public Thread {
     void recv(const dto_game::UseBoostRequest&);
     void recv(const dto_game::ReverseRequest&);
     void recv(const dto_game::CheatMessage&);
+    void recv(const dto_game::UpgradeRequest&);
 };

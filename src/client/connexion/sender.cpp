@@ -104,3 +104,7 @@ void Sender::cheat(Cheat cheat) {
     spdlog::trace("sending cheat {}", static_cast<int>(cheat));
     requests.try_push(dto_game::CheatMessage{cheat});
 }
+void Sender::upgrade(UpgradeStat stat) {
+    spdlog::trace("sending upgrade {}", static_cast<int>(stat));
+    requests.try_push(dto_game::UpgradeRequest{stat});
+}

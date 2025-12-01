@@ -118,8 +118,14 @@ void Session::start_game() {
     CityInfo city_info = game->getCityInfo();
     city_info.name =
         config.city;  // TODO(juli): esto no se deberia hacer, cambiar
+
+    std::vector<UpgradeChoice> upgrade_choices;
+    const auto& choices_map = yaml_config.getUpgradesMap();
+    upgrade_choices.reserve(choices_map.size());
+    for (const auto& choice : choices_map | std::views::values)
+        upgrade_choices.push_back(choice);
     emitter.dispatch(&Listener::on_start_game, *game, city_info,
-                     game->getRaceInfo());
+                     game->getRaceInfo(), upgrade_choices);
     spdlog::trace("iniciando gameloop");
     game->start();
 }

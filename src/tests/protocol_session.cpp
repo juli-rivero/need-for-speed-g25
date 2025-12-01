@@ -49,6 +49,9 @@ TEST_F(ProtocolTest, SessionStartResponseRoundTrip) {
                               .type = CheckpointType::Finish}},
              .spawnPoints = {{.pos{.x = 1.f, .y = 1.f}, .angle = 0.f},
                              {.pos{.x = 2.f, .y = 1.f}, .angle = 0.f}}},
+        .upgrade_choices = {{.stat = UpgradeStat::Acceleration,
+                             .delta = 1.0f,
+                             .penalty = 1.0f}},
     };
 
     server_protocol << resp << ProtocolSender::send;

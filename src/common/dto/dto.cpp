@@ -26,7 +26,8 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
                  dto_session::LeaveRequest, dto_session::StartRequest,
                  dto_session::ChooseCarRequest, dto_game::TurnRequest,
                  dto_game::AccelerateRequest, dto_game::UseBoostRequest,
-                 dto_game::ReverseRequest, dto_game::CheatMessage>;
+                 dto_game::ReverseRequest, dto_game::CheatMessage,
+                 dto_game::UpgradeRequest>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -64,6 +65,9 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
             break;
         case 11:
             e = p.get<dto_game::CheatMessage>();
+            break;
+        case 12:
+            e = p.get<dto_game::UpgradeRequest>();
             break;
         default:
             throw std::runtime_error("Unknown request type");

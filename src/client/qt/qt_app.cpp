@@ -82,10 +82,12 @@ void QtWindowManager::show_waiting_window() {
     setWindowTitle("Need for Speed - Sala de Espera");
     stack.setCurrentWidget(&waitingWindow);
 }
-void QtWindowManager::continue_game(const CityInfo& city_info,
-                                    const RaceInfo& race_info) {
+void QtWindowManager::continue_game(
+    const CityInfo& city_info, const RaceInfo& race_info,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
     setup.city_info = city_info;
     setup.race_info = race_info;
+    setup.upgrade_choices = upgrade_choices;
 
     shouldQuit = false;
 
