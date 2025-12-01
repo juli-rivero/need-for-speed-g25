@@ -46,13 +46,13 @@ install_base() {
     gcc g++ rsync wget gpg software-properties-common wget gnupg2
 }
 install_cmake() {
-  # https://stackoverflow.com/questions/49859457/how-can-i-reinstall-the-latest-cmake-version
-  rm -f /usr/share/keyrings/kitware-archive-keyring.gpg
-  wget -q -O - https://apt.kitware.com/keys/kitware-archive-latest.asc \
-    | gpg -q --dearmor -o /usr/share/keyrings/kitware-archive-keyring.gpg
-  spinner $!
-  echo "deb [signed-by=/usr/share/keyrings/kitware-archive-keyring.gpg] https://apt.kitware.com/ubuntu/ jammy main" \
-    > /etc/apt/sources.list.d/kitware.list
+  wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc | \
+    gpg --dearmor > /etc/apt/keyrings/kitware-archive-keyring.gpg
+
+  echo "deb [signed-by=/etc/apt/keyrings/kitware-archive-keyring.gpg] \
+  https://apt.kitware.com/ubuntu/ $(lsb_release -sc) main" \
+    | tee /etc/apt/sources.list.d/kitware.list
+
   _apt update
   _apt remove cmake || true
   _apt install cmake
@@ -78,6 +78,7 @@ install_multimedia_dependencies() {
   _apt install gnome-terminal
 }
 install_qt() {
+  sudo add-apt-repository ppa:okirby/qt6-backports
   _apt install \
     qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
 }
@@ -90,12 +91,12 @@ prepare_system() {
   install_base  > /dev/null &
   spinner $!
 
-  say "Instalando cmake actualizado"
-  install_cmake > /dev/null &
-  spinner $!
-
   say "Instalando g++-13"
   install_compiler > /dev/null &
+  spinner $!
+
+  say "Instalando cmake actualizado"
+  install_cmake > /dev/null &
   spinner $!
 
   say "Instalando librerías multimedia y audio"
