@@ -46,15 +46,14 @@ install_base() {
     gcc g++ rsync wget gpg software-properties-common wget gnupg2
 }
 install_cmake() {
-  wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc | \
-    gpg --dearmor > /etc/apt/keyrings/kitware-archive-keyring.gpg
+  # jammy (compatible Mint + Ubuntu 22/24)
+  wget -qO- https://apt.kitware.com/keys/kitware-archive-latest.asc \
+      | sudo gpg --dearmor -o /usr/share/keyrings/kitware.gpg
 
-  echo "deb [signed-by=/etc/apt/keyrings/kitware-archive-keyring.gpg] \
-  https://apt.kitware.com/ubuntu/ $(lsb_release -sc) main" \
-    | tee /etc/apt/sources.list.d/kitware.list
+  echo "deb [signed-by=/usr/share/keyrings/kitware.gpg] https://apt.kitware.com/ubuntu/ jammy main" \
+      | sudo tee /etc/apt/sources.list.d/kitware.list
 
   _apt update
-  _apt remove cmake || true
   _apt install cmake
 }
 install_compiler() {
@@ -116,7 +115,7 @@ configure_build() {
 
   cmake -S . -B build -G "${generator}" \
     -DCMAKE_BUILD_TYPE=Release \
-    -DTALLER_CLIENT=ON -DTALLER_SERVER=ON -DTALLER_EDITOR=ON -DTALLER_TESTS=ON > /dev/null &
+    -DTALLER_CLIENT=ON -DTALLER_SERVER=ON -DTALLER_EDITOR=ON -DTALLER_TESTS=ON \ -Wno-dev -Wno-deprecated \ > /dev/null &
   spinner $!
 }
 
