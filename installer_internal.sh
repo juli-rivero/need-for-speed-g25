@@ -8,13 +8,11 @@ NC='\033[0m'
 
 PROJECT_NAME="need-for-speed-g25"
 
+CODENAME=$(lsb_release -cs)
 
-CODENAME=$(lsb_release -cs)   # noble, jammy, etc.
-if [ "$CODENAME" = "noble" ]; then
-    # Si quedó un PPA viejo de Qt de corridas anteriores, lo borramos
-    sudo rm -f /etc/apt/sources.list.d/okirby-qt6-backports* 2>/dev/null || true
-    sudo apt-get update -qq
-fi
+
+sudo rm -f /etc/apt/sources.list.d/okirby-qt6-backports* 2>/dev/null || true
+sudo rm -f /etc/apt/sources.list.d/*qt6-backports* 2>/dev/null || true
 
 have_cmd() { command -v "$1" >/dev/null 2>&1; }
 
@@ -72,18 +70,27 @@ install_compiler() {
   update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
 }
 install_multimedia_dependencies() {
-  _apt install \
-    libasound2t64 libasound2-dev pulseaudio \
-    libopusfile0 libopusfile-dev libmodplug1 libmodplug-dev \
-    libsndfile1 libsndfile1-dev libmpg123-0 libmpg123-dev \
-    libogg0 libogg-dev libvorbis0a libvorbisenc2 libvorbis-dev \
-    libopus0 libopus-dev libwavpack-dev libxmp-dev libfreetype6-dev
 
-  _apt install \
-    libx11-6 libx11-dev libxext6 libxext-dev \
-    libgl1-mesa-dri libgl1-mesa-dev libglu1-mesa-dev
+    # noble usa libasound2t64, jammy usa libasound2
+    if [ "$CODENAME" = "noble" ]; then
+        ASOUND="libasound2t64"
+    else
+        ASOUND="libasound2"
+    fi
 
-  _apt install gnome-terminal
+    _apt install \
+        $ASOUND libasound2-dev pulseaudio \
+        libopusfile0 libopusfile-dev \
+        libmodplug1 libmodplug-dev \
+        libsndfile1 libsndfile1-dev \
+        libmpg123-0 libmpg123-dev \
+        libogg0 libogg-dev \
+        libvorbis0a libvorbisenc2 libvorbis-dev \
+        libopus0 libopus-dev \
+        libxmp-dev \
+        libfluidsynth-dev \
+        libwavpack-dev libfreetype6-dev \
+        fluidsynth
 }
 install_qt() {
   if [ "$CODENAME" = "noble" ]; then
@@ -91,7 +98,7 @@ install_qt() {
       _apt install qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
   else
       say "Agregando PPA Qt6 (Ubuntu 22 / Mint / jammy)"
-      sudo add-apt-repository -y ppa:okirby/qt6-backports
+      sudo add-apt-repository -y ppa:okirby/qt6-backports || true
       _apt update
       _apt install qt6-base-dev qt6-tools-dev qt6-tools-dev-tools
   fi
