@@ -46,6 +46,7 @@ class MatchSession {
 
     void update(float dt);  // delega a la carrera actual / intermission
     void applyInput(PlayerId id, const CarInput&) const;
+    void applyCheat(PlayerId id, Cheat) const;
 
     GameSnapshot getSnapshot() const;
     CityInfo getCityInfo() const;

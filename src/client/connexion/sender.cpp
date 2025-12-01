@@ -99,3 +99,8 @@ void Sender::start_using_nitro() {
     spdlog::trace("use nitro");
     requests.try_push(UseBoostRequest{true});
 }
+
+void Sender::cheat(Cheat cheat) {
+    spdlog::trace("sending cheat {}", static_cast<int>(cheat));
+    requests.try_push(dto_game::CheatMessage{cheat});
+}

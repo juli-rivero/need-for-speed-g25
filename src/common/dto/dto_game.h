@@ -35,6 +35,10 @@ struct EventPacket {
     CollisionEvent collision;
 };
 
+struct CheatMessage {
+    Cheat type;
+};
+
 }  // namespace dto_game
 
 #include "common/dto/macros.inl"
@@ -45,4 +49,5 @@ DECLARE_SERIALIZABLE(dto_game::UseBoostRequest)
 DECLARE_SERIALIZABLE(dto_game::ReverseRequest)
 DECLARE_SERIALIZABLE(dto_game::GameSnapshotPacket)
 DECLARE_SERIALIZABLE(dto_game::EventPacket)
+DECLARE_SERIALIZABLE(dto_game::CheatMessage)
 #include "common/dto/macros_undef.inl"

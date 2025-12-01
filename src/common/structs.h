@@ -216,3 +216,9 @@ struct GameSnapshot {
     MatchSnapshot match;
     RaceSnapshot race;
 };
+
+enum class Cheat {
+    FinishRace,
+    DestroyAllCars,
+    InfiniteHealth,
+};
