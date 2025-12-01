@@ -7,12 +7,6 @@
 
 # Install command arguments parser and logging library
 
-set(SDL2MIXER_ENABLE_MIDI OFF CACHE BOOL "" FORCE)
-set(SDL2MIXER_ENABLE_MOD ON CACHE BOOL "" FORCE)
-set(SDL2MIXER_ENABLE_MP3 ON CACHE BOOL "" FORCE)
-set(SDL2MIXER_ENABLE_OGG ON CACHE BOOL "" FORCE)
-set(SDL2MIXER_ENABLE_FLAC ON CACHE BOOL "" FORCE)
-
 
 if (TALLER_CLIENT OR TALLER_SERVER)
     include(FetchContent)
@@ -55,7 +49,10 @@ if (TALLER_CLIENT OR TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
-
+    set(SDL2MIXER_MIDI OFF CACHE BOOL "" FORCE)
+    set(SDL2MIXER_OPUS OFF CACHE BOOL "" FORCE)
+    set(SDL2MIXER_VORBIS OFF CACHE BOOL "" FORCE)
+    set(SDL2MIXER_WAVPACK OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
             SDL2_mixer
             GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
