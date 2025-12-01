@@ -450,7 +450,7 @@ inline int test(const YamlGameConfig& cfg) {
 
         // DURANTE EL LOBBY DEBERIA GENERAR ESTO
         std::string race = "assets/liberty_city_circuito1.yaml";
-        PlayerConfig playerConfig1{1, "Elvis", CarType::Tank};
+        PlayerConfig playerConfig1{1, "Elvis", CarType::Ghost};
         PlayerConfig playerConfig2{2, "Ghost", CarType::Ghost};
         std::vector<std::string> raceFiles{race};
         std::vector<PlayerConfig> playersConfig{playerConfig1, playerConfig2};
@@ -495,6 +495,15 @@ inline int test(const YamlGameConfig& cfg) {
                             break;
                         case SDLK_SPACE:
                             game.startAccelerating(2);
+                            break;
+                        case SDLK_KP_1:
+                            game.cheat(1, Cheat::InfiniteHealth);
+                            break;
+                        case SDLK_KP_2:
+                            game.cheat(1, Cheat::FinishRace);
+                            break;
+                        case SDLK_KP_3:
+                            game.cheat(1, Cheat::DestroyAllCars);
                             break;
                     }
                 }

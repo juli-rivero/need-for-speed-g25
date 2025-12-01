@@ -60,3 +60,9 @@ ProtocolSender& operator<<(ProtocolSender& p, const EventPacket& r) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, EventPacket& r) {
     return p >> r.collision;
 }
+ProtocolSender& operator<<(ProtocolSender& p, const dto_game::CheatMessage& c) {
+    return p << c.type;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_game::CheatMessage& c) {
+    return p >> c.type;
+}

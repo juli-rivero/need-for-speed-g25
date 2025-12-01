@@ -20,7 +20,7 @@ using Request =
                  dto_session::LeaveRequest, dto_session::StartRequest,
                  dto_session::ChooseCarRequest, dto_game::TurnRequest,
                  dto_game::AccelerateRequest, dto_game::UseBoostRequest,
-                 dto_game::ReverseRequest>;
+                 dto_game::ReverseRequest, dto_game::CheatMessage>;
 
 using Response =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,

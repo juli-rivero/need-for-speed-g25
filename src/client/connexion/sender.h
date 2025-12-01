@@ -26,6 +26,8 @@ struct Api {
     virtual void stop_breaking() = 0;
     virtual void start_using_nitro() = 0;
 
+    virtual void cheat(Cheat) = 0;
+
     virtual ~Api() = default;
 };
 
@@ -58,4 +60,6 @@ class Sender final : public Thread, public Api {
     void start_breaking() override;
     void stop_breaking() override;
     void start_using_nitro() override;
+
+    void cheat(Cheat) override;
 };

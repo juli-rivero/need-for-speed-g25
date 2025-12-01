@@ -26,6 +26,11 @@ void GameSessionFacade::run() {
             match.applyInput(input.first, input.second);
         }
 
+        std::pair<PlayerId, Cheat> cheater;
+        while (queue_cheats.try_pop(cheater)) {
+            match.applyCheat(cheater.first, cheater.second);
+        }
+
         world.step(passed_iterations * dt.count());
         match.update(passed_iterations * dt.count());
 
@@ -76,4 +81,7 @@ void GameSessionFacade::stopReversing(PlayerId id) {
 }
 void GameSessionFacade::useNitro(PlayerId id) {
     queue_actions.try_push({id, CarInput::StartUsingNitro});
+}
+void GameSessionFacade::cheat(PlayerId id, Cheat cheat) {
+    queue_cheats.try_push({id, cheat});
 }

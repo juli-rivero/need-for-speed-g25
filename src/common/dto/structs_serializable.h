@@ -39,4 +39,6 @@ DECLARE_SERIALIZABLE(MatchSnapshot)
 DECLARE_SERIALIZABLE(RaceSnapshot)
 DECLARE_SERIALIZABLE(GameSnapshot)
 
+MAKE_ENUM_SERIALIZABLE(Cheat, uint8_t)
+
 #include "common/dto/macros_undef.inl"
