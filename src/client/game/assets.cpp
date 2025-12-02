@@ -22,6 +22,7 @@ AssetsScreen::AssetsScreen(SDL2pp::Renderer& renderer,
       car_offroad(renderer, "assets/cars/offroad.png"),
       car_ghost(renderer, "assets/cars/ghost.png"),
       font("assets/fonts/OpenSans-Regular.ttf", 20),
+      font_large("assets/fonts/OpenSans-Regular.ttf", 40),
       arrow(renderer, "assets/misc/arrow.png"),
       white(renderer, "assets/misc/white.png"),
       explosion(renderer, "assets/misc/explosion.png") {
@@ -46,7 +47,8 @@ AssetsSound::AssetsSound(const CityName& city_name)
       crash("assets/sound/crash.ogg"),
       checkpoint("assets/sound/checkpoint.ogg"),
       explosion("assets/sound/explosion.ogg"),
-      goal("assets/sound/goal.ogg") {
+      goal("assets/sound/goal.ogg"),
+      nitro("assets/sound/nitro.ogg") {
     try {
         music = std::make_unique<SDL2pp::Music>(CITY_PATH.at(city_name));
     } catch (...) {

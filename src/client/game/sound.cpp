@@ -5,7 +5,10 @@
 #include <SDL2pp/SDL2pp.hh>
 
 Sound::Sound(SDL2pp::Mixer& mixer, Game& game, const CityName& city_name)
-    : mixer(mixer), game(game), assets(city_name) {}
+    : mixer(mixer), game(game), assets(city_name) {
+    // Iniciar la musica
+    mixer.PlayMusic(*assets.music);
+}
 
 //
 // AUXILIAR
@@ -16,55 +19,48 @@ int Sound::get_vol(const PlayerCar& car) const {
     return (v >= 0) ? v : 0;
 }
 
-void Sound::try_play(const PlayerCar& car, std::list<SoundInfo>& info,
-                     SDL2pp::Chunk& sound) {
-    // Si ya esta reproduciendo un sonido este car, no reproducirlo.
-    // Adicionalmente, remover canales que no esten en uso.
-    bool already_playing = false;
-    for (auto i = info.begin(); i != info.end();) {
-        const SoundInfo& current = *i;
+void Sound::try_play(const PlayerCar& car, SDL2pp::Chunk& sound,
+                     Sound::SoundPriority priority) {
+    // Ver si ya tengo un efecto...
+    if (sound_playing.contains(car.id)) {
+        Sound::SoundInfo info = sound_playing.at(car.id);
 
-        if (current.from == car.id) already_playing = true;
-
-        if (mixer.IsChannelPlaying(current.channel_id) == 0) {
-            i = info.erase(i);
-            already_playing = false;
+        if (mixer.IsChannelPlaying(info.channel_id) == 0) {
+            // Si no esta en uso, removerlo.
+            sound_playing.erase(car.id);
+        } else if (priority > info.priority) {
+            // Esta en uso y es de mayor prioridad, abortarlo.
+            mixer.HaltChannel(info.channel_id);
+            sound_playing.erase(car.id);
         } else {
-            i++;
+            // Es de menor prioridad (o repetido), no reproducirlo.
+            return;
         }
     }
-    if (already_playing) return;
 
-    // Si hay mas de tres sonidos ya reproduciendose, no sumar otro
-    if (info.size() >= 3) return;
-
-    // Ahora si, reproducirlo y sumarlo.
+    // O no habia ninguno o se aborto el anterior, reproducir el nuevo sonido.
     int channel_id = mixer.PlayChannel(-1, sound);
     mixer.SetVolume(channel_id, get_vol(car));
-    info.emplace_back(car.id, channel_id);
-}
-
-void Sound::finish() {
-    // Sonido de victoria
-    play_goal();
-
-    // Atenuar la musica
-    mixer.SetMusicVolume(MIX_MAX_VOLUME / 4);
+    sound_playing.emplace(car.id, Sound::SoundInfo(channel_id, priority));
 }
 
 //
 // EFECTOS
 //
 void Sound::try_brake(const PlayerCar& car) {
-    try_play(car, brakes, assets.brake);
+    try_play(car, assets.brake, SoundPriority::BRAKE);
+}
+
+void Sound::try_nitro(const PlayerCar& car) {
+    try_play(car, assets.nitro, SoundPriority::NITRO);
 }
 
 void Sound::try_crash(const PlayerCar& car) {
-    try_play(car, crashes, assets.crash);
+    try_play(car, assets.crash, SoundPriority::CRASH);
 }
 
 void Sound::try_explosion(const PlayerCar& car) {
-    try_play(car, explosions, assets.explosion);
+    try_play(car, assets.explosion, SoundPriority::EXPLOSION);
 }
 
 void Sound::play_checkpoint() {
@@ -82,14 +78,6 @@ void Sound::play_goal() {
 //
 // METODOS PRINCIPALES
 //
-void Sound::start() {
-    // Iniciar (o reiniciar la musica)
-    if (!mixer.IsMusicPlaying()) {
-        mixer.PlayMusic(*assets.music);
-    }
-    mixer.SetMusicVolume(MIX_MAX_VOLUME / 2);
-}
-
 void Sound::update() {
     // Colisiones
     CollisionEvent collision;
@@ -134,12 +122,32 @@ void Sound::update() {
         try_explosion(car);
     }
 
-    // Checkpoints / final
+    // Nitros
+    for (auto& [id, car] : game.cars) {
+        // No reproducir si esta descalifiado
+        if (car.disqualified) continue;
+
+        // Solo reproducir al inicio del nitro
+        if (game.old_nitro_active[id] == true) continue;
+        if (car.nitro_active == false) continue;
+
+        // Ahora si, intentarlo
+        try_nitro(car);
+    }
+
+    // Checkpoints
     if (game.my_car == nullptr) return;
 
     if (game.my_car->finished == true && game.old_finished == false) {
-        finish();
+        play_goal();
     } else if (game.my_car->next_checkpoint > game.old_checkpoint) {
         play_checkpoint();
+    }
+
+    // (volumen de musica)
+    if (game.my_car->finished || game.my_car->disqualified) {
+        mixer.SetMusicVolume(MIX_MAX_VOLUME / 4);
+    } else {
+        mixer.SetMusicVolume(MIX_MAX_VOLUME / 2);
     }
 }
