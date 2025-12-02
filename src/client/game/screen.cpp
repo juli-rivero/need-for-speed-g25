@@ -68,15 +68,41 @@ void Screen::render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
 //
 // METODOS DE RENDERIZADO COMPUESTOS
 //
+void Screen::render_explosion(SDL2pp::Point pos, int frame) {
+    // 4x4, izquierda a derecha
+    if (frame > 4 * 4) return;
+
+    int frame_w = assets.explosion.GetWidth() / 4;
+    int frame_h = assets.explosion.GetHeight() / 4;
+
+    int index_x = frame % 4;
+    int index_y = frame / 4;
+
+    render_slice(assets.explosion,
+                 {frame_w * index_x, frame_h * index_y, frame_w, frame_h}, pos,
+                 true);
+}
+
 void Screen::render_car(NpcCar& car) {
     SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     render(sprite, car.pos.get_top_left(), car.pos.get_angle());
 }
 
 void Screen::render_car(PlayerCar& car, bool with_name) {
-    if (car.disqualified) return;
-    // TODO(franco): explosion
+    // Explosion
+    if (car.disqualified) {
+        auto& explosion = assets.explosion;
+        SDL2pp::Point pos =
+            car.pos.get_center() - SDL2pp::Point(explosion.GetWidth() / 4 / 2,
+                                                 explosion.GetHeight() / 4 / 2);
+        render_explosion(pos, explosion_frame[car.id] / 10);
 
+        explosion_frame[car.id] += 1;
+        return;
+    }
+    explosion_frame[car.id] = 0;
+
+    // Coche
     SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     SDL2pp::Point pos = car.pos.get_top_left();
 
@@ -242,9 +268,8 @@ void Screen::draw_end_overlay(bool finished) {
         render_text("3 - Mejor Nitro", {30, 210}, _color(nitro), false);
         render_text("4 - Mejor Vida Maxima", {30, 230}, _color(health), false);
 
-        // TODO(franco): como muestro el tiempo restante hasta la siguiente,
-        // donde esta? render_text("Siguiente carrera en: " +
-        // format_time(game.time_left), {30, 300}, false);
+        render_text("Siguiente carrera en breve...", {30, 300},
+                    {255, 255, 255, 255}, false);
     } else if (game.match_state == MatchState::Finished) {
         render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
                     false);
