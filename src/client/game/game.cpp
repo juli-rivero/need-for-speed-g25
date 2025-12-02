@@ -134,6 +134,7 @@ void Game::update_state() {
     for (auto& [id, car] : cars) {
         old_braking[id] = car.braking;
         old_disqualified[id] = car.disqualified;
+        old_nitro_active[id] = car.nitro_active;
     }
 
     // Sumado/reemplazo de jugadores y NPCs
@@ -166,7 +167,6 @@ bool Game::start() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);
     TimerIterator iterator(dt);
 
-    sound.start();
     while (1) {
         bool quit = send_events();
         update_state();

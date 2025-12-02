@@ -27,6 +27,7 @@ struct PlayerCar : BaseCar {
     const int speed;
     const PlayerId id;
     const float time;
+    const bool nitro_active;
 
     explicit PlayerCar(const PlayerSnapshot& snapshot);
 };

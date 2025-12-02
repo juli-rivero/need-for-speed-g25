@@ -75,6 +75,7 @@ class Game final : Connexion::Responder {
 
     std::unordered_map<PlayerId, bool> old_braking;
     std::unordered_map<PlayerId, bool> old_disqualified;
+    std::unordered_map<PlayerId, bool> old_nitro_active;
     uint32_t old_checkpoint = 0;
     bool old_finished = false;
 

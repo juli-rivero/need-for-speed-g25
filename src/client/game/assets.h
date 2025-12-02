@@ -50,6 +50,7 @@ class AssetsSound final {
     SDL2pp::Chunk checkpoint;
     SDL2pp::Chunk explosion;
     SDL2pp::Chunk goal;
+    SDL2pp::Chunk nitro;
 
     std::unique_ptr<SDL2pp::Music> music;
 
