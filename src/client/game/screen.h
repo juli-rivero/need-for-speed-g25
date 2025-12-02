@@ -4,19 +4,26 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
+#include "client/connexion/sender.h"
 #include "client/game/assets.h"
 #include "client/game/car.h"
+#include "client/game/sdl_button.h"
 #include "common/macros.h"
 #include "common/structs.h"
 
 class Game;
 
 class Screen final {
-   private:
     SDL2pp::Renderer& renderer;
     Game& game;
     AssetsScreen assets;
+
+    Api& api;
+
+    std::vector<SdlButton> buttons;
+    std::unordered_map<UpgradeStat, UpgradeChoice> upgrade_choices;
 
     // Constantes utiles
     const int WIDTH;
@@ -34,6 +41,8 @@ class Screen final {
     void draw_overpasses();
     void draw_hud();
     void draw_minimap();
+    void make_btn_upgrade(UpgradeStat stat, int x, int y,
+                          std::string stat_name);
     void draw_end_overlay(bool finished);
 
     // Metodos de renderizado
@@ -51,7 +60,8 @@ class Screen final {
                       SDL2pp::Point pos, bool in_world = true);
 
     void render_text(const std::string& texto, SDL2pp::Point pos,
-                     const SDL2pp::Color color, bool in_world = true);
+                     const SDL2pp::Color color, bool in_world = true,
+                     bool centered = false);
 
     void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
                       bool in_world = true);
@@ -65,10 +75,15 @@ class Screen final {
     void render_car(NpcCar& car);
     void render_car(PlayerCar& car, bool with_name);
 
+    const int upgrade_btn_width = 200;
+    const int upgrade_btn_height = 100;
+
    public:
-    Screen(SDL2pp::Renderer& renderer, Game& game, const CityName& city_name);
+    Screen(SDL2pp::Renderer& renderer, Game& game, Api& api,
+           const CityName& city_name, const std::vector<UpgradeChoice>&);
 
     void update();
+    void handle_event(SDL_Event& e);
 
     MAKE_FIXED(Screen)
 };
