@@ -66,6 +66,7 @@ class Session final {
     bool full() const;
     bool empty() const;
     bool finished();
+    void stop();
 
     void set_car(PlayerId client_id, const CarType&);
 
