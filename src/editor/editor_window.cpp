@@ -267,8 +267,7 @@ void EditorWindow::onSaveMap() {
     if (mapCanvas && yamlHandler) {
         // Guardar pasando los sensores también
         yamlHandler->saveMap(fileName, mapCanvas->getCheckpoints(),
-                             mapCanvas->getBuildings(),
-                             mapCanvas->getSensors(),
+                             mapCanvas->getBuildings(), mapCanvas->getSensors(),
                              mapCanvas->getOverpasses());  // <--- Agregado
         currentMapFile = fileName;
         statusBar()->showMessage(tr("Map saved: %1").arg(fileName));

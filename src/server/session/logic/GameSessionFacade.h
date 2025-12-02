@@ -26,9 +26,11 @@ class GameSessionFacade : public Thread {
     Queue<std::pair<PlayerId, Cheat>> queue_cheats;
     Queue<std::pair<PlayerId, UpgradeStat>> queue_upgrades;
 
-   public:
+    MatchState last_state{MatchState::Starting};
+
     void run() override;
 
+   public:
     explicit GameSessionFacade(const YamlGameConfig& cfg,
                                const std::vector<std::string>& raceFiles,
                                const std::vector<PlayerConfig>& players,
@@ -37,6 +39,7 @@ class GameSessionFacade : public Thread {
     struct Listener : common::Listener<GameSessionFacade::Listener> {
         virtual void on_snapshot(const GameSnapshot&) = 0;
         virtual void on_collision_event(const CollisionEvent&) = 0;
+        virtual void on_new_race(const RaceInfo&) = 0;
 
        protected:
         void subscribe(GameSessionFacade&);
