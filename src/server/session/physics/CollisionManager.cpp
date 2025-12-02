@@ -76,13 +76,34 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
         Car* car =
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
         car->damage(impact * 0.5f);
+        if (car->isDestroyed()) {
+            auto it = carToPlayer.find(car);
+            if (it != carToPlayer.end()) {
+                raceSession->onCarDestroyed(it->second);
+            }
+        }
         return;
     }
 
     // Car / Car
     if (isPair<Car, Car>(a, b)) {
-        as<Car>(a)->damage(impact * 0.5f);
-        as<Car>(b)->damage(impact * 0.5f);
+        Car* c1 = as<Car>(a);
+        Car* c2 = as<Car>(b);
+
+        c1->damage(impact * 0.5f);
+        c2->damage(impact * 0.5f);
+
+        auto it1 = carToPlayer.find(c1);
+        if (c1->isDestroyed() && it1 != carToPlayer.end()) {
+            raceSession->onCarDestroyed(it1->second);
+        }
+
+        auto it2 = carToPlayer.find(c2);
+        if (c2->isDestroyed() && it2 != carToPlayer.end()) {
+            raceSession->onCarDestroyed(it2->second);
+        }
+
+        return;
     }
 
     // Car / NPCCar
@@ -94,6 +115,13 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
 
         carPlayer->damage(impact * 0.5f);
+        if (carPlayer->isDestroyed()) {
+            auto it = carToPlayer.find(carPlayer);
+            if (it != carToPlayer.end()) {
+                raceSession->onCarDestroyed(it->second);
+            }
+        }
+        return;
     }
 
     // Car / Railing
@@ -104,6 +132,12 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
         Car* car =
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
         car->damage(impact * 0.3f);  // menos daño que pared sólida
+        if (car->isDestroyed()) {
+            auto it = carToPlayer.find(car);
+            if (it != carToPlayer.end()) {
+                raceSession->onCarDestroyed(it->second);
+            }
+        }
     }
 }
 static void handleCheckpointTouch(
