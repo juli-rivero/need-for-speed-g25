@@ -1,58 +1,95 @@
-# Remake Need for speed
+# 🏎️ Need for Speed - Remake (G25)
 
-## Enunciado
+![C++](https://img.shields.io/badge/C++-17-00599C?logo=c%2B%2B&logoColor=white)
+![Qt](https://img.shields.io/badge/Qt-6-41cd52?logo=qt&logoColor=white)
+![SDL2](https://img.shields.io/badge/SDL2-2.32-FF3D00?logo=sdl&logoColor=white)
+![Box2D](https://img.shields.io/badge/Physics-Box2D-orange)
 
-El enunciado, provisto por la catedra Veiga de Taller de Programación se encuentra en [need-for-speed-g25/docs/2025.02.trabajo-practico.need-for-speed.pdf](https://github.com/juli-rivero/need-for-speed-g25/blob/main/docs/2025.02.trabajo-practico.need-for-speed.pdf)
+> Trabajo Práctico Final - Taller de Programación I (Cátedra Veiga) - FIUBA
 
-## Documentación
-
-La documentación tecnica del proyecto se encuentra en [need-for-speed-g25/wiki](https://github.com/juli-rivero/need-for-speed-g25/wiki)
-
-## Integrantes G25
-
-- Elvis Quispe Limachi
-- Franco Lucchesi
-- Nicolas Francisco Mazzeo
-- Julián Rivero Julián
+**Need for Speed G25** es una implementación multijugador del clásico juego de carreras. Desarrollado desde cero utilizando **C++**, implementando un modelo **Cliente-Servidor**, y **Qt** para la renderización gráfica y el editor.
 
 ---
-#  Instalación:
-El proyecto incluye un instalador automático que configura **todas las dependencias**, compila el juego y deja todo listo para ejecutar en Ubuntu.
-##  1. Descargar el juego
-Podés:
 
-### **Opción A — Descargar ZIP desde Releases**
-Descomprimir:
+## 🚀 Sobre el Proyecto
 
-```bash
-unzip need-for-speed-g25-v1.0.zip
-cd need-for-speed-g25-installer
-```
+Este proyecto busca replicar la experiencia arcade de carreras con las siguientes características técnicas:
+- **Multijugador:** Arquitectura Cliente-Servidor concurrente.
+- **Físicas:** Simulación de colisiones y movimiento en el servidor.
+- **Editor de Mapas:** Herramienta gráfica para crear pistas personalizadas.
 
-### **Opción B — Clonar el repositorio**
-```bash
-git clone https://github.com/<usuario>/<repo>.git
-cd <repo>
-```
+El enunciado original se encuentra disponible [aquí](https://github.com/juli-rivero/need-for-speed-g25/blob/main/docs/2025.02.trabajo-practico.need-for-speed.pdf).
 
-##  2. Ejecutar el instalador
+---
 
-```bash
-chmod +x installer.sh
-sudo ./installer.sh
-```
+## 🛠️ Instalación
 
-## 3. Ejecutar el juego
+El proyecto ha sido probado en **Ubuntu/Linux Mint**.
 
-### Lanzar el servidor:
+El repositorio incluye un script que instala **todas las dependencias necesarias** (Qt, CMake, herramientas de compilación) y compila el proyecto.
+
+1.
+   **Opciòn A - Clonar el repositorio:**
+   ```bash
+   git clone [https://github.com/juli-rivero/need-for-speed-g25.git](https://github.com/juli-rivero/need-for-speed-g25.git)
+   cd need-for-speed-g25
+   ````
+   **Opción B — Descargar ZIP desde Releases**
+    Descomprimir:
+    ```bash
+    unzip <nombre del zip>
+    cd <nombre del zip>
+    ```
+
+3.  **Ejecutar el instalador:**
+    ```bash
+    chmod +x installer.sh
+    sudo ./installer.sh
+    ```
+    *\> Nota: Se requieren permisos de `sudo` para instalar las librerías de Qt y compiladores.*
+
+## 🎮 Ejecución
+
+Una vez compilado, puedes utilizar los siguientes comandos definidos en el `Makefile`:
+
+### 1\. Servidor
+
+Inicia el servidor para aceptar conexiones.
+
 ```bash
 make exec-server
 ```
-### Lanzar un cliente:
+
+### 2\. Cliente
+
+Inicia una instancia del juego para conectarse al servidor.
+
 ```bash
 make exec-client
 ```
-### Lanzar el editor:
+
+### 3\. Editor de Niveles
+
+Abre el editor gráfico para crear o modificar pistas.
+
 ```bash
 make exec-editor
 ```
+
+-----
+
+## 📚 Documentación
+
+Para detalles profundos sobre la arquitectura, el protocolo de comunicación y los diagramas de clase, visita nuestra **Wiki**:
+👉 [Documentación Técnica (Wiki)](https://github.com/juli-rivero/need-for-speed-g25/wiki)
+
+-----
+
+## 👥 Integrantes (Grupo 25)
+
+| Nombre | GitHub |
+|:--- |:--- |
+| **Elvis Quispe Limachi** | [@Elvis-Quispe](https://github.com/ElvisQ) |
+| **Franco Lucchesi** | [@Franco-Lucchesi](https://github.com/lucchesifd) |
+| **Nicolas Francisco Mazzeo** | [@Nicolas-Mazzeo](https://github.com/Nicolas-Mazzeo) |
+| **Julián Rivero** | [@juli-rivero](https://github.com/juli-rivero) |
