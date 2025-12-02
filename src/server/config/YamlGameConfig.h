@@ -5,7 +5,6 @@
 #include <vector>
 
 #include "common/structs.h"
-#include "server/session/logic/types.h"
 #include "yaml-cpp/yaml.h"
 
 struct CityDefinition;
@@ -26,6 +25,8 @@ class YamlGameConfig {
     int maxNPCs{};
     float timeLimitSec{};
     float intermissionSec{};
+
+    float pixelsPerMeter{};
 
    public:
     explicit YamlGameConfig(const std::string& filePath);
@@ -51,6 +52,8 @@ class YamlGameConfig {
     static constexpr auto DefaultCar = CarType::Classic;
 
     void printSummary() const;
+
+    float getPixelsPerMeter() const { return pixelsPerMeter; }
 
    private:
     static CarType getCarType(const std::string& name);

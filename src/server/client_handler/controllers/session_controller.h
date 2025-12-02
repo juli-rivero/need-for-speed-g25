@@ -19,6 +19,7 @@ class SessionController final : Session::Listener, Receiver::Listener {
     Api& api;
     ISessionEvents& dispatcher;
     Session& session;
+    const YamlGameConfig& cfg;
 
    public:
     SessionController(Session&, PlayerId client_id, Api&, Receiver&,

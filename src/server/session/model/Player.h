@@ -3,15 +3,15 @@
 #include <memory>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "Car.h"
-#include "server/session/logic/types.h"
+
 class Player {
     const PlayerId id;
     const std::string name;
     const std::unique_ptr<Car> car;  // su auto actual
-    PlayerRaceData raceState;
+    RaceProgressSnapshot raceState{};
+    float totalPenalty{0.0f};
     float totalAccumulated{0.0f};
 
    public:
@@ -31,13 +31,7 @@ class Player {
     // ------------------------------
 
     // para reiniciar el estado de carrera para una nueva Race
-    void resetRaceState() {
-        raceState.nextCheckpoint = 0;
-        raceState.finished = false;
-        raceState.disqualified = false;
-        raceState.elapsed = 0.0f;
-        // penalty sigue igual
-    }
+    void resetRaceState() { raceState = RaceProgressSnapshot{}; }
 
     void tickTime(float dt) {
         if (!raceState.finished && !raceState.disqualified) {
@@ -61,12 +55,11 @@ class Player {
     // ------------------------------
     //  TIEMPOS Y PENALIZACIONES
     // ------------------------------
-    void setPenalty(float p) { raceState.penaltyTime = p; }
     PlayerId getId() const { return id; }
     void applyUpgrade(UpgradeStat stat, float delta, float penalty) {
         car->upgrade(stat, delta);
-        float newPenalty = raceState.penaltyTime + penalty;
-        raceState.penaltyTime = newPenalty;
+        raceState.penaltyTime += penalty;
+        totalPenalty += penalty;
     }
     void accumulateTotal() {
         totalAccumulated += raceState.elapsed + raceState.penaltyTime;
@@ -81,16 +74,11 @@ class Player {
         ps.name = name;
         ps.car = car->getSnapshot();
         ps.upgrades = car->getUpgrades();
-        RaceProgressSnapshot rp;
-        rp.nextCheckpoint = static_cast<uint32_t>(raceState.nextCheckpoint);
-        rp.finished = raceState.finished;
-        rp.disqualified = raceState.disqualified;
-        rp.elapsedTime = raceState.elapsed;
 
-        ps.raceProgress = rp;
+        ps.raceProgress = raceState;
 
         ps.rawTime = totalAccumulated;
-        ps.penalty = raceState.penaltyTime;
+        ps.penalty = totalPenalty;
         ps.netTime = ps.rawTime + ps.penalty;
         return ps;
     }

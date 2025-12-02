@@ -14,7 +14,7 @@ class Box2DPhysicsFactory {
     explicit Box2DPhysicsFactory(b2WorldId world);
 
     std::shared_ptr<Box2dPhysicsBody> createCar(float x, float y,
-                                                float angleDeg,
+                                                float angleRad,
                                                 const CarStaticStats& type);
     std::shared_ptr<Box2dPhysicsBody> createNpcCar(float x, float y,
                                                    const CarStaticStats& type);
@@ -24,7 +24,7 @@ class Box2DPhysicsFactory {
                                                     float h);
     std::shared_ptr<Box2dPhysicsBody> createCheckpoint(float x, float y,
                                                        float w, float h,
-                                                       float angleDeg);
+                                                       float angleRad);
     std::shared_ptr<Box2dPhysicsBody> createBridgeSensor(float x, float y,
                                                          float w, float h);
 };

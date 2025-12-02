@@ -103,11 +103,11 @@ map:
       order: 15
 
   spawn_points:
-      - { x: 1757, y: 4528, angle: 0.0 }   # Player 1
-      - { x: 1757, y: 4544, angle: 0.0 }   # Player 2
-      - {x: 1757, y: 4567, angle: 0.0}     # Player 3
-      - {x: 1735, y: 4528, angle: 0.0}     # Player 4
-      - {x: 1735, y: 4544, angle: 0.0}     # Player 5
-      - {x: 1735, y: 4567, angle: 0.0}     # Player 6
-      - {x: 1680, y: 4528, angle: 0.0}     # Player 7
-      - {x: 1680, y: 4544,angle: 0.0}      # Player 8
+    - { x: 1757, y: 4528, angle: 0.0 }   # Player 1
+    - { x: 1757, y: 4544, angle: 0.0 }   # Player 2
+    - { x: 1757, y: 4567, angle: 0.0 }     # Player 3
+    - { x: 1735, y: 4528, angle: 0.0 }     # Player 4
+    - { x: 1735, y: 4544, angle: 0.0 }     # Player 5
+    - { x: 1735, y: 4567, angle: 0.0 }     # Player 6
+    - { x: 1680, y: 4528, angle: 0.0 }     # Player 7
+    - { x: 1680, y: 4544,angle: 0.0 }      # Player 8

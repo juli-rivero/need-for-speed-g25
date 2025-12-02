@@ -15,10 +15,12 @@ class GameController final : Receiver::Listener, GameSessionFacade::Listener {
     Api& api;
     IGameEvents& dispatcher;
     GameSessionFacade& game;
+    const YamlGameConfig& cfg;
 
    public:
     GameController(GameSessionFacade&, PlayerId client_id, Api&, Receiver&,
-                   IGameEvents& handler, spdlog::logger*);
+                   IGameEvents& handler, const YamlGameConfig&,
+                   spdlog::logger*);
     ~GameController() override;
 
     MAKE_FIXED(GameController)

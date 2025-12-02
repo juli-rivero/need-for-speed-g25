@@ -1,6 +1,5 @@
 #include "YamlGameConfig.h"
 
-#include <iostream>
 #include <ranges>
 #include <utility>
 
@@ -15,6 +14,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         // === Sección "race" ===
         if (root["config"]) {
             const auto& config = root["config"];
+            pixelsPerMeter = config["pixels_per_meter"].as<float>();
             if (config["match"]) {
                 const auto& match = config["match"];
                 maxRaces = match["max_races"].as<int>();

@@ -38,7 +38,7 @@ void Controller::on_join_session(Session& session) {
 void Controller::on_start_game(GameSessionFacade& game) {
     events.try_push([&game, this] {
         game_controller = std::make_unique<GameController>(
-            game, id, api, receiver, *this, log);
+            game, id, api, receiver, *this, config, log);
     });
 }
 void Controller::on_leave_session() {

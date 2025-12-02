@@ -3,6 +3,8 @@
 #include <ranges>
 #include <vector>
 
+#include "server/config/convertor.h"
+
 using dto::ErrorResponse;
 using dto_session::LeaveRequest;
 using dto_session::LeaveResponse;
@@ -15,17 +17,18 @@ SessionController::SessionController(Session& session, const PlayerId client_id,
                                      Api& api, Receiver& receiver,
                                      ISessionEvents& handler,
                                      spdlog::logger* log,
-                                     const YamlGameConfig& game_config)
+                                     const YamlGameConfig& cfg)
     : log(log),
       client_id(client_id),
       api(api),
       dispatcher(handler),
-      session(session) {
+      session(session),
+      cfg(cfg) {
     Receiver::Listener::subscribe(receiver);
     Session::Listener::subscribe(session);
     session.add_client(client_id);
-    const auto& toDisplayInfo = game_config.getCarDisplayInfoMap();
-    const auto& toStats = game_config.getCarStaticStatsMap();
+    const auto& toDisplayInfo = cfg.getCarDisplayInfoMap();
+    const auto& toStats = cfg.getCarStaticStatsMap();
 
     std::vector<CarInfo> cars;
     cars.reserve(toDisplayInfo.size());
@@ -86,7 +89,32 @@ void SessionController::on_start_game(
     const RaceInfo& race_info, const std::vector<UpgradeChoice>& choices) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started(city_info, race_info, choices);
+        Convertor conv(cfg.getPixelsPerMeter());
+
+        CityInfo transformed_city_info = city_info;
+        for (auto& wall : transformed_city_info.walls)
+            wall = conv.toPixels(wall);
+        for (auto& bridge : transformed_city_info.bridges)
+            bridge = conv.toPixels(bridge);
+        for (auto& overpass : transformed_city_info.overpasses)
+            overpass = conv.toPixels(overpass);
+        for (auto& railing : transformed_city_info.railings)
+            railing = conv.toPixels(railing);
+        for (auto& sensor : transformed_city_info.upper_sensors)
+            sensor = conv.toPixels(sensor);
+        for (auto& sensor : transformed_city_info.lower_sensors)
+            sensor = conv.toPixels(sensor);
+        RaceInfo transformed_race_info = race_info;
+        for (auto& checkpoint : transformed_race_info.checkpoints) {
+            checkpoint.bound = conv.toPixels(checkpoint.bound);
+            checkpoint.angle = conv.toDegrees(checkpoint.angle);
+        }
+        for (auto& spawn_point : transformed_race_info.spawnPoints) {
+            spawn_point.pos = conv.toPixels(spawn_point.pos);
+            spawn_point.angle = conv.toDegrees(spawn_point.angle);
+        }
+        api.notify_game_started(transformed_city_info, transformed_race_info,
+                                choices);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());

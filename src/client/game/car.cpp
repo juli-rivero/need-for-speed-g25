@@ -2,7 +2,7 @@
 
 BaseCar::BaseCar(const Bound& bound, float angle, CarType type,
                  RenderLayer layer)
-    : pos(bound, angle, true), type(type), layer(layer) {}
+    : pos(bound, angle), type(type), layer(layer) {}
 
 PlayerCar::PlayerCar(const PlayerSnapshot& snapshot)
     : BaseCar(snapshot.car.bound, snapshot.car.angle, snapshot.car.type,
@@ -15,7 +15,7 @@ PlayerCar::PlayerCar(const PlayerSnapshot& snapshot)
       health(snapshot.car.health),
       speed(snapshot.car.speed),
       id(snapshot.id),
-      time(snapshot.raceProgress.elapsedTime) {}
+      time(snapshot.raceProgress.elapsed) {}
 
 NpcCar::NpcCar(const NpcSnapshot& snapshot)
     : BaseCar(snapshot.bound, snapshot.angle, snapshot.type, snapshot.layer) {}

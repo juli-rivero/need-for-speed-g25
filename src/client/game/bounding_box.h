@@ -12,8 +12,7 @@ class BoundingBox final {
     float angle;
 
    public:
-    explicit BoundingBox(const Bound& b, float angle = 0,
-                         bool angle_rad = false);
+    explicit BoundingBox(const Bound& b, float angle = 0);
 
     float get_x() const;
     float get_y() const;
