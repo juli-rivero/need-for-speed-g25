@@ -36,7 +36,6 @@ class RaceSession {
     }
 
     void onCheckpointCrossed(PlayerId player, int checkpointOrder) const;
-    void onCarDestroyed(PlayerId player);
 
     std::optional<const Checkpoint*> nextCheckpointFor(PlayerId p) const;
 

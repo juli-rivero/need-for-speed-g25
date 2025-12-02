@@ -68,8 +68,9 @@ void MatchSession::applyCheat(const PlayerId id, const Cheat cheat) const {
             _players.at(id)->markFinished();
             break;
         case Cheat::DestroyAllCars:
-            for (const auto& player : _players | std::views::values) {
-                player->getCar()->damage(std::numeric_limits<float>::max());
+            for (const auto& [_id, player] : _players) {
+                auto* car = player->getCar();
+                car->damage(std::numeric_limits<float>::max());
             }
             break;
         case Cheat::InfiniteHealth:

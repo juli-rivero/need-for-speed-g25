@@ -76,12 +76,6 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
         Car* car =
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
         car->damage(impact * 0.5f);
-        if (car->isDestroyed()) {
-            auto it = carToPlayer.find(car);
-            if (it != carToPlayer.end()) {
-                raceSession->onCarDestroyed(it->second);
-            }
-        }
         return;
     }
 
@@ -92,16 +86,6 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
 
         c1->damage(impact * 0.5f);
         c2->damage(impact * 0.5f);
-
-        auto it1 = carToPlayer.find(c1);
-        if (c1->isDestroyed() && it1 != carToPlayer.end()) {
-            raceSession->onCarDestroyed(it1->second);
-        }
-
-        auto it2 = carToPlayer.find(c2);
-        if (c2->isDestroyed() && it2 != carToPlayer.end()) {
-            raceSession->onCarDestroyed(it2->second);
-        }
 
         return;
     }
@@ -115,12 +99,6 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
 
         carPlayer->damage(impact * 0.5f);
-        if (carPlayer->isDestroyed()) {
-            auto it = carToPlayer.find(carPlayer);
-            if (it != carToPlayer.end()) {
-                raceSession->onCarDestroyed(it->second);
-            }
-        }
         return;
     }
 
@@ -132,12 +110,6 @@ void CollisionManager::resolvePhysicalImpact(Entity* a, Entity* b,
         Car* car =
             (a->getEntityType() == EntityType::Car) ? as<Car>(a) : as<Car>(b);
         car->damage(impact * 0.3f);  // menos daño que pared sólida
-        if (car->isDestroyed()) {
-            auto it = carToPlayer.find(car);
-            if (it != carToPlayer.end()) {
-                raceSession->onCarDestroyed(it->second);
-            }
-        }
     }
 }
 static void handleCheckpointTouch(

@@ -49,7 +49,7 @@ class Player {
     void markFinished() { raceState.finished = true; }
     void markDQ() { raceState.disqualified = true; }
     bool isFinished() const { return raceState.finished; }
-    bool isDQ() const { return raceState.disqualified; }
+    bool isDQ() const { return raceState.disqualified || car->isDestroyed(); }
     std::size_t getNextCheckpoint() const { return raceState.nextCheckpoint; }
 
     // ------------------------------
