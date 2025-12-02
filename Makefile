@@ -61,4 +61,5 @@ else
 endif
 
 exec: build
+	make exec-server
 	make exec-client
