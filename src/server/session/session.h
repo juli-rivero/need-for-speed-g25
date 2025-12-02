@@ -5,6 +5,7 @@
 #include <condition_variable>
 #include <memory>
 #include <mutex>
+#include <random>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -77,4 +78,6 @@ class Session final {
     bool all_ready() const;
 
     void notify_change();
+
+    std::mt19937 rand_generator;
 };

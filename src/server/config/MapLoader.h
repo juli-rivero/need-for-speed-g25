@@ -1,31 +1,34 @@
 #pragma once
 
-#include <memory>
 #include <string>
 #include <vector>
 
+#include "common/structs.h"
+#include "server/config/YamlGameConfig.h"
+#include "server/config/convertor.h"
 #include "server/session/NPC/NPCType.h"
-#include "server/session/model/BridgeSensor.h"
-#include "server/session/model/Checkpoint.h"
-#include "server/session/model/Wall.h"
-#include "server/session/physics/Box2DPhysicsWorld.h"
-#include "server/session/physics/EntityFactory.h"
 #include "yaml-cpp/yaml.h"
 
 class MapLoader {
    public:
-    struct MapInfo {
-        std::string name;
-        std::string city;
-        b2Vec2 gravity;
-    };
+    const YAML::Node root;
+    const Convertor convertor;
 
-    static MapInfo loadFromYAML(
-        const std::string& yamlPath, EntityFactory& factory,
-        std::vector<std::unique_ptr<Wall>>& buildings,
-        std::vector<Bound>& bridges, std::vector<Bound>& overpasses,
-        std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
-        std::vector<SpawnPoint>& spawnPoints,
-        std::vector<RoadShape>& roadShapes,
-        std::vector<std::unique_ptr<BridgeSensor>>& sensors);
+    explicit MapLoader(const std::string& file, const YamlGameConfig& cfg);
+
+    std::string getCityName() const;
+    std::string getCircuitName() const;
+
+    std::vector<Bound> getWalls() const;
+    std::vector<Bound> getRailings() const;
+    std::vector<Bound> getBridges() const;
+    std::vector<Bound> getOverpasses() const;
+    std::vector<SpawnPointInfo> getSpawnPoints() const;
+    std::vector<CheckpointInfo> getCheckpoints() const;
+    std::vector<Bound> getUpperSensors() const;
+    std::vector<Bound> getLowerSensors() const;
+    std::vector<RoadShape> getRoadShapes() const;
+
+   private:
+    Bound parseBound(const YAML::Node& node) const;
 };

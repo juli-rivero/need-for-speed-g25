@@ -129,8 +129,8 @@ map:
     - { x: 1606, y: 4155, angle: 270 } # Player 1
     - { x: 1623, y: 4155, angle: 270 } # Player 2
     - { x: 1640, y: 4155, angle: 270 } # Player 3
-    - { x: 1660, y: 4155, angle: 270} # Player 4
-    - { x: 1606, y: 4186, angle: 270} # Player 5
-    - { x: 1623, y: 4186, angle: 270} # Player 6
-    - { x: 1640, y: 4186, angle: 270} # Player 7
-    - { x: 1660, y: 4186, angle: 270} # Player 8
+    - { x: 1660, y: 4155, angle: 270 } # Player 4
+    - { x: 1606, y: 4186, angle: 270 } # Player 5
+    - { x: 1623, y: 4186, angle: 270 } # Player 6
+    - { x: 1640, y: 4186, angle: 270 } # Player 7
+    - { x: 1660, y: 4186, angle: 270 } # Player 8

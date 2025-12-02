@@ -1,6 +1,7 @@
 # CONFIGURACIÓN GLOBAL (constantes)
 
 config:
+  pixels_per_meter: 10
   match:
     max_races: 5
   race:

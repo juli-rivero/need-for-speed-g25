@@ -75,3 +75,7 @@ void Receiver::recv(const dto_game::EventPacket& packet) {
     spdlog::trace("received collision event");
     emitter.dispatch(&Listener::on_collision_event, packet.collision);
 }
+void Receiver::recv(const dto_game::NewRaceInfo& info) {
+    spdlog::trace("received new race info");
+    emitter.dispatch(&Listener::on_new_race, info.race);
+}

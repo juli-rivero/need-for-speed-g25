@@ -74,3 +74,11 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, UpgradeRequest& r) {
 ProtocolSender& operator<<(ProtocolSender& p, const UpgradeRequest& r) {
     return p << r.stat;
 }
+
+// NewRaceInfo SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, NewRaceInfo& r) {
+    return p >> r.race;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const NewRaceInfo& r) {
+    return p << r.race;
+}

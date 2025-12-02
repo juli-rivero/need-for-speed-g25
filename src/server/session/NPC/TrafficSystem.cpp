@@ -5,19 +5,20 @@
 #include <utility>
 #include <vector>
 
-TrafficSystem::TrafficSystem(EntityFactory& f,
-                             const std::vector<SpawnPoint>& playerSpawnPoints)
-    : factory(f), playerSpawnPoints(playerSpawnPoints) {
+TrafficSystem::TrafficSystem(
+    Box2DPhysicsWorld& world, const YamlGameConfig& cfg, const RoadGraph& graph,
+    const std::vector<SpawnPointInfo>& playerSpawnPoints)
+    : graph(graph), factory(world, cfg), playerSpawnPoints(playerSpawnPoints) {
     std::srand(std::time(nullptr));
 }
 
-static bool isNear(const b2Vec2& a, const SpawnPoint& b, float minDist) {
-    float dx = a.x - b.x;
-    float dy = a.y - b.y;
+static bool isNear(const Point& a, const SpawnPointInfo& b, float minDist) {
+    float dx = a.x - b.pos.x;
+    float dy = a.y - b.pos.y;
     return (dx * dx + dy * dy) < (minDist * minDist);
 }
 
-bool TrafficSystem::isTooCloseToSpawnPoints(const b2Vec2& pos) const {
+bool TrafficSystem::isTooCloseToSpawnPoints(const Point& pos) const {
     const float MIN_DIST = 10.0f;  // 6 metros → 60 px si PPM=10
 
     for (const auto& sp : playerSpawnPoints) {
@@ -33,15 +34,15 @@ void TrafficSystem::spawnNPCs() {
     const int MAX_ATTEMPTS = 25;
 
     for (int attempt = 0; attempt < MAX_ATTEMPTS; attempt++) {
-        const auto& segments = graph->getSegments();
+        const auto& segments = graph.getSegments();
         if (segments.empty()) return;
 
         const RoadSegment& seg = segments[rand() % segments.size()];
 
         // NOLINTNEXTLINE
         float t = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-        b2Vec2 pos{seg.start.x + (seg.end.x - seg.start.x) * t,
-                   seg.start.y + (seg.end.y - seg.start.y) * t};
+        Point pos{seg.start.x + (seg.end.x - seg.start.x) * t,
+                  seg.start.y + (seg.end.y - seg.start.y) * t};
 
         if (isTooCloseToSpawnPoints(pos)) continue;
 
@@ -49,11 +50,11 @@ void TrafficSystem::spawnNPCs() {
         float dy = seg.end.y - seg.start.y;
         float angle = atan2f(dy, dx);
 
-        auto car = factory.createNpcCar(CarType::Classic, pos.x, pos.y);
+        auto car = factory.createNpcCar(CarType::Classic, pos);
         auto npc = std::make_unique<NPCVehicle>(std::move(car));
 
         npc->getCar()->setLayer(RenderLayer::UNDER);
-        npc->getCar()->getBody()->setTransform(pos.x, pos.y, angle);
+        npc->getCar()->setTransform(pos, angle);
 
         npc->setTargetNode(seg.b);
 
@@ -63,7 +64,7 @@ void TrafficSystem::spawnNPCs() {
 }
 
 void TrafficSystem::update(float dt) const {
-    const auto& segments = graph->getSegments();
+    const auto& segments = graph.getSegments();
 
     for (auto& npc : npcs) {
         npc->update(dt);

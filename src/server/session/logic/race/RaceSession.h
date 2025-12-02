@@ -3,25 +3,23 @@
 #include <algorithm>
 #include <memory>
 #include <optional>
-#include <unordered_map>
 #include <utility>
 #include <vector>
 
-#include "../../../config/YamlGameConfig.h"
-#include "../../model/Car.h"
-#include "../../model/Checkpoint.h"
-#include "server/session/logic/types.h"
-#include "server/session/model/BridgeSensor.h"
+#include "server/config/YamlGameConfig.h"
+#include "server/session/model/Car.h"
+#include "server/session/model/Checkpoint.h"
 #include "server/session/model/Player.h"
 
-struct SpawnPoint;
 class RaceSession {
    public:
     // Player ya no es ownership de Racesession
     RaceSession(const YamlGameConfig& cfg,
-                std::vector<std::unique_ptr<Checkpoint>> checkpoints,
-                std::vector<SpawnPoint> spawnPoints,
-                const std::vector<Player*>& players);
+                std::vector<std::unique_ptr<Checkpoint>>&& checkpoints,
+                std::vector<SpawnPointInfo>&& spawnPoints,
+                std::vector<Player*>&& players);
+    void setPlayersPositions();
+
     void start();
     void update(float dt);
 
@@ -33,12 +31,11 @@ class RaceSession {
     const std::vector<std::unique_ptr<Checkpoint>>& getCheckpoints() const {
         return checkpoints;
     }
-    const std::vector<SpawnPoint>& getSpawnPoints() const {
+    const std::vector<SpawnPointInfo>& getSpawnPoints() const {
         return spawnPoints;
     }
 
     void onCheckpointCrossed(PlayerId player, int checkpointOrder) const;
-    void onCarDestroyed(PlayerId player);
 
     std::optional<const Checkpoint*> nextCheckpointFor(PlayerId p) const;
 
@@ -57,16 +54,6 @@ class RaceSession {
     float countdownTime{4.0f};  // segundos de cuenta regresiva
 
     std::vector<Player*> players;
-    std::vector<std::unique_ptr<Checkpoint>> checkpoints;
-    std::vector<SpawnPoint> spawnPoints;
-    std::vector<std::unique_ptr<BridgeSensor>> _sensors;
-
-   public:
-    const std::vector<std::unique_ptr<BridgeSensor>>& getSensors() const {
-        return _sensors;
-    }
-    void setSensors(std::vector<std::unique_ptr<BridgeSensor>> sensors) {
-        _sensors = std::move(sensors);
-    }
-    void orderCheckpointsByOrder();
+    const std::vector<std::unique_ptr<Checkpoint>> checkpoints;
+    const std::vector<SpawnPointInfo> spawnPoints;
 };

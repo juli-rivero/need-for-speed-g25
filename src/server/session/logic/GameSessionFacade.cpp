@@ -5,13 +5,50 @@
 #include <vector>
 
 #include "common/timer_iterator.h"
+#include "server/config/MapLoader.h"
+#include "server/session/logic/match/MatchSessionBuilder.h"
 
 using std::chrono_literals::operator""ms;
 
-GameSessionFacade::GameSessionFacade(const YamlGameConfig& configPath,
+static MatchSession createMatchSession(
+    const YamlGameConfig& cfg, Box2DPhysicsWorld& world,
+    const std::vector<std::string>& raceFiles,
+    const std::vector<PlayerConfig>& players) {
+    const MapLoader loader(raceFiles[0], cfg);
+
+    MatchSessionBuilder matchBuilder(cfg, world);
+    matchBuilder.setRaceFiles(raceFiles)
+        .setPlayers(players)
+        .setBuildings(loader.getWalls(), loader.getRailings())
+        .setSensors(loader.getUpperSensors(), loader.getLowerSensors())
+        .setRoads(loader.getRoadShapes());
+    return matchBuilder.build();
+}
+
+static CityInfo loadCityInfo(const std::string& path,
+                             const YamlGameConfig& cfg) {
+    const MapLoader loader(path, cfg);
+    return CityInfo{
+        .name = loader.getCityName(),
+        .walls = loader.getWalls(),
+        .bridges = loader.getBridges(),
+        .railings = loader.getRailings(),
+        .overpasses = loader.getOverpasses(),
+        .upper_sensors = loader.getUpperSensors(),
+        .lower_sensors = loader.getLowerSensors(),
+    };
+}
+
+GameSessionFacade::GameSessionFacade(const YamlGameConfig& cfg,
                                      const std::vector<std::string>& raceFiles,
-                                     const std::vector<PlayerConfig>& players)
-    : world(), match(configPath, raceFiles, world, players) {}
+                                     const std::vector<PlayerConfig>& players,
+                                     const std::shared_ptr<spdlog::logger>& log)
+    : log(log),
+      world(),
+      match(createMatchSession(cfg, world, raceFiles, players)),
+      cityInfo(loadCityInfo(raceFiles[0], cfg)) {
+    this->log->debug("GameSessionFacade created");
+}
 
 void GameSessionFacade::run() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);
@@ -47,11 +84,12 @@ void GameSessionFacade::run() {
             emitter.dispatch(&Listener::on_collision_event, collision);
         }
 
-        // TODO(juli)
-        // if (match.hasFinalSummary()) {
-        //     auto pkt = match.consumeFinalSummary();
-        //     emitter.dispatch(&Listener::on_match_finished, pkt);
-        // }
+        if (last_state != MatchState::Racing &&
+            match.state() == MatchState::Racing) {
+            log->debug("New race started");
+            emitter.dispatch(&Listener::on_new_race, match.getRaceInfo());
+        }
+        last_state = match.state();
 
         passed_iterations = iterator.next();
     }

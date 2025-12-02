@@ -1,9 +1,6 @@
-#include "RaceSession.h"
+#include <ranges>
 
-void RaceSession::orderCheckpointsByOrder() {
-    std::sort(checkpoints.begin(), checkpoints.end(),
-              [](auto& a, auto& b) { return a->getOrder() < b->getOrder(); });
-}
+#include "RaceSession.h"
 
 void RaceSession::onCheckpointCrossed(PlayerId id, int order) const {
     for (auto* p : players) {
@@ -22,11 +19,6 @@ void RaceSession::onCheckpointCrossed(PlayerId id, int order) const {
         }
         return;
     }
-}
-
-void RaceSession::onCarDestroyed(PlayerId id) {
-    for (auto* p : players)
-        if (p->getId() == id) p->markDQ();
 }
 
 std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(
