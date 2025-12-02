@@ -27,6 +27,7 @@ class AssetsScreen final {
     std::unique_ptr<SDL2pp::Texture> city;
 
     SDL2pp::Font font;
+    SDL2pp::Font font_large;
 
     SDL2pp::Texture arrow;
     SDL2pp::Texture white;

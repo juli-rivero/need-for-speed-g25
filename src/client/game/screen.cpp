@@ -49,6 +49,16 @@ void Screen::render_text(const std::string& texto, SDL2pp::Point pos,
     render(t, pos, 0, in_world);
 }
 
+void Screen::render_text_title(const std::string& texto, SDL2pp::Point pos,
+                               const SDL2pp::Color color, bool in_world) {
+    // Texto grande y centrado
+    SDL2pp::Surface s = assets.font_large.RenderText_Solid(texto, color);
+    SDL2pp::Texture t(renderer, s);
+
+    pos -= SDL2pp::Point(t.GetWidth() / 2, t.GetHeight() / 2);
+    render(t, pos, 0, in_world);
+}
+
 void Screen::render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
                           bool in_world) {
     if (in_world) rect -= SDL2pp::Point(cam_offset_x, cam_offset_y);
@@ -242,6 +252,7 @@ void Screen::draw_end_overlay(bool finished) {
     } else {
         render_text("Coche destruido...", {30, 30}, {255, 255, 255, 255},
                     false);
+        return;
     }
 
     if (game.match_state == MatchState::Racing) {
@@ -273,6 +284,15 @@ void Screen::draw_end_overlay(bool finished) {
     }
 }
 
+void Screen::draw_start_timer() {
+    render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 100}, false);
+
+    int time = static_cast<int>(game.time_countdown) + 1;
+    std::string title = "Siguiente carrera en " + std::to_string(time) + "...";
+    render_text_title(title, {WIDTH / 2, HEIGHT / 2}, {255, 255, 0, 255},
+                      false);
+}
+
 void Screen::update() {
     renderer.Clear();
     update_camera();
@@ -289,7 +309,9 @@ void Screen::update() {
 
     // Capa 3: interfaz
     if (game.my_car) {
-        if (game.my_car->finished || game.my_car->disqualified) {
+        if (game.race_state == RaceState::Countdown) {
+            draw_start_timer();
+        } else if (game.my_car->finished || game.my_car->disqualified) {
             draw_end_overlay(game.my_car->finished);
         } else {
             draw_hud();
