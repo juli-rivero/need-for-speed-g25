@@ -34,6 +34,7 @@ class Screen final {
     void draw_overpasses();
     void draw_hud();
     void draw_minimap();
+    void draw_start_timer();
     void draw_end_overlay(bool finished);
 
     // Metodos de renderizado
@@ -52,6 +53,8 @@ class Screen final {
 
     void render_text(const std::string& texto, SDL2pp::Point pos,
                      const SDL2pp::Color color, bool in_world = true);
+    void render_text_title(const std::string& texto, SDL2pp::Point pos,
+                           const SDL2pp::Color color, bool in_world = true);
 
     void render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
                       bool in_world = true);
