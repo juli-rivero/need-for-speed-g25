@@ -30,6 +30,7 @@ class AssetsScreen final {
 
     SDL2pp::Texture arrow;
     SDL2pp::Texture white;
+    SDL2pp::Texture explosion;
 
     // Mapeos
     std::unordered_map<CarType, SDL2pp::Texture*> car_name;

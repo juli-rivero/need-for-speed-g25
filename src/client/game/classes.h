@@ -33,6 +33,7 @@ class Screen final {
 
     // Auxiliares de renderizado
     std::unique_ptr<SDL2pp::Texture> minimap_texture;
+    std::unordered_map<PlayerId, int> explosion_frame;
 
     // Pasos de renderizado
     void draw_ciudad();
@@ -72,6 +73,7 @@ class Screen final {
     // Metodos de renderizado compuestos
     //
     // Utilizan los metodos definidos arriba.
+    void render_explosion(SDL2pp::Point pos, int frame);
     void render_car(NpcCar& car);
     void render_car(PlayerCar& car, bool with_name);
 
