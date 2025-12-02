@@ -2,6 +2,7 @@
 
 race:
   max_players: 8
+  max_NPCs : 25
   time_limit_sec: 6000        # límite por carrera (10 minutos)
   intermission_sec: 10       # pausa entre carreras
 

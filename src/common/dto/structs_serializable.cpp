@@ -77,6 +77,49 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CarInfo& s) {
     return p >> s.type >> s.display >> s.stats;
 }
 
+ProtocolSender& operator<<(ProtocolSender& p, const Point& pos) {
+    return p << pos.x << pos.y;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, Point& pos) {
+    return p >> pos.x >> pos.y;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const Bound& bound) {
+    return p << bound.pos << bound.width << bound.height;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, Bound& bound) {
+    return p >> bound.pos >> bound.width >> bound.height;
+}
+
+ProtocolSender& operator<<(ProtocolSender& p, const SpawnPointInfo& s) {
+    return p << s.pos << s.angle;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, SpawnPointInfo& s) {
+    return p >> s.pos >> s.angle;
+}
+
+ProtocolSender& operator<<(ProtocolSender& p, const CheckpointInfo& s) {
+    return p << s.order << s.bound << s.angle << s.type;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CheckpointInfo& s) {
+    return p >> s.order >> s.bound >> s.angle >> s.type;
+}
+
+ProtocolSender& operator<<(ProtocolSender& p, const RaceInfo& race) {
+    return p << race.name << race.checkpoints << race.spawnPoints;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceInfo& race) {
+    return p >> race.name >> race.checkpoints >> race.spawnPoints;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const CityInfo& city) {
+    return p << city.name << city.walls << city.bridges << city.railings
+             << city.overpasses;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, CityInfo& city) {
+    return p >> city.name >> city.walls >> city.bridges >> city.railings >>
+           city.overpasses;
+}
 ProtocolSender& operator<<(ProtocolSender& p, const CollisionSimple& s) {
     p << s.player;
     p << s.intensity;
@@ -190,60 +233,30 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, PlayerSnapshot& s) {
     p >> s.raceProgress;
     return p;
 }
-ProtocolSender& operator<<(ProtocolSender& p, const Point& pos) {
-    return p << pos.x << pos.y;
+ProtocolSender& operator<<(ProtocolSender& p, const NpcSnapshot& s) {
+    return p << s.type << s.layer << s.bound << s.angle;
 }
-ProtocolReceiver& operator>>(ProtocolReceiver& p, Point& pos) {
-    return p >> pos.x >> pos.y;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcSnapshot& s) {
+    return p >> s.type >> s.layer >> s.bound >> s.angle;
 }
-ProtocolSender& operator<<(ProtocolSender& p, const Bound& bound) {
-    return p << bound.pos << bound.width << bound.height;
+ProtocolSender& operator<<(ProtocolSender& p, const MatchSnapshot& m) {
+    return p << m.matchState << m.currentRaceIndex << m.time;
 }
-ProtocolReceiver& operator>>(ProtocolReceiver& p, Bound& bound) {
-    return p >> bound.pos >> bound.width >> bound.height;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, MatchSnapshot& m) {
+    return p >> m.matchState >> m.currentRaceIndex >> m.time;
 }
-
-ProtocolSender& operator<<(ProtocolSender& p, const SpawnPointInfo& s) {
-    return p << s.pos << s.angle;
+ProtocolSender& operator<<(ProtocolSender& p, const RaceSnapshot& r) {
+    return p << r.raceState << r.raceElapsed << r.raceCountdown
+             << r.raceTimeLeft;
 }
-
-ProtocolReceiver& operator>>(ProtocolReceiver& p, SpawnPointInfo& s) {
-    return p >> s.pos >> s.angle;
-}
-
-ProtocolSender& operator<<(ProtocolSender& p, const CheckpointInfo& s) {
-    return p << s.order << s.bound << s.angle << s.type;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceSnapshot& r) {
+    return p >> r.raceState >> r.raceElapsed >> r.raceCountdown >>
+           r.raceTimeLeft;
 }
 
-ProtocolReceiver& operator>>(ProtocolReceiver& p, CheckpointInfo& s) {
-    return p >> s.order >> s.bound >> s.angle >> s.type;
+ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& s) {
+    return p << s.match << s.race << s.players << s.npcs;
 }
-
-ProtocolSender& operator<<(ProtocolSender& p, const RaceInfo& race) {
-    return p << race.name << race.checkpoints << race.spawnPoints;
-}
-ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceInfo& race) {
-    return p >> race.name >> race.checkpoints >> race.spawnPoints;
-}
-ProtocolSender& operator<<(ProtocolSender& p, const CityInfo& city) {
-    return p << city.name << city.walls << city.bridges << city.railings
-             << city.overpasses;
-}
-ProtocolSender& operator<<(ProtocolSender& p, const NpcInfo& s) {
-    p << s.x << s.y;
-    p << s.angle;
-    p << s.w << s.h;
-    p << s.type;
-    return p;
-}
-ProtocolReceiver& operator>>(ProtocolReceiver& p, NpcInfo& s) {
-    p >> s.x >> s.y;
-    p >> s.angle;
-    p >> s.w >> s.h;
-    p >> s.type;
-    return p;
-}
-ProtocolReceiver& operator>>(ProtocolReceiver& p, CityInfo& city) {
-    return p >> city.name >> city.walls >> city.bridges >> city.railings >>
-           city.overpasses;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& s) {
+    return p >> s.match >> s.race >> s.players >> s.npcs;
 }

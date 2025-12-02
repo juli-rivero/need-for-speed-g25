@@ -4,16 +4,19 @@
 #include <ranges>
 #include <utility>
 
+#include "spdlog/spdlog.h"
+
 YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     try {
         root = YAML::LoadFile(filePath);
-        std::cout << "[YamlGameConfig] Cargando configuración desde: "
-                  << filePath << "\n";
+        spdlog::info("[YamlGameConfig] Cargando configuración desde: {}",
+                     filePath);
 
         // === Sección "race" ===
         if (root["race"]) {
             const auto& race = root["race"];
             maxPlayers = race["max_players"].as<int>();
+            maxNPCs = race["max_NPCs"].as<int>();
             timeLimitSec = race["time_limit_sec"].as<float>();
             intermissionSec = race["intermission_sec"].as<float>();
         } else {
@@ -87,7 +90,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
 
         printSummary();
     } catch (const std::exception& e) {
-        std::cerr << "Error cargando config YAML: " << e.what() << std::endl;
+        spdlog::error("Error cargando config YAML: {}", e.what());
         throw;
     }
 }
@@ -109,30 +112,31 @@ CarType YamlGameConfig::getCarType(const std::string& name) {
     throw std::invalid_argument("Unknown car type: " + name);
 }
 void YamlGameConfig::printSummary() const {
-    std::cout << "\n=== CONFIGURACIÓN GLOBAL ===\n";
-    std::cout << "Jugadores máx: " << maxPlayers << "\n";
-    std::cout << "Límite tiempo: " << timeLimitSec << " s\n";
-    std::cout << "Intermission:   " << intermissionSec << " s\n";
+    spdlog::info("=== CONFIGURACIÓN GLOBAL ===");
+    spdlog::info("Jugadores máx: {}", maxPlayers);
+    spdlog::info("Límite tiempo: {} s", timeLimitSec);
+    spdlog::info("Intermission: {} s", intermissionSec);
 
-    std::cout << "\n=== AUTOS DISPONIBLES ===\n";
+    spdlog::info("=== AUTOS DISPONIBLES ===");
     for (const auto& c : carsDisplayInfo | std::views::keys) {
         const auto& displayInfo = carsDisplayInfo.at(c);
         const auto& staticStats = carsStaticStats.at(c);
-        std::cout << displayInfo.name << " (" << displayInfo.description << ")"
-                  << std::endl
-                  << "\tspeed=" << staticStats.maxSpeed
-                  << ", acc=" << staticStats.acceleration
-                  << ", mass=" << staticStats.mass
-                  << ", control=" << staticStats.control
-                  << ", hp=" << staticStats.maxHealth << ", nitro×"
-                  << staticStats.nitroMultiplier << std::endl;
+
+        spdlog::info("{} ({})", displayInfo.name, displayInfo.description);
+        spdlog::debug(
+            "\tspeed={}, acc={}, mass={}, control={}, hp={}, nitro×{}",
+            staticStats.maxSpeed, staticStats.acceleration, staticStats.mass,
+            staticStats.control, staticStats.maxHealth,
+            staticStats.nitroMultiplier);
     }
 
-    std::cout << "\n=== CIUDADES ===\n";
+    spdlog::info("=== CIUDADES ===");
     for (const auto& [city, raceFiles] : races) {
-        std::cout << city << " (" << raceFiles.size() << " circuitos)\n";
-        for (const auto& r : raceFiles) std::cout << "   - " << r << "\n";
+        spdlog::info("{} ({} circuitos)", city, raceFiles.size());
+        for (const auto& r : raceFiles) {
+            spdlog::debug("   - {}", r);
+        }
     }
 
-    std::cout << "=============================\n\n";
+    spdlog::info("=============================");
 }

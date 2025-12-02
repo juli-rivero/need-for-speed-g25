@@ -27,9 +27,8 @@ struct ReverseRequest {
     bool reverse;
 };
 
-struct GameSnapshot {
-    float raceTimeLeft;
-    std::vector<PlayerSnapshot> players;
+struct GameSnapshotPacket {
+    GameSnapshot snapshot;
 };
 
 struct EventPacket {
@@ -44,6 +43,6 @@ DECLARE_SERIALIZABLE(dto_game::TurnRequest)
 DECLARE_SERIALIZABLE(dto_game::AccelerateRequest)
 DECLARE_SERIALIZABLE(dto_game::UseBoostRequest)
 DECLARE_SERIALIZABLE(dto_game::ReverseRequest)
-DECLARE_SERIALIZABLE(dto_game::GameSnapshot)
+DECLARE_SERIALIZABLE(dto_game::GameSnapshotPacket)
 DECLARE_SERIALIZABLE(dto_game::EventPacket)
 #include "common/dto/macros_undef.inl"

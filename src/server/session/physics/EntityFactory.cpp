@@ -13,14 +13,15 @@ EntityFactory::EntityFactory(Box2DPhysicsWorld& world,
     : world(world), cfg(cfg), physicsFactory(world.getWorldId()) {}
 
 std::unique_ptr<Car> EntityFactory::createCar(const CarType& type, float x,
-                                              float y, EntityType entType) {
+                                              float y, float angleDeg,
+                                              EntityType entType) {
     auto stats = cfg.getCarStaticStatsMap().at(type);
-    auto phys = physicsFactory.createCar(x, y, stats);
+    auto phys = physicsFactory.createCar(x, y, angleDeg, stats);
     auto body = std::make_shared<Box2DBodyAdapter>(phys);
     auto car = std::make_unique<Car>(nextId(), type, stats, body, entType);
 
     car->setLayer(RenderLayer::UNDER);
-    world.getCollisionManager().registerEntity(body->getShapeId(), car.get());
+    world.getCollisionManager().registerEntity(phys->getShapeId(), car.get());
     return car;
 }
 
@@ -55,7 +56,7 @@ std::unique_ptr<BridgeSensor> EntityFactory::createBridgeSensor(
 
     auto sensor = std::make_unique<BridgeSensor>(nextId(), type, body, w, h);
 
-    world.getCollisionManager().registerEntity(body->getShapeId(),
+    world.getCollisionManager().registerEntity(phys->getShapeId(),
                                                sensor.get());
     return sensor;
 }
@@ -68,6 +69,6 @@ std::unique_ptr<Car> EntityFactory::createNpcCar(CarType type, float x,
         std::make_unique<Car>(nextId(), type, stats, body, EntityType::NPCCar);
     npc->setLayer(RenderLayer::UNDER);
 
-    world.getCollisionManager().registerEntity(body->getShapeId(), npc.get());
+    world.getCollisionManager().registerEntity(phys->getShapeId(), npc.get());
     return npc;
 }

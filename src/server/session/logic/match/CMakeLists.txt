@@ -1,0 +1,10 @@
+target_sources(taller_server
+        PRIVATE
+        MatchSession.cpp
+        MatchSessionIntermission.cpp
+        MatchSessionRaceInit.cpp
+        MatchSessionSnapshots.cpp
+        MatchSessionUpgrades.cpp
+        PUBLIC
+        MatchSession.h
+)
