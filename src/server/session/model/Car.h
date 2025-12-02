@@ -282,8 +282,7 @@ class Car : public Entity {
 
             case UpgradeStat::Health:
                 upgrades.bonusHealth += amount;
-                health += amount;  // TODO(elvis): no se resetea la vida en
-                                   // cada carrera?
+                health += amount;
                 break;
 
             case UpgradeStat::Nitro:
