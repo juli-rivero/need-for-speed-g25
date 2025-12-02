@@ -23,6 +23,10 @@ goal.ogg
 	"success.wav" - por grunz
 	https://freesound.org/people/grunz/sounds/109662/
 
+nitro.ogg
+	"ArtilleryTankFireSynthetic3.wav" - por zimbot
+	https://freesound.org/people/zimbot/sounds/117801/
+
 
 Musica descargada de youtube, mixes por The B Brothers
 Todos los mixes son de uso libre para uso no comercial

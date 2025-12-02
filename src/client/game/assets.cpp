@@ -46,7 +46,8 @@ AssetsSound::AssetsSound(const CityName& city_name)
       crash("assets/sound/crash.ogg"),
       checkpoint("assets/sound/checkpoint.ogg"),
       explosion("assets/sound/explosion.ogg"),
-      goal("assets/sound/goal.ogg") {
+      goal("assets/sound/goal.ogg"),
+      nitro("assets/sound/nitro.ogg") {
     try {
         music = std::make_unique<SDL2pp::Music>(CITY_PATH.at(city_name));
     } catch (...) {
