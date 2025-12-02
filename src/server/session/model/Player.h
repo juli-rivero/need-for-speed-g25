@@ -5,7 +5,6 @@
 #include <utility>
 #include <vector>
 
-#include "../logic/NetworkTypes.h"
 #include "Car.h"
 #include "server/session/logic/types.h"
 class Player {
@@ -13,7 +12,7 @@ class Player {
     const std::string name;
     const std::unique_ptr<Car> car;  // su auto actual
     PlayerRaceData raceState;
-    // Tiempo total acumulado entre carreras
+
     float totalAccumulated{0.0f};
 
     // Upgrades elegidos por el jugador y TODAVIA no aplicados
@@ -68,7 +67,7 @@ class Player {
     // ------------------------------
     void setPenalty(float p) { raceState.penaltyTime = p; }
     float getPenalty() const { return raceState.penaltyTime; }
-
+    PlayerId getId() const { return id; }
     float getRawTime() const { return raceState.elapsed; }
     float getNetTime() const {
         return raceState.elapsed + raceState.penaltyTime;

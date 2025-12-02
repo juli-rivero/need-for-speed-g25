@@ -1,14 +1,11 @@
 target_sources(taller_server
         PRIVATE
         GameSessionFacade.cpp
-        MatchSession.cpp
-        RaceSession.cpp
         UpgradeSystem.cpp
         PUBLIC
         GameSessionFacade.h
-        MatchSession.h
-        RaceSession.h
         types.h
-        NetworkTypes.h
         UpgradeSystem.h
 )
+add_subdirectory(match)
+add_subdirectory(race)

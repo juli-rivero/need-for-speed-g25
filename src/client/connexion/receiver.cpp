@@ -63,10 +63,9 @@ void Receiver::recv(const dto_game::GameStaticSnapshot& snapshot) {
     emitter.dispatch(&Listener::on_game_static_snapshot,
                      snapshot.new_race_info);
 }
-void Receiver::recv(const dto_game::GameSnapshot& snapshot) {
+void Receiver::recv(const dto_game::GameSnapshotPacket& packet) {
     spdlog::trace("received game snapshot");
-    emitter.dispatch(&Listener::on_game_snapshot, snapshot.raceTimeLeft,
-                     snapshot.players);
+    emitter.dispatch(&Listener::on_game_snapshot, packet.snapshot);
 }
 void Receiver::recv(const dto_game::EventPacket& packet) {
     spdlog::trace("received collision event");

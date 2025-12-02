@@ -1,5 +1,3 @@
-#include <box2d/box2d.h>
-
 #include <exception>
 #include <fstream>
 #include <iostream>

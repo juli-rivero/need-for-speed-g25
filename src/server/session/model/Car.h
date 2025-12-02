@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <iostream>
 #include <memory>
 #include <string>
 #include <utility>
@@ -67,6 +68,7 @@ class Car : public Entity {
     static constexpr EntityType Type = EntityType::Car;
     std::shared_ptr<IPhysicalBody> getBody() { return body; }
     CarType getType() const { return carType; }
+
     void setLayer(RenderLayer l) {
         layer = l;
 
@@ -74,36 +76,16 @@ class Car : public Entity {
         b2Filter filter = b2Shape_GetFilter(shape);
 
         bool isNPC = (getEntityType() == EntityType::NPCCar);
-
         filter.categoryBits = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        if (layer == RenderLayer::UNDER) {
-            if (isNPC) {
-                // NPC abajo → NO chocan entre sí
-                filter.maskBits = CATEGORY_WALL |    // edificios
-                                  CATEGORY_SENSOR |  // checkpoints/puentes
-                                  CATEGORY_CAR;      // choca con jugadores
-                // No railing porque está abajo
-            } else {
-                // Jugador abajo choca con todo menos railing
-                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
-                                  CATEGORY_CAR |  // otros jugadores
-                                  CATEGORY_NPC;   // NPC
-            }
+        // Siempre detectar sensores sin importar layer
+        filter.maskBits = CATEGORY_SENSOR | CATEGORY_WALL | CATEGORY_CAR;
 
-        } else {  // OVER
-            if (isNPC) {
-                // NPC arriba
-                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
-                                  CATEGORY_RAILING |  //  choca con barandas
-                                  CATEGORY_CAR;       // jugadores, pero no NPC
-            } else {
-                // Jugador arriba
-                filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR |
-                                  CATEGORY_RAILING | CATEGORY_CAR |
-                                  CATEGORY_NPC;  // NPC
-            }
-        }
+        // Jugador debe detectar NPCs
+        if (!isNPC) filter.maskBits |= CATEGORY_NPC;
+
+        // Railing solo en OVER
+        if (layer == RenderLayer::OVER) filter.maskBits |= CATEGORY_RAILING;
 
         b2Shape_SetFilter(shape, filter);
     }

@@ -5,4 +5,5 @@ target_sources(taller_server
         PUBLIC
         MapLoader.h
         YamlGameConfig.h
+        YamlInclude.h
 )

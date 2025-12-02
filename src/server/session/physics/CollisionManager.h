@@ -6,7 +6,7 @@
 #include <memory>
 #include <unordered_map>
 
-#include "../logic/RaceSession.h"
+#include "../logic/race/RaceSession.h"
 #include "Box2DHash.h"
 
 class CollisionManager {

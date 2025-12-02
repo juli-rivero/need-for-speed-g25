@@ -39,8 +39,8 @@ void GameController::on_reverse() { game.startReversing(client_id); }
 void GameController::on_stop_reversing() { game.stopReversing(client_id); }
 void GameController::on_nitro() { game.useNitro(client_id); }
 
-void GameController::on_snapshot(const WorldSnapshot& snapshot) {
-    api.send_game_snapshot(snapshot.raceTimeLeft, snapshot.players);
+void GameController::on_snapshot(const GameSnapshot& snapshot) {
+    api.send_game_snapshot(snapshot);
 }
 void GameController::on_collision_event(const CollisionEvent& event) {
     api.send_collision_event(event);

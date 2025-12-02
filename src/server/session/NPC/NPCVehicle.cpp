@@ -40,27 +40,25 @@ b2Vec2 NPCVehicle::steeringSeek(const b2Vec2& target) {
 
     return b2Vec2(desired.x - vel.x, desired.y - vel.y);
 }
-NpcInfo NPCVehicle::buildSnapshot() const {
-    auto body = car->getBody();
-    Vec2 pos = body->getPosition();
-
-    return {.x = pos.x,
-            .y = pos.y,
-            .angle = body->getAngle(),
-            .w = car->getStaticStats().width,
-            .h = car->getStaticStats().height,
-            .type = car->getType()};
+NpcSnapshot NPCVehicle::buildSnapshot() const {
+    const auto& body = car->getBody();
+    const auto& [x, y] = body->getPosition();
+    const auto& stats = car->getStaticStats();
+    return {
+        .type = car->getType(),
+        .layer = car->getLayer(),
+        .bound = {{x, y}, stats.width, stats.height},
+        .angle = body->getAngle(),
+    };
 }
 
 void NPCVehicle::update(float dt) {
-    std::cout << "[NPC] Update NPC id=" << car->getId() << " accelerating..."
-              << std::endl;
     (void)dt;
     if (!targetNode) return;
 
     auto pos = car->getBody()->getPosition();
-    //  Frenamos derrape lateral ---
     killLateralVelocity(car.get());
+
     float dx = targetNode->pos.x - pos.x;
     float dy = targetNode->pos.y - pos.y;
     float dist = std::sqrt(dx * dx + dy * dy);
@@ -71,7 +69,6 @@ void NPCVehicle::update(float dt) {
     }
 
     b2Vec2 force = steeringSeek(targetNode->pos);
-    std::cout << "[NPC] New target: node " << targetNode->id << std::endl;
     car->getBody()->applyForce(force.x, force.y);
 
     //  Rota SOLO visualmente hacia el nodo (sin torque)
@@ -83,8 +80,7 @@ void NPCVehicle::update(float dt) {
     while (delta > M_PI) delta -= 2.0f * M_PI;
     while (delta < -M_PI) delta += 2.0f * M_PI;
 
-    // rotación muy suave
-    float rotateSpeed = 2.0f * dt;  // subí a 3.0 si querés que gire más
+    float rotateSpeed = 2.0f * dt;
     delta = std::clamp(delta, -rotateSpeed, rotateSpeed);
 
     float newAngle = currentAngle + delta;

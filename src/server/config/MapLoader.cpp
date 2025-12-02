@@ -8,6 +8,7 @@
 #include "../session/model/BridgeSensor.h"
 #include "../session/physics/Box2DBodyAdapter.h"
 #include "../session/physics/EntityFactory.h"
+#include "YamlInclude.h"
 
 // ============================================================
 //  Convenciones de unidades
@@ -27,13 +28,13 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     std::vector<std::unique_ptr<Checkpoint>>& checkpoints,
     std::vector<SpawnPoint>& spawnPoints, std::vector<RoadShape>& roadShapes,
     std::vector<std::unique_ptr<BridgeSensor>>& sensors) {
-    std::cout << "[MapLoader] Cargando mapa desde " << yamlPath << "...\n";
+    spdlog::info("[MapLoader] Cargando mapa desde {}...", yamlPath);
 
     YAML::Node root;
     try {
-        root = YAML::LoadFile(yamlPath);
+        root = loadYamlWithInclude(yamlPath);
     } catch (const std::exception& e) {
-        std::cerr << "[MapLoader] Error cargando YAML: " << e.what() << "\n";
+        spdlog::error("[MapLoader] Error cargando YAML: {}", e.what());
         throw;
     }
 
@@ -57,9 +58,8 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
         info.gravity = {0.0f, 0.0f};
     }
 
-    std::cout << "Mapa: " << info.name << " | Ciudad: " << info.city
-              << " | Gravedad: [" << info.gravity.x << ", " << info.gravity.y
-              << "]\n";
+    spdlog::info("Mapa: {} | Ciudad: {} | Gravedad: [{}, {}]", info.name,
+                 info.city, info.gravity.x, info.gravity.y);
 
     // ============================================================
     // 1) BUILDINGS / WALLS / BRIDGES / OVERPASSES
@@ -137,8 +137,9 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     if (mapNode["checkpoints"]) {
         for (const auto& n : mapNode["checkpoints"]) {
             if (!n["x"] || !n["y"] || !n["width"] || !n["rotation"]) {
-                std::cerr << "[MapLoader] Checkpoint inválido: faltan campos "
-                          << "(x, y, width, rotation)\n";
+                spdlog::warn(
+                    "[MapLoader] Checkpoint inválido: faltan campos (x, y, "
+                    "width, rotation)");
                 continue;
             }
 
@@ -158,8 +159,8 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             if (n["order"]) {
                 order = n["order"].as<int>();
             } else {
-                std::cerr << "[MapLoader] WARNING: checkpoint sin 'order', "
-                             "usando 0\n";
+                spdlog::warn(
+                    "[MapLoader] WARNING: checkpoint sin 'order', usando 0");
             }
 
             // Convierto a unidades físicas
@@ -174,12 +175,12 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             checkpoints.push_back(std::move(cp));
 
             const auto& cpr = *checkpoints.back();
-            std::cout << "Checkpoint " << cpr.getOrder()
-                      << " id=" << cpr.getId() << " type=" << t << " pos=("
-                      << cpr.getPosition().x << "," << cpr.getPosition().y
-                      << ")" << " size=(" << cpr.getWidth() << ","
-                      << cpr.getHeight() << ")" << " angle=" << cpr.getAngle()
-                      << "\n";
+            spdlog::debug(
+                "Checkpoint {} id={} type={} pos=({}, {}) size=({}, {}) "
+                "angle={}",
+                cpr.getOrder(), cpr.getId(), t, cpr.getPosition().x,
+                cpr.getPosition().y, cpr.getWidth(), cpr.getHeight(),
+                cpr.getAngle());
         }
     }
 
@@ -195,7 +196,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
                 const auto& vertsNode = s["vertices"];
 
                 if (vertsNode.size() < 3) {
-                    std::cerr << "[MapLoader] Sensor con pocos vértices\n";
+                    spdlog::warn("[MapLoader] Sensor con pocos vértices");
                     continue;
                 }
 
@@ -238,7 +239,7 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
     if (mapNode["spawn_points"]) {
         for (const auto& n : mapNode["spawn_points"]) {
             if (!n["x"] || !n["y"] || !n["angle"]) {
-                std::cerr << "[MapLoader] SpawnPoint inválido: faltan campos\n";
+                spdlog::warn("[MapLoader] SpawnPoint inválido: faltan campos");
                 continue;
             }
 
@@ -252,8 +253,8 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
             SpawnPoint sp(x, y, angle);
             spawnPoints.push_back(sp);
 
-            std::cout << "SpawnPoint pos=(" << sp.x << "," << sp.y
-                      << ") angle=" << sp.angle << "\n";
+            spdlog::debug("SpawnPoint pos=({}, {}) angle={}", sp.x, sp.y,
+                          sp.angle);
         }
     }
 
@@ -291,11 +292,11 @@ MapLoader::MapInfo MapLoader::loadFromYAML(
         }
     }
 
-    std::cout << "Mapa cargado correctamente con " << buildings.size()
-              << " walls, " << bridges.size() << " bridges, "
-              << overpasses.size() << " overpasses, " << checkpoints.size()
-              << " checkpoints, " << sensors.size() << " sensors,a "
-              << spawnPoints.size() << " spawn points.\n";
+    spdlog::info(
+        "Mapa cargado correctamente con {} walls, {} bridges, {} overpasses, "
+        "{} checkpoints, {} sensors, {} spawn points.",
+        buildings.size(), bridges.size(), overpasses.size(), checkpoints.size(),
+        sensors.size(), spawnPoints.size());
 
     return info;
 }

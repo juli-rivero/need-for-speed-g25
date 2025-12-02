@@ -24,7 +24,7 @@ using Response =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
-                 dto_game::GameStaticSnapshot, dto_game::GameSnapshot,
+                 dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
                  dto_game::EventPacket>;
 
 }  // namespace dto

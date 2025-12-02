@@ -38,7 +38,6 @@ ClientHandler::~ClientHandler() {
     }
     sender.join();
     receiver.join();
-    protocol.close();
     log->debug("Destroyed");
     spdlog::drop(log->name());
 }

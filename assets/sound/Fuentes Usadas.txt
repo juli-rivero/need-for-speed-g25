@@ -3,14 +3,40 @@ Todos los sonidos mencionados se encuentran licenciados bajo Creative Commons At
 
 A continuacion, la fuente de todos los sonidos utilizados:
 
+brake.ogg
+	"Car Breaking Skid 01.wav" - por Medartimus
+	https://freesound.org/people/Medartimus/sounds/217542/
+
+checkpoint.ogg
+	"Menu Interface - Confirm 003.wav" - por DWOBoyle
+	https://freesound.org/people/DWOBoyle/sounds/143607/
+
 crash.ogg
-	crash.wav - por moxobna
+	"crash.wav" - por moxobna
 	https://freesound.org/people/moxobna/sounds/40158/
 
-finish.ogg
-	success.wav - por grunz
+explosion.ogg
+	"Explosion.mp3" - por Iwiploppenisse
+	https://freesound.org/people/Iwiploppenisse/sounds/156031/
+
+goal.ogg
+	"success.wav" - por grunz
 	https://freesound.org/people/grunz/sounds/109662/
 
-brake.ogg
-	Car Breaking Skid 01.wav - por Medartimus
-	https://freesound.org/people/Medartimus/sounds/217542/
+
+Musica descargada de youtube, mixes por The B Brothers
+Todos los mixes son de uso libre para uso no comercial
+
+A continuacion, la fuente de toda la musica utilizada:
+
+music_
+	"Round n Round"
+	https://www.youtube.com/watch?v=90-7D2nv1OM
+
+music_libertycity.mp3
+	"West Like"
+	 https://www.youtube.com/watch?v=VzbQ8QMb8ss
+
+music_sanandreas.mp3
+	"Gangsta Luv"
+	https://www.youtube.com/watch?v=UTRoBVbncQw

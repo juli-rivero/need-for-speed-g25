@@ -23,6 +23,28 @@ client: build
 server: build
 	./build/taller_server $(ARGS)
 
+exec-server: build
+	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server $(ARGS); exec bash"
+
+exec-client: build
+ifeq ($(TERM_CLIENT),1)
+	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client $(ARGS); exec bash"
+else
+	nohup ./build/taller_client $(ARGS) >/dev/null 2>&1 &
+endif
+
+exec-editor: build
+ifeq ($(TERM_CLIENT),1)
+	gnome-terminal --title="Editor" -- bash -c "./build/taller_editor $(ARGS); exec bash"
+else
+	nohup ./build/taller_editor $(ARGS) >/dev/null 2>&1 &
+endif
+
+server-valgrind: build
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/taller_server
+
+client-valgrind: build
+	valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes ./build/taller_client
 
 .PHONY: hooks
 
@@ -39,5 +61,4 @@ else
 endif
 
 exec: build
-	gnome-terminal --title="Servidor" -- bash -c "./build/taller_server $(ARGS); exec bash"
-	gnome-terminal --title="Cliente" -- bash -c "./build/taller_client $(ARGS); exec bash"
+	make exec-client

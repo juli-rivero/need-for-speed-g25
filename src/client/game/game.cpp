@@ -6,17 +6,32 @@
 #include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
+//
+// INICIALIZACION
+//
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
-    : screen(renderer, *this),
-      sound(mixer, *this),
-      assets(renderer),
-      api(connexion.get_api()),
-      my_id(connexion.unique_id),
-      map(setup.city_info, setup.race_info),
+    : api(connexion.get_api()),
       city_info(setup.city_info),
-      race_info(setup.race_info) {
-    spdlog::info("map: {}", map.name);
+      race_info(setup.race_info),
+      screen(renderer, *this, setup.city_info.name),
+      sound(mixer, *this, setup.city_info.name),
+      my_id(connexion.unique_id) {
+    // Configurar componentes de snapshot estatico
+    for (const Bound& b : city_info.bridges) {
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.railings) {
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.overpasses) {
+        overpasses.emplace_back(b);
+    }
+    for (const CheckpointInfo& ci : race_info.checkpoints) {
+        checkpoints.emplace_back(ci.bound, ci.angle);
+    }
+    checkpoint_amount = checkpoints.size();
+
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
@@ -24,13 +39,10 @@ Game::~Game() { Responder::unsubscribe(); }
 //
 // DATOS SERVIDOR
 //
-void Game::on_game_snapshot(
-    const float time_elapsed,
-    const std::vector<PlayerSnapshot>& player_snapshots) {
+void Game::on_game_snapshot(const GameSnapshot& game_snapshot) {
     std::lock_guard lock(snapshot_mutex);
 
-    this->time_elapsed = time_elapsed;
-    this->player_snapshots = player_snapshots;
+    current_snapshot = game_snapshot;
 }
 
 void Game::on_collision_event(const CollisionEvent& collision_event) {
@@ -38,7 +50,16 @@ void Game::on_collision_event(const CollisionEvent& collision_event) {
 }
 
 //
-// PRINCIPAL
+// CAMARA
+//
+void Game::set_camera(const PlayerCar& car) {
+    SDL2pp::Point center = car.pos.get_center();
+    cam_x = center.GetX();
+    cam_y = center.GetY();
+}
+
+//
+// PASOS ACTUALIZACION
 //
 bool Game::send_events() {
     SDL_Event event;
@@ -48,7 +69,7 @@ bool Game::send_events() {
         if (event.type == SDL_KEYDOWN) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
+            if (tecla == SDLK_ESCAPE) return true;
 
             if (tecla == SDLK_LEFT || tecla == SDLK_a)
                 api.start_turning(TurnDirection::Left);
@@ -58,6 +79,41 @@ bool Game::send_events() {
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.start_breaking();
 
             if (tecla == SDLK_SPACE) api.start_using_nitro();
+
+            if (tecla == SDLK_RALT) cheat_mode = true;
+            if (cheat_mode && tecla == SDLK_v) {
+                spdlog::info("EVENT: cheat - vida infinita");
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_g) {
+                spdlog::info("EVENT: cheat - ganar la carrera");
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_p) {
+                spdlog::info(
+                    "EVENT: cheat - perder la carrera (autodescalificarse)");
+                cheat_used = true;
+            }
+
+            if (match_state == MatchState::Intermission &&
+                upgrade_chosen == 0) {
+                if (tecla == SDLK_1) {
+                    spdlog::info("EVENT: mejora - aceleracion");
+                    upgrade_chosen = 1;
+                }
+                if (tecla == SDLK_2) {
+                    spdlog::info("EVENT: mejora - velocidad maxima");
+                    upgrade_chosen = 2;
+                }
+                if (tecla == SDLK_3) {
+                    spdlog::info("EVENT: mejora - nitro");
+                    upgrade_chosen = 3;
+                }
+                if (tecla == SDLK_4) {
+                    spdlog::info("EVENT: mejora - vida");
+                    upgrade_chosen = 4;
+                }
+            }
         }
 
         if (event.type == SDL_KEYUP) {
@@ -69,50 +125,63 @@ bool Game::send_events() {
                 api.stop_turning(TurnDirection::Right);
             if (tecla == SDLK_UP || tecla == SDLK_w) api.stop_accelerating();
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.stop_breaking();
+
+            if (tecla == SDLK_RALT) cheat_mode = false;
         }
     }
 
     return false;
 }
+
 void Game::update_state() {
     std::lock_guard lock(snapshot_mutex);
 
+    // Estado para eventos de sonido
+    if (my_car != nullptr) {
+        old_checkpoint = my_car->next_checkpoint;
+        old_finished = my_car->finished;
+    }
+    for (auto& [id, car] : cars) {
+        old_braking[id] = car.braking;
+        old_disqualified[id] = car.disqualified;
+    }
+
+    // Sumado/reemplazo de jugadores y NPCs
     cars.clear();
-    for (auto& player : player_snapshots) {
-        cars.emplace(std::piecewise_construct, std::forward_as_tuple(player.id),
-                     std::forward_as_tuple(*this, player));
+    for (auto& player : current_snapshot.players) {
+        cars.emplace(player.id, player);
         if (player.id == my_id) my_car = &cars.at(player.id);
     }
-}
 
-void Game::manage_sounds() {
-    // Colisiones
-    CollisionEvent collision;
-    while (collisions.try_pop(collision)) {
-        PlayerId id;
-        std::visit([&](const auto& collision) { id = collision.player; },
-                   collision);
-
-        Car& car = cars.at(id);
-        sound.crash(car);
+    npcs.clear();
+    for (auto& npc : current_snapshot.npcs) {
+        npcs.emplace_back(npc);
     }
 
-    // Freno (y carrera completada)
-    // TODO(franco): reproducir frenos de otros coches, aparte del mio
-    if (!my_car) return;
-    sound.test_brake(*my_car);
-    sound.test_finish(*my_car);
+    // Tiempo y estado de carrera
+    time_elapsed = current_snapshot.race.raceElapsed;
+    time_countdown = current_snapshot.race.raceCountdown;
+    time_left = current_snapshot.race.raceTimeLeft;
+    race_state = current_snapshot.race.raceState;
+    match_state = current_snapshot.match.matchState;
+    if (match_state != MatchState::Intermission) upgrade_chosen = 0;
 }
 
+//
+// PRINCIPAL
+//
 bool Game::start() {
     constexpr std::chrono::duration<double> dt(1.f / 60.f);
     TimerIterator iterator(dt);
 
+    sound.start();
     while (1) {
         bool quit = send_events();
         update_state();
+
+        if (my_car) set_camera(*my_car);
         screen.update();
-        manage_sounds();
+        sound.update();
 
         if (quit) return true;
 

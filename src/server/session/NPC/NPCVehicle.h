@@ -16,7 +16,7 @@ class NPCVehicle {
     Car* getCar() const { return car.get(); }
     const IntersectionNode* getTarget() const { return targetNode; }
     const IntersectionNode* getPrevious() const { return previousNode; }
-    NpcInfo buildSnapshot() const;
+    NpcSnapshot buildSnapshot() const;
 
    private:
     std::unique_ptr<Car> car;

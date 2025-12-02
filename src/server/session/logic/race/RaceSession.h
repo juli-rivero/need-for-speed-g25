@@ -7,10 +7,9 @@
 #include <utility>
 #include <vector>
 
-#include "../../config/YamlGameConfig.h"
-#include "../model/Car.h"
-#include "../model/Checkpoint.h"
-#include "NetworkTypes.h"
+#include "../../../config/YamlGameConfig.h"
+#include "../../model/Car.h"
+#include "../../model/Checkpoint.h"
 #include "server/session/logic/types.h"
 #include "server/session/model/BridgeSensor.h"
 #include "server/session/model/Player.h"
@@ -30,7 +29,6 @@ class RaceSession {
     RaceState getState() const { return _state; }
 
     float elapsedRaceTime() const { return _raceClock; }
-    float countdownRemaining() const;
 
     const std::vector<std::unique_ptr<Checkpoint>>& getCheckpoints() const {
         return checkpoints;
@@ -45,6 +43,13 @@ class RaceSession {
     std::optional<const Checkpoint*> nextCheckpointFor(PlayerId p) const;
 
     std::vector<PlayerResult> makeResults() const;
+
+    void updateCountdown();
+    void updateRunning(float dt);
+    float countdownRemaining() const {
+        if (_state != RaceState::Countdown) return 0.f;
+        return std::max(0.f, countdownTime - _raceClock);
+    }
 
    private:
     const YamlGameConfig& cfg;
