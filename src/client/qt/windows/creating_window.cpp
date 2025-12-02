@@ -67,7 +67,7 @@ void CreatingWindow::setupUI(const StaticSessionData& staticData) {
 
     // Número de carreras
     racesSpin = new QSpinBox(this);
-    racesSpin->setMinimum(3);
+    racesSpin->setMinimum(1);
     racesSpin->setMaximum(3);
     racesSpin->setValue(3);
     racesSpin->setSuffix(" carreras");

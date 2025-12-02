@@ -53,7 +53,7 @@ std::vector<CityName> SessionsMonitor::get_available_cities() {
 
 void SessionsMonitor::reap_sessions() {
     for (auto it = sessions.begin(); it != sessions.end();) {
-        if (it->second.empty())
+        if (it->second.empty() || it->second.finished())
             it = sessions.erase(it);
         else
             ++it;
