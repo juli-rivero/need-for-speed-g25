@@ -247,15 +247,16 @@ void Screen::draw_minimap() {
     renderer.SetViewport(SDL2pp::NullOpt);
 }
 
-void Screen::make_btn_upgrade(UpgradeStat stat, int x, int y,
+void Screen::make_btn_upgrade(const UpgradeStat stat, int x, int y,
                               std::string stat_name) {
     const auto& acc_stat = upgrade_choices.at(stat);
     const auto& [_, delta, penalty] = acc_stat;
+    std::ostringstream ss;
+    ss << std::fixed << std::setprecision(2);
+    ss << "+" << delta << " " << stat_name << " -" << penalty << "s";
     SdlButton btn(renderer, assets.font,
                   SDL2pp::Rect(x, y, upgrade_btn_width, upgrade_btn_height),
-                  "+" + std::format("{:.2f}", delta) + stat_name + " -" +
-                      std::format("{:.2f}", penalty) + "s",
-                  [this, &stat]() { api.upgrade(stat); });
+                  ss.str(), [this, stat]() { api.upgrade(stat); });
     buttons.push_back(std::move(btn));
 }
 
@@ -298,7 +299,24 @@ void Screen::draw_end_overlay(bool finished) {
         for (auto& btn : buttons) {
             btn.render();
         }
-
+        const SDL2pp::Color black = {255, 255, 255, 255};
+        const auto& [speed, acc, health, nitro] = game.my_upgrades;
+        std::ostringstream ss;
+        ss << std::fixed << std::setprecision(2);
+        ss << "penalizacion total: " << game.penalty << "s";
+        render_text(ss.str(), {WIDTH / 2, HEIGHT - 100}, black, false, true);
+        ss.str("");
+        ss << "+" << acc << " acc";
+        render_text(ss.str(), {WIDTH * 1 / 5, HEIGHT - 70}, black, false, true);
+        ss.str("");
+        ss << "+" << speed << " vel";
+        render_text(ss.str(), {WIDTH * 2 / 5, HEIGHT - 70}, black, false, true);
+        ss.str("");
+        ss << "+" << nitro << " nitro";
+        render_text(ss.str(), {WIDTH * 3 / 5, HEIGHT - 70}, black, false, true);
+        ss.str("");
+        ss << "+" << health << " vida";
+        render_text(ss.str(), {WIDTH * 4 / 5, HEIGHT - 70}, black, false, true);
     } else if (game.match_state == MatchState::Finished) {
         buttons.clear();
         render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
