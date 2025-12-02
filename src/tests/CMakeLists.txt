@@ -4,6 +4,8 @@ target_sources(taller_tests
         protocol_core.cpp
         protocol_variants.cpp
         protocol_search.cpp
+        protocol_session.cpp
+        protocol_game.cpp
         timer_interval_tests.cpp
         PUBLIC
         # .h files

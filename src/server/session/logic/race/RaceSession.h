@@ -42,8 +42,6 @@ class RaceSession {
 
     std::optional<const Checkpoint*> nextCheckpointFor(PlayerId p) const;
 
-    std::vector<PlayerResult> makeResults() const;
-
     void updateCountdown();
     void updateRunning(float dt);
     float countdownRemaining() const {

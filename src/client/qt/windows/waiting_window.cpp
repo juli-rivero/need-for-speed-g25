@@ -35,12 +35,13 @@ void WaitingWindow::on_session_snapshot(
         },
         Qt::QueuedConnection);
 }
-void WaitingWindow::on_start_game(const CityInfo& city_info,
-                                  const RaceInfo& race_info) {
+void WaitingWindow::on_start_game(
+    const CityInfo& city_info, const RaceInfo& race_info,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
     QMetaObject::invokeMethod(
         this,
-        [this, city_info, race_info]() {
-            emit startGameRequested(city_info, race_info);
+        [this, city_info, race_info, upgrade_choices]() {
+            emit startGameRequested(city_info, race_info, upgrade_choices);
         },
         Qt::QueuedConnection);
 }

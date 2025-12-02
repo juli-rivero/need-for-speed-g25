@@ -26,6 +26,7 @@ class Receiver final : public Thread {
         virtual void on_join_request(const std::string&) {}
         virtual void on_search_request() {}
         virtual void on_create_request(const SessionConfig&) {}
+        virtual void on_static_session_data_request() {}
         virtual void on_leave_request() {}
         virtual void on_start_request(bool) {}
         virtual void on_choose_car(const CarType&) {}
@@ -42,6 +43,9 @@ class Receiver final : public Thread {
         virtual void on_stop_reversing() {}
         virtual void on_nitro() {}
 
+        virtual void on_cheat(Cheat) {}
+        virtual void on_upgrade_request(UpgradeStat) {}
+
         ~Listener() override = default;
 
        protected:
@@ -54,6 +58,7 @@ class Receiver final : public Thread {
     void recv(const dto_search::JoinRequest&);
     void recv(const dto_search::SearchRequest&);
     void recv(const dto_search::CreateRequest&);
+    void recv(const dto_search::StaticSessionDataRequest&);
     void recv(const dto_session::LeaveRequest&);
     void recv(const dto_session::StartRequest&);
     void recv(const dto_session::ChooseCarRequest&);
@@ -63,4 +68,6 @@ class Receiver final : public Thread {
     void recv(const dto_game::AccelerateRequest&);
     void recv(const dto_game::UseBoostRequest&);
     void recv(const dto_game::ReverseRequest&);
+    void recv(const dto_game::CheatMessage&);
+    void recv(const dto_game::UpgradeRequest&);
 };
