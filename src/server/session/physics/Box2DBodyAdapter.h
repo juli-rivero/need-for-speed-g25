@@ -24,7 +24,7 @@ class Box2DBodyAdapter : public IPhysicalBody {
         b2Transform transform = b2Body_GetTransform(body->getId());
         return b2Rot_GetAngle(transform.q);
     }
-    b2ShapeId getShapeId() const override { return body->getShapeId(); }
+    b2ShapeId getShapeId() const { return body->getShapeId(); }
     void setTransform(float x, float y, float angle) override {
         b2Rot rot = b2MakeRot(angle);
         b2Body_SetTransform(body->getId(), {x, y}, rot);
@@ -48,6 +48,12 @@ class Box2DBodyAdapter : public IPhysicalBody {
         b2Vec2 vel = b2Body_GetLinearVelocity(body->getId());
         return {vel.x, vel.y};
     }
-
-    b2BodyId getId() const override { return body->getId(); }
+    void setCollisionFilter(uint16_t categoryBits, uint16_t maskBits) override {
+        b2ShapeId shape = body->getShapeId();
+        b2Filter filter = b2Shape_GetFilter(shape);
+        filter.categoryBits = categoryBits;
+        filter.maskBits = maskBits;
+        b2Shape_SetFilter(shape, filter);
+    }
+    b2BodyId getId() const { return body->getId(); }
 };
