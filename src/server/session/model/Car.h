@@ -66,34 +66,27 @@ class Car : public Entity {
     void setLayer(RenderLayer l) {
         layer = l;
 
-        b2ShapeId shape = body->getShapeId();
-        b2Filter filter = b2Shape_GetFilter(shape);
-
         bool isNPC = (getEntityType() == EntityType::NPCCar);
-        filter.categoryBits = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        // Siempre paredes + sensores
-        filter.maskBits = CATEGORY_WALL | CATEGORY_SENSOR;
+        uint16_t category = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        //  REGLA DE COLISIÓN POR CAPA
-        if (layer == RenderLayer::UNDER) {
-            if (!isNPC) {
-                filter.maskBits |= CATEGORY_CAR;
-                filter.maskBits |= CATEGORY_NPC;
-            } else {
-                filter.maskBits |= CATEGORY_CAR;
-            }
+        uint16_t mask = CATEGORY_WALL | CATEGORY_SENSOR;
 
-        } else {
-            filter.maskBits |= CATEGORY_RAILING;
-            if (!isNPC) {
-                filter.maskBits |= CATEGORY_CAR;
-                filter.maskBits |= CATEGORY_NPC;
-            } else {
-                filter.maskBits |= CATEGORY_CAR;
-            }
+        // Los de OVER agregan colisión con barandas
+        if (layer == RenderLayer::OVER) {
+            mask |= CATEGORY_RAILING;
         }
-        b2Shape_SetFilter(shape, filter);
+
+        if (isNPC) {
+            // NPC choca con jugador, paredes, sensores, barandas (si OVER)
+            mask |= CATEGORY_CAR;
+            // NO agregar CATEGORY_NPC
+        } else {
+            mask |= CATEGORY_CAR;
+            mask |= CATEGORY_NPC;
+        }
+
+        body->setCollisionFilter(category, mask);
     }
 
    private:
