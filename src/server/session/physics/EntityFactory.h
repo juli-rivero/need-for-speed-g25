@@ -1,12 +1,13 @@
 #pragma once
 #include <memory>
 
-#include "../model/Car.h"
-#include "../model/Checkpoint.h"
-#include "../model/Wall.h"
 #include "Box2DPhysicsFactory.h"
 #include "Box2DPhysicsWorld.h"
+#include "server/config/YamlGameConfig.h"
 #include "server/session/model/BridgeSensor.h"
+#include "server/session/model/Car.h"
+#include "server/session/model/Checkpoint.h"
+#include "server/session/model/Wall.h"
 
 class EntityFactory {
     Box2DPhysicsWorld& world;
@@ -22,15 +23,11 @@ class EntityFactory {
     EntityFactory(Box2DPhysicsWorld&, const YamlGameConfig&);
 
     // Todos reciben una referencia al mundo físico
-    std::unique_ptr<Car> createCar(const CarType&, float x, float y,
+    std::unique_ptr<Car> createCar(const CarType&, const Point& pos,
                                    float angleDeg, EntityType entType);
-    std::unique_ptr<Car> createNpcCar(CarType type, float x, float y);
-    std::unique_ptr<Wall> createBuilding(float x, float y, float w, float h,
-                                         EntityType type);
-    std::unique_ptr<Checkpoint> createCheckpoint(float x, float y, float w,
-                                                 float h, float angle,
-                                                 int order,
-                                                 CheckpointType type);
-    std::unique_ptr<BridgeSensor> createBridgeSensor(RenderLayer type, float x,
-                                                     float y, float w, float h);
+    std::unique_ptr<Car> createNpcCar(CarType type, const Point& pos);
+    std::unique_ptr<Wall> createBuilding(const Bound&, EntityType type);
+    std::unique_ptr<Checkpoint> createCheckpoint(const CheckpointInfo&);
+    std::unique_ptr<BridgeSensor> createBridgeSensor(RenderLayer type,
+                                                     const Bound&);
 };

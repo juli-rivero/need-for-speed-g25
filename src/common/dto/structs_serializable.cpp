@@ -121,11 +121,11 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceInfo& race) {
 }
 ProtocolSender& operator<<(ProtocolSender& p, const CityInfo& city) {
     return p << city.name << city.walls << city.bridges << city.railings
-             << city.overpasses;
+             << city.overpasses << city.lower_sensors << city.upper_sensors;
 }
 ProtocolReceiver& operator>>(ProtocolReceiver& p, CityInfo& city) {
     return p >> city.name >> city.walls >> city.bridges >> city.railings >>
-           city.overpasses;
+           city.overpasses >> city.lower_sensors >> city.upper_sensors;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const CollisionSimple& s) {
     p << s.player;
@@ -213,7 +213,8 @@ ProtocolSender& operator<<(ProtocolSender& p, const RaceProgressSnapshot& s) {
     p << s.nextCheckpoint;
     p << s.finished;
     p << s.disqualified;
-    p << s.elapsedTime;
+    p << s.elapsed;
+    p << s.penaltyTime;
     return p;
 }
 
@@ -221,7 +222,8 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, RaceProgressSnapshot& s) {
     p >> s.nextCheckpoint;
     p >> s.finished;
     p >> s.disqualified;
-    p >> s.elapsedTime;
+    p >> s.elapsed;
+    p >> s.penaltyTime;
     return p;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const UpgradeStats& s) {

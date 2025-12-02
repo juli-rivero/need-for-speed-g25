@@ -22,9 +22,9 @@ Session::Session(const SessionConfig& config, const PlayerId creator,
       users_setup(1),
       game(nullptr),
       yaml_config(yaml_config),
-      creator(creator) {
+      creator(creator),
+      rand_generator(std::random_device{}()) {
     log->debug("Created");
-    std::srand(std::time(nullptr));
 }
 
 SessionInfo Session::get_info() {
@@ -108,13 +108,15 @@ void Session::start_game() {
     races.reserve(config.raceCount);
     const auto all_races = yaml_config.getRaces(config.city);
     for (int i = 0; i < config.raceCount; ++i) {
-        // const auto index = rand() % all_races.size();
-        constexpr auto index = 0;
+        const auto index = std::uniform_int_distribution<int>(
+            0, all_races.size() - 1)(rand_generator);
+
         spdlog::info("race {}", all_races[index]);
-        races.push_back(all_races[index]);
+        races.push_back(all_races[0]);  // TODO(juli): hacer carreras dinamicas
     }
 
-    game = std::make_unique<GameSessionFacade>(yaml_config, races, players);
+    game =
+        std::make_unique<GameSessionFacade>(yaml_config, races, players, log);
     CityInfo city_info = game->getCityInfo();
     city_info.name =
         config.city;  // TODO(juli): esto no se deberia hacer, cambiar

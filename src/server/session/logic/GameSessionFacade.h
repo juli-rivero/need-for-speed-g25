@@ -8,15 +8,19 @@
 #include "common/emitter.h"
 #include "common/queue.h"
 #include "common/thread.h"
-#include "match/MatchSession.h"
 #include "server/config/YamlGameConfig.h"
-#include "server/session/model/BridgeSensor.h"
+#include "server/session/logic/match/MatchSession.h"
 #include "server/session/physics/Box2DPhysicsWorld.h"
+#include "spdlog/sinks/stdout_color_sinks-inl.h"
 
 class GameSessionFacade : public Thread {
    private:
+    std::shared_ptr<spdlog::logger> log;
+
     Box2DPhysicsWorld world;
     MatchSession match;
+
+    const CityInfo cityInfo;
 
     Queue<std::pair<PlayerId, CarInput>> queue_actions;
     Queue<std::pair<PlayerId, Cheat>> queue_cheats;
@@ -25,9 +29,10 @@ class GameSessionFacade : public Thread {
    public:
     void run() override;
 
-    explicit GameSessionFacade(const YamlGameConfig& configPath,
+    explicit GameSessionFacade(const YamlGameConfig& cfg,
                                const std::vector<std::string>& raceFiles,
-                               const std::vector<PlayerConfig>& players);
+                               const std::vector<PlayerConfig>& players,
+                               const std::shared_ptr<spdlog::logger>&);
 
     struct Listener : common::Listener<GameSessionFacade::Listener> {
         virtual void on_snapshot(const GameSnapshot&) = 0;
@@ -36,11 +41,6 @@ class GameSessionFacade : public Thread {
        protected:
         void subscribe(GameSessionFacade&);
     };
-    // TODO(elvis): BORRAR ESTO Y DEMAS AL FINALIZAR, EL CLIENTE NO RENDERIZA
-    // SENSORES, NI LOS NECESITA, SOLO EXISTE EN EL WORLD,usado en modo offline
-    const std::vector<std::unique_ptr<BridgeSensor>>& getDebugSensors() const {
-        return match.getSensors();
-    }
 
     void startTurningLeft(PlayerId id);
     void stopTurningLeft(PlayerId id);
@@ -56,7 +56,7 @@ class GameSessionFacade : public Thread {
     void upgrade(PlayerId id, UpgradeStat);
 
     GameSnapshot getSnapshot() const { return match.getSnapshot(); }
-    CityInfo getCityInfo() const { return match.getCityInfo(); }
+    CityInfo getCityInfo() const { return cityInfo; }
     RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
    private:

@@ -2,7 +2,6 @@
 
 #include <memory>
 #include <string>
-#include <vector>
 
 #include "common/structs.h"
 
@@ -14,20 +13,8 @@ enum CollisionCategory : uint32_t {
     CATEGORY_NPC = 0x0010
 };
 
-struct SpawnPoint {
-    float x, y, angle;
-};
 struct PlayerConfig {
     PlayerId id;       // id único del jugador
     std::string name;  // nombre visible
     CarType carType;   // nombre del tipo de auto (Speedster, Tank, etc.)
-};
-// esto estaba en racesession, lo muevo aca
-struct PlayerRaceData {
-    PlayerId id{};
-    std::size_t nextCheckpoint{0};
-    bool finished{false};
-    bool disqualified{false};
-    float elapsed{0.0f};      // tiempo crudo
-    float penaltyTime{0.0f};  // penalización a aplicar en esta carrera
 };

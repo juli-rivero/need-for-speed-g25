@@ -3,6 +3,8 @@ target_sources(taller_server
         RaceSession.cpp
         RaceSessionCheckpoints.cpp
         RaceSessionState.cpp
+        RaceSessionBuilder.cpp
         PUBLIC
         RaceSession.h
+        RaceSessionBuilder.cpp
 )

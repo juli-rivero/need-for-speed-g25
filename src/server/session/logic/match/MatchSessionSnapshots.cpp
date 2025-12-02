@@ -15,19 +15,20 @@ std::vector<PlayerId> MatchSession::computeRacePositions(
 
     for (const auto& player : players) {
         const PlayerId id = player.id;
-        uint32_t cp = player.raceProgress.nextCheckpoint;
+        const auto& progress = player.raceProgress;
         float dist = 999999.f;
 
         if (auto nextCP = _race->nextCheckpointFor(id)) {
-            auto [cx, cy] = nextCP.value()->getPosition();
-            float dx = player.car.bound.pos.x - cx;
-            float dy = player.car.bound.pos.y - cy;
+            const auto& [cx, cy] = nextCP.value()->getPosition();
+            const auto& [px, py] = player.car.bound.pos;
+            float dx = px - cx;
+            float dy = py - cy;
             dist = std::sqrt(dx * dx + dy * dy);
         }
 
-        float net = player.raceProgress.elapsedTime + player.penalty;
+        float net = progress.elapsed + progress.penaltyTime;
 
-        arr.push_back({id, cp, dist, net});
+        arr.push_back({id, progress.nextCheckpoint, dist, net});
     }
 
     std::ranges::sort(arr, [](const auto& a, const auto& b) {
@@ -93,31 +94,11 @@ GameSnapshot MatchSession::getSnapshot() const {
     };
 }
 
-CityInfo MatchSession::getCityInfo() const {
-    std::vector<Bound> walls, railings;
-
-    for (const auto& b : _buildings) {
-        auto [x, y] = b->getPosition();
-        Bound bd{Point{x, y}, b->getWidth(), b->getHeight()};
-
-        if (b->getEntityType() == EntityType::Wall) walls.push_back(bd);
-        if (b->getEntityType() == EntityType::Railing) railings.push_back(bd);
-    }
-
-    return {.name = _raceFiles[_currentRace],
-            .walls = walls,
-            .bridges = _bridges,
-            .railings = railings,
-            .overpasses = _overpasses};
-}
-
 RaceInfo MatchSession::getRaceInfo() const {
-    RaceInfo info;
-    info.name = _raceFiles[_currentRace];
-
+    std::vector<CheckpointInfo> checkpoint_infos;
     for (const auto& cp : _race->getCheckpoints()) {
         auto [x, y] = cp->getPosition();
-        info.checkpoints.push_back(CheckpointInfo{
+        checkpoint_infos.push_back(CheckpointInfo{
             .order = static_cast<uint32_t>(cp->getOrder()),
             .bound = {Point{x, y}, cp->getWidth(), cp->getHeight()},
             .angle = cp->getAngle(),
@@ -125,8 +106,9 @@ RaceInfo MatchSession::getRaceInfo() const {
         });
     }
 
-    for (auto& sp : _race->getSpawnPoints())
-        info.spawnPoints.push_back({{sp.x, sp.y}, sp.angle});
-
-    return info;
+    return RaceInfo{
+        .name = _raceFiles[_currentRace],
+        .checkpoints = checkpoint_infos,
+        .spawnPoints = _race->getSpawnPoints(),
+    };
 }
