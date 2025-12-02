@@ -166,18 +166,18 @@ car_types:
 cities:
   - city: "LibertyCity"
     races:
-      - { map_file: "assets/liberty_city_circuito1.yaml" } #cada archivo seria un circuito distino
-      - { map_file: "assets/liberty_city_circuito2.yaml" }
-      - { map_file: "assets/liberty_city_circuito3.yaml" }
+      - { map_file: "maps/liberty_city_circuito1.yaml" } #cada archivo seria un circuito distino
+      - { map_file: "maps/liberty_city_circuito2.yaml" }
+      - { map_file: "maps/liberty_city_circuito3.yaml" }
 
   - city: "SanAndreas"
     races:
-      - { map_file: "assets/san_andreas_circuito1.yaml" }
-      - { map_file: "assets/san_andreas_circuito2.yaml" }
-      - { map_file: "assets/san_andreas_circuito3.yaml" }
+      - { map_file: "maps/san_andreas_circuito1.yaml" }
+      - { map_file: "maps/san_andreas_circuito2.yaml" }
+      - { map_file: "maps/san_andreas_circuito3.yaml" }
 
   - city: "ViceCity"
     races:
-      - { map_file: "assets/vice_city_circuito1.yaml" }
-      - { map_file: "assets/vice_city_circuito2.yaml" }
-      - { map_file: "assets/vice_city_circuito3.yaml" }
+      - { map_file: "maps/vice_city_circuito1.yaml" }
+      - { map_file: "maps/vice_city_circuito2.yaml" }
+      - { map_file: "maps/vice_city_circuito3.yaml" }

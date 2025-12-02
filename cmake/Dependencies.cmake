@@ -6,6 +6,8 @@
 #
 
 # Install command arguments parser and logging library
+
+
 if (TALLER_CLIENT OR TALLER_SERVER)
     include(FetchContent)
     FetchContent_Declare(
@@ -47,7 +49,7 @@ if (TALLER_CLIENT OR TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
-
+    set(SDL2MIXER_MIDI OFF CACHE BOOL "" FORCE)
     FetchContent_Declare(
             SDL2_mixer
             GIT_REPOSITORY https://github.com/libsdl-org/SDL_mixer.git
@@ -68,6 +70,7 @@ if (TALLER_CLIENT OR TALLER_SERVER)
 
     set(SDL2PP_WITH_TTF ON CACHE BOOL "" FORCE)
     set(SDL2PP_WITH_MIXER ON CACHE BOOL "" FORCE)
+
     FetchContent_Declare(
             libSDL2pp
             OVERRIDE_FIND_PACKAGE
@@ -87,6 +90,11 @@ if (TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
+    FetchContent_MakeAvailable(box2d)
+endif ()
+
+if (TALLER_SERVER OR TALLER_EDITOR)
+    include(FetchContent)
     FetchContent_Declare(
             yaml
             GIT_REPOSITORY https://github.com/jbeder/yaml-cpp.git
@@ -95,8 +103,7 @@ if (TALLER_SERVER)
             GIT_PROGRESS TRUE
             OVERRIDE_FIND_PACKAGE
     )
-
-    FetchContent_MakeAvailable(box2d yaml)
+    FetchContent_MakeAvailable(yaml)
 endif ()
 
 if (TALLER_CLIENT OR TALLER_EDITOR)
