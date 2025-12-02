@@ -290,4 +290,8 @@ class Car : public Entity {
                 break;
         }
     }
+
+    void setTransform(const Point pos, const float angle) {
+        body->setTransform(pos.x, pos.y, angle);
+    }
 };

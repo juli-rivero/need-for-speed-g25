@@ -127,6 +127,8 @@ struct CityInfo {
     std::vector<Bound> bridges;
     std::vector<Bound> railings;
     std::vector<Bound> overpasses;
+    std::vector<Bound> upper_sensors;
+    std::vector<Bound> lower_sensors;
 };
 
 // Game
@@ -166,7 +168,8 @@ struct RaceProgressSnapshot {
     uint32_t nextCheckpoint;  // número de checkpoint pendiente
     bool finished;
     bool disqualified;
-    float elapsedTime;
+    float elapsed;
+    float penaltyTime;
 };
 
 struct UpgradeStats {

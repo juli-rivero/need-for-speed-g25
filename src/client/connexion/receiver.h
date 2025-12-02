@@ -50,6 +50,8 @@ class Receiver final : public Thread {
 
         virtual void on_collision_event(const CollisionEvent&) {}
 
+        virtual void on_new_race(const RaceInfo&) {}
+
         ~Listener() override = default;
 
        protected:
@@ -69,4 +71,5 @@ class Receiver final : public Thread {
     void recv(const dto_game::GameStaticSnapshot&);
     void recv(const dto_game::GameSnapshotPacket&);
     void recv(const dto_game::EventPacket&);
+    void recv(const dto_game::NewRaceInfo&);
 };

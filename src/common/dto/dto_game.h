@@ -43,6 +43,10 @@ struct UpgradeRequest {
     UpgradeStat stat;
 };
 
+struct NewRaceInfo {
+    RaceInfo race;
+};
+
 }  // namespace dto_game
 
 #include "common/dto/macros.inl"
@@ -55,4 +59,5 @@ DECLARE_SERIALIZABLE(dto_game::GameSnapshotPacket)
 DECLARE_SERIALIZABLE(dto_game::EventPacket)
 DECLARE_SERIALIZABLE(dto_game::CheatMessage)
 DECLARE_SERIALIZABLE(dto_game::UpgradeRequest)
+DECLARE_SERIALIZABLE(dto_game::NewRaceInfo)
 #include "common/dto/macros_undef.inl"

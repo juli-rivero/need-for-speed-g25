@@ -5,14 +5,21 @@
 #include <ranges>
 #include <utility>
 
-MatchSession::MatchSession(const YamlGameConfig& cfg,
-                           std::vector<std::string> raceFiles,
-                           Box2DPhysicsWorld& world,
-                           std::vector<PlayerConfig> playersCfg)
+MatchSession::MatchSession(const YamlGameConfig& cfg, Box2DPhysicsWorld& world,
+                           std::vector<std::string>&& raceFiles,
+                           u_map<PlayerId, u_ptr<Player>>&& players,
+                           std::vector<u_ptr<Wall>>&& buildings,
+                           std::vector<u_ptr<BridgeSensor>>&& sensors,
+                           RoadGraph&& roadGraph)
     : _cfg(cfg),
       _world(world),
+      _roadGraph(std::move(roadGraph)),
       _raceFiles(std::move(raceFiles)),
-      _playerConfigs(std::move(playersCfg)) {
+      _players(std::move(players)),
+      _buildings(std::move(buildings)),
+      _sensors(std::move(sensors)) {
+    spdlog::debug("MatchSession created");
+
     if (_raceFiles.empty()) {
         _state = MatchState::Finished;
         return;
@@ -61,8 +68,9 @@ void MatchSession::applyCheat(const PlayerId id, const Cheat cheat) const {
             _players.at(id)->markFinished();
             break;
         case Cheat::DestroyAllCars:
-            for (const auto& player : _players | std::views::values) {
-                player->getCar()->damage(std::numeric_limits<float>::max());
+            for (const auto& [_id, player] : _players) {
+                auto* car = player->getCar();
+                car->damage(std::numeric_limits<float>::max());
             }
             break;
         case Cheat::InfiniteHealth:

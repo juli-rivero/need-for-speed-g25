@@ -13,22 +13,21 @@
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
     : api(connexion.get_api()),
-      city_info(setup.city_info),
       race_info(setup.race_info),
       screen(renderer, *this, setup.city_info.name),
       sound(mixer, *this, setup.city_info.name),
       my_id(connexion.unique_id) {
     // Configurar componentes de snapshot estatico
-    for (const Bound& b : city_info.walls) {
+    for (const Bound& b : setup.city_info.walls) {
         walls.emplace_back(b);
     }
-    for (const Bound& b : city_info.bridges) {
+    for (const Bound& b : setup.city_info.bridges) {
         bridges.emplace_back(b);
     }
-    for (const Bound& b : city_info.railings) {
+    for (const Bound& b : setup.city_info.railings) {
         bridges.emplace_back(b);
     }
-    for (const Bound& b : city_info.overpasses) {
+    for (const Bound& b : setup.city_info.overpasses) {
         overpasses.emplace_back(b);
     }
     for (const CheckpointInfo& ci : race_info.checkpoints) {
@@ -49,6 +48,11 @@ void Game::on_game_snapshot(const GameSnapshot& game_snapshot) {
     current_snapshot = game_snapshot;
 }
 
+void Game::on_new_race(const RaceInfo& new_race_info) {
+    std::lock_guard lock(race_mutex);
+    new_race = true;
+    race_info = new_race_info;
+}
 void Game::on_collision_event(const CollisionEvent& collision_event) {
     collisions.try_push(collision_event);
 }
@@ -122,10 +126,7 @@ bool Game::send_events() {
 
     return false;
 }
-
-void Game::update_state() {
-    std::lock_guard lock(snapshot_mutex);
-
+void Game::update_cars() {
     // Estado para eventos de sonido
     if (my_car != nullptr) {
         old_checkpoint = my_car->next_checkpoint;
@@ -146,18 +147,40 @@ void Game::update_state() {
             my_upgrades = player.upgrades;
         }
     }
-
+}
+void Game::update_npcs() {
     npcs.clear();
     for (auto& npc : current_snapshot.npcs) {
         npcs.emplace_back(npc);
     }
+}
+void Game::update_snapshot() {
+    std::lock_guard lock(snapshot_mutex);
 
+    update_cars();
+    update_npcs();
     // Tiempo y estado de carrera
     time_elapsed = current_snapshot.race.raceElapsed;
     time_countdown = current_snapshot.race.raceCountdown;
     time_left = current_snapshot.race.raceTimeLeft;
     race_state = current_snapshot.race.raceState;
     match_state = current_snapshot.match.matchState;
+}
+void Game::update_race() {
+    std::lock_guard lock(race_mutex);
+    if (not new_race) return;
+    checkpoints.clear();
+    for (const CheckpointInfo& ci : race_info.checkpoints) {
+        checkpoints.emplace_back(ci.bound, ci.angle);
+    }
+    checkpoint_amount = checkpoints.size();
+    new_race = false;
+    spdlog::debug("race updated");
+}
+
+void Game::update_state() {
+    update_snapshot();
+    update_race();
 }
 
 //

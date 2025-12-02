@@ -32,7 +32,9 @@ TEST_F(ProtocolTest, SessionStartResponseRoundTrip) {
                                    .width = 3.f,
                                    .height = 1.f}},
                       .railings = {},
-                      .overpasses = {}},
+                      .overpasses = {},
+                      .upper_sensors = {},
+                      .lower_sensors = {}},
         .first_race_info =
             {.name = "Opening Race",
              .checkpoints = {{.order = 0,

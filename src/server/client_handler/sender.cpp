@@ -97,3 +97,7 @@ void Sender::send_collision_event(const CollisionEvent& event) {
     log->trace("sending collision event");
     responses.try_push(dto_game::EventPacket{event});
 }
+void Sender::send_new_race_info(const RaceInfo& info) {
+    log->trace("sending new race info");
+    responses.try_push(dto_game::NewRaceInfo{info});
+}

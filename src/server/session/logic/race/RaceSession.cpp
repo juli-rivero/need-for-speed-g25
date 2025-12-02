@@ -1,14 +1,23 @@
 #include "RaceSession.h"
 
 RaceSession::RaceSession(const YamlGameConfig& cfg,
-                         std::vector<std::unique_ptr<Checkpoint>> checkpoints,
-                         std::vector<SpawnPoint> spawnPoints,
-                         const std::vector<Player*>& racePlayers)
+                         std::vector<std::unique_ptr<Checkpoint>>&& checkpoints,
+                         std::vector<SpawnPointInfo>&& spawnPoints,
+                         std::vector<Player*>&& players)
     : cfg(cfg),
-      players(racePlayers.begin(), racePlayers.end()),
+      players(std::move(players)),
       checkpoints(std::move(checkpoints)),
       spawnPoints(std::move(spawnPoints)) {
-    orderCheckpointsByOrder();
+    setPlayersPositions();
+}
+
+void RaceSession::setPlayersPositions() {
+    for (size_t i = 0; i < players.size() && i < spawnPoints.size(); ++i) {
+        const auto& player = players[i];
+        const auto& spawn = spawnPoints[i];
+
+        player->getCar()->setTransform(spawn.pos, spawn.angle);
+    }
 }
 
 void RaceSession::start() {

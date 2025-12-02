@@ -13,7 +13,7 @@ class OverpassItem : public MapItem {
 
     void addVertex(const QPointF& point);
     void finish();
-    
+
     QList<QPointF> getVertices() const { return vertices; }
     bool isFinished() const { return finished; }
 

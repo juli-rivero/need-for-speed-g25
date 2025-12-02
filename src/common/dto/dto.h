@@ -27,7 +27,7 @@ using Response =
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
                  dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
-                 dto_game::EventPacket>;
+                 dto_game::EventPacket, dto_game::NewRaceInfo>;
 
 }  // namespace dto
 

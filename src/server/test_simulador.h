@@ -193,27 +193,21 @@ static void renderOverpassesOnTop(SDL_Renderer* r, const CityInfo& info,
 
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_NONE);
 }
-static void renderSensors(
-    SDL_Renderer* r, const std::vector<std::unique_ptr<BridgeSensor>>& sensors,
-    float camX, float camY) {
+static void renderSensors(SDL_Renderer* r, const CityInfo& info, float camX,
+                          float camY) {
     SDL_SetRenderDrawBlendMode(r, SDL_BLENDMODE_BLEND);
 
-    for (const auto& s : sensors) {
-        const auto pos = s->getPosition();
-        const auto w = s->getWidth();
-        const auto h = s->getHeight();
-
-        SDL_FRect rect{pos.x * PPM - (w * PPM) / 2 - camX,
-                       pos.y * PPM - (h * PPM) / 2 - camY, w * PPM, h * PPM};
-
-        if (s->getType() == RenderLayer::OVER) {
-            SDL_SetRenderDrawColor(r, 0, 200, 255, 120);  // celeste claro
-        } else {
-            SDL_SetRenderDrawColor(r, 255, 140, 0, 120);  // naranja
-        }
-
+    for (const auto& sensor : info.upper_sensors) {
+        SDL_FRect rect = boundWorldToRectMap(sensor, camX, camY);
+        SDL_SetRenderDrawColor(r, 0, 200, 255, 120);  // celeste claro
         SDL_RenderFillRectF(r, &rect);
-
+        SDL_SetRenderDrawColor(r, 255, 255, 255, 200);
+        SDL_RenderDrawRectF(r, &rect);
+    }
+    for (const auto& sensor : info.lower_sensors) {
+        SDL_FRect rect = boundWorldToRectMap(sensor, camX, camY);
+        SDL_SetRenderDrawColor(r, 255, 140, 0, 120);  // naranja
+        SDL_RenderFillRectF(r, &rect);
         SDL_SetRenderDrawColor(r, 255, 255, 255, 200);
         SDL_RenderDrawRectF(r, &rect);
     }
@@ -455,7 +449,8 @@ inline int test(const YamlGameConfig& cfg) {
         std::vector<std::string> raceFiles{race};
         std::vector<PlayerConfig> playersConfig{playerConfig1, playerConfig2};
 
-        GameSessionFacade game(cfg, raceFiles, playersConfig);
+        GameSessionFacade game(cfg, raceFiles, playersConfig,
+                               spdlog::stdout_color_mt("GameSessionFacade"));
         const auto city_info = game.getCityInfo();
         const auto race_info = game.getRaceInfo();
         game.start();  // EMPEZAR PARTIDA EN EL LOBBY -> CAMBIAR A SDL
@@ -581,8 +576,7 @@ inline int test(const YamlGameConfig& cfg) {
             renderOverpassesOnTop(renderer, city_info, camX, camY);
             renderRailingAboveCars(renderer, city_info, camX, camY);
 
-            const auto& debugSensors = game.getDebugSensors();
-            renderSensors(renderer, debugSensors, camX, camY);
+            renderSensors(renderer, city_info, camX, camY);
 
             // ============================================================
             //  Hint direccional (flecha al siguiente checkpoint)

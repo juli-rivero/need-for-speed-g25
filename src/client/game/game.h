@@ -1,10 +1,5 @@
 #pragma once
 
-#ifndef GAME_FORWARD_DECL
-#define GAME_FORWARD_DECL
-class Game;
-#endif
-
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
 #include <unordered_map>
@@ -23,8 +18,7 @@ class Game final : Connexion::Responder {
    private:
     // Componentes de conexion y configuracion
     Api& api;
-    const CityInfo& city_info;
-    const RaceInfo& race_info;
+    RaceInfo race_info;
 
     // Componentes visuales y auditivos
     Screen screen;
@@ -34,6 +28,9 @@ class Game final : Connexion::Responder {
     std::mutex snapshot_mutex;
     GameSnapshot current_snapshot;
     void on_game_snapshot(const GameSnapshot&) override;
+    std::mutex race_mutex;
+    bool new_race = false;
+    void on_new_race(const RaceInfo&) override;
 
     // Componentes de colisiones recibidas
     // Queue<CollisionEvent> collisions; (public)
@@ -41,8 +38,12 @@ class Game final : Connexion::Responder {
 
     // Pasos de actualizacion
     bool send_events();
+
+    void update_cars();
+    void update_npcs();
+    void update_snapshot();
+    void update_race();
     void update_state();
-    void manage_sounds();
 
    public:
     Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer, Connexion& connexion,

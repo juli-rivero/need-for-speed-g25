@@ -112,8 +112,6 @@ map:
           y: 697.674
     - type: residential
       height: 10
-    - type: residential
-      height: 10
       vertices:
         - x: 558.338
           y: 774.362

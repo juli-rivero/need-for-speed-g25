@@ -1,20 +1,11 @@
 #include "client/game/bounding_box.h"
 
-constexpr float PI = 3.14;
-constexpr float PIXELS_PER_METER = 10;
-
-BoundingBox::BoundingBox(const Bound& b, float angle, bool angle_rad) {
+BoundingBox::BoundingBox(const Bound& b, float angle) {
     // Extraer datos relevantes
     x_float = b.pos.x;
     y_float = b.pos.y;
     w_float = b.width;
     h_float = b.height;
-
-    // Aplicar factor de scaling
-    x_float *= PIXELS_PER_METER;
-    y_float *= PIXELS_PER_METER;
-    w_float *= PIXELS_PER_METER;
-    h_float *= PIXELS_PER_METER;
 
     // (x, y) apunta al centro, no a la esquina.
     x_float -= w_float / 2;
@@ -27,11 +18,7 @@ BoundingBox::BoundingBox(const Bound& b, float angle, bool angle_rad) {
     w_int = static_cast<int>(w_float);
     h_int = static_cast<int>(h_float);
 
-    // Para el angulo, convertirlo si es necesario
-    if (angle_rad)
-        this->angle = angle * 180 / PI;
-    else
-        this->angle = angle;
+    this->angle = angle;
 }
 
 float BoundingBox::get_x() const { return x_float; }
@@ -61,8 +48,7 @@ float BoundingBox::angle_to(const BoundingBox& other) const {
     float y_other = other.get_y() + other.get_h() / 2;
 
     // Calcular el angulo
-    float angle = atan2f(y_this - y_other, x_this - x_other);
-    return angle * 180 / PI;
+    return atan2f(y_this - y_other, x_this - x_other) * 180 / std::numbers::pi;
 }
 
 float BoundingBox::distance_to(int x, int y) const {
