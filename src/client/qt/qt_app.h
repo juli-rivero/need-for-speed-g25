@@ -4,6 +4,7 @@
 #include <QMainWindow>
 #include <QStackedWidget>
 #include <string>
+#include <vector>
 
 #include "client/connexion/connexion.h"
 #include "client/constants.h"
@@ -38,7 +39,8 @@ class QtWindowManager final : public QMainWindow {
     void show_selecting_window();
     void show_waiting_window();
 
-    void continue_game(const CityInfo&, const RaceInfo&);
+    void continue_game(const CityInfo&, const RaceInfo&,
+                       const std::vector<UpgradeChoice>&);
 
     void applyTheme();
 };
