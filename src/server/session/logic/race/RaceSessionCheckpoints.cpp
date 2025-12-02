@@ -21,11 +21,6 @@ void RaceSession::onCheckpointCrossed(PlayerId id, int order) const {
     }
 }
 
-void RaceSession::onCarDestroyed(PlayerId id) {
-    for (auto* p : players)
-        if (p->getId() == id) p->markDQ();
-}
-
 std::optional<const Checkpoint*> RaceSession::nextCheckpointFor(
     PlayerId id) const {
     for (auto* p : players) {
