@@ -106,7 +106,7 @@ void Sound::update() {
         if (car.braking == false) continue;
 
         // Y solo si esta yendo lo suficientemente rapido
-        if (car.speed < 40) continue;
+        if (car.speed < 30) continue;
 
         // Ahora si, intentarlo
         try_brake(car);
