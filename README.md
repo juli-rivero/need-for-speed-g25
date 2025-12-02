@@ -25,8 +25,8 @@ Podés:
 Descomprimir:
 
 ```bash
-unzip need-for-speed-g25-v1.0.zip
-cd need-for-speed-g25-installer
+unzip <nombre del zip>
+cd <nombre del zip>
 ```
 
 ### **Opción B — Clonar el repositorio**
