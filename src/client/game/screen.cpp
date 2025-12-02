@@ -1,10 +1,12 @@
+#include "client/game/screen.h"
+
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
 #include <iomanip>
 #include <sstream>
+#include <string>
 
-#include "client/game/classes.h"
 #include "common/structs.h"
 
 Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
@@ -16,6 +18,10 @@ Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
       HEIGHT(renderer.GetOutputHeight()) {
     renderer.Clear();
     renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+
+    minimap_texture = std::make_unique<SDL2pp::Texture>(
+        renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WIDTH,
+        HEIGHT);
 }
 
 //
@@ -64,15 +70,41 @@ void Screen::render_solid(SDL2pp::Rect rect, const SDL2pp::Color& color,
 //
 // METODOS DE RENDERIZADO COMPUESTOS
 //
+void Screen::render_explosion(SDL2pp::Point pos, int frame) {
+    // 4x4, izquierda a derecha
+    if (frame > 4 * 4) return;
+
+    int frame_w = assets.explosion.GetWidth() / 4;
+    int frame_h = assets.explosion.GetHeight() / 4;
+
+    int index_x = frame % 4;
+    int index_y = frame / 4;
+
+    render_slice(assets.explosion,
+                 {frame_w * index_x, frame_h * index_y, frame_w, frame_h}, pos,
+                 true);
+}
+
 void Screen::render_car(NpcCar& car) {
     SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     render(sprite, car.pos.get_top_left(), car.pos.get_angle());
 }
 
 void Screen::render_car(PlayerCar& car, bool with_name) {
-    if (car.disqualified) return;
-    // TODO(franco): explosion
+    // Explosion
+    if (car.disqualified) {
+        auto& explosion = assets.explosion;
+        SDL2pp::Point pos =
+            car.pos.get_center() - SDL2pp::Point(explosion.GetWidth() / 4 / 2,
+                                                 explosion.GetHeight() / 4 / 2);
+        render_explosion(pos, explosion_frame[car.id] / 10);
 
+        explosion_frame[car.id] += 1;
+        return;
+    }
+    explosion_frame[car.id] = 0;
+
+    // Coche
     SDL2pp::Texture& sprite = *assets.car_name.at(car.type);
     SDL2pp::Point pos = car.pos.get_top_left();
 
@@ -86,8 +118,8 @@ void Screen::render_car(PlayerCar& car, bool with_name) {
 // MANEJO DE CAMARA (VISUAL)
 //
 void Screen::update_camera() {
-    cam_offset_x = game.cam_x - WIDTH / 2;
-    cam_offset_y = game.cam_y - HEIGHT / 2;
+    cam_offset_x = game.cam_x - this->WIDTH / 2;
+    cam_offset_y = game.cam_y - this->HEIGHT / 2;
 }
 
 //
@@ -159,6 +191,46 @@ void Screen::draw_hud() {
     }
 }
 
+void Screen::draw_minimap() {
+    // Temporalmente dibujar todo en el minimapa
+    renderer.SetTarget(*minimap_texture);
+    renderer.Clear();
+
+    // Base y paredes
+    render_solid({0, 0, WIDTH, HEIGHT}, {100, 100, 100, 255}, false);
+    for (const BoundingBox& b : game.walls)
+        render_solid(b.as_rect(), {255, 0, 0, 255});
+
+    // Jugador
+    const BoundingBox& my_b = game.my_car->pos;
+    render_solid(my_b.as_rect(), {255, 255, 0, 255}, my_b.get_angle() + 90);
+
+    // Checkpoint
+    auto next_checkpoint = game.my_car->next_checkpoint;
+    if (next_checkpoint < game.checkpoint_amount) {
+        const BoundingBox& b = game.checkpoints[next_checkpoint];
+
+        render_solid(b.as_rect(), {0, 255, 0, 150}, b.get_angle());
+    }
+
+    // Fin
+    renderer.SetTarget();
+
+    // Ahora si, dibujar el minimapa con un marco, en un cuadrado del 20% de la
+    // pantalla en la esquina derecha inferior
+    const int mini_width = WIDTH / 5, mini_height = HEIGHT / 5;
+    const int start_x = WIDTH - 10 - mini_width;
+    const int start_y = HEIGHT - 10 - mini_height;
+
+    render_solid({start_x - 5, start_y - 5, mini_width + 10, mini_height + 10},
+                 {0, 0, 0, 255}, false);
+
+    renderer.SetViewport(
+        SDL2pp::Rect(start_x, start_y, mini_width, mini_height));
+    renderer.Copy(*minimap_texture, SDL2pp::NullOpt, SDL2pp::NullOpt);
+    renderer.SetViewport(SDL2pp::NullOpt);
+}
+
 void Screen::draw_end_overlay(bool finished) {
     render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
 
@@ -193,9 +265,8 @@ void Screen::draw_end_overlay(bool finished) {
         render_text("3 - Mejor Nitro", {30, 210}, _color(nitro), false);
         render_text("4 - Mejor Vida Maxima", {30, 230}, _color(health), false);
 
-        // TODO(franco): como muestro el tiempo restante hasta la siguiente,
-        // donde esta? render_text("Siguiente carrera en: " +
-        // format_time(game.time_left), {30, 300}, false);
+        render_text("Siguiente carrera en breve...", {30, 300},
+                    {255, 255, 255, 255}, false);
     } else if (game.match_state == MatchState::Finished) {
         render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
                     false);
@@ -222,6 +293,7 @@ void Screen::update() {
             draw_end_overlay(game.my_car->finished);
         } else {
             draw_hud();
+            draw_minimap();
         }
     }
 

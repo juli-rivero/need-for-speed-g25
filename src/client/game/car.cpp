@@ -10,7 +10,8 @@ PlayerCar::PlayerCar(const PlayerSnapshot& snapshot)
       name(snapshot.name),
       next_checkpoint(snapshot.raceProgress.nextCheckpoint),
       finished(snapshot.raceProgress.finished),
-      disqualified(snapshot.raceProgress.disqualified),
+      disqualified(snapshot.raceProgress.disqualified ||
+                   (snapshot.car.health <= 0)),
       braking(snapshot.car.braking),
       health(snapshot.car.health),
       speed(snapshot.car.speed),
