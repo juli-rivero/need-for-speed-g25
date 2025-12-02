@@ -1,10 +1,12 @@
+#include "client/game/screen.h"
+
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
 #include <iomanip>
 #include <sstream>
+#include <string>
 
-#include "client/game/classes.h"
 #include "common/structs.h"
 
 Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
@@ -118,11 +120,6 @@ void Screen::render_car(PlayerCar& car, bool with_name) {
 void Screen::update_camera() {
     cam_offset_x = game.cam_x - this->WIDTH / 2;
     cam_offset_y = game.cam_y - this->HEIGHT / 2;
-}
-
-void Screen::update_camera(int width, int height) {
-    cam_offset_x = game.cam_x - width / 2;
-    cam_offset_y = game.cam_y - height / 2;
 }
 
 //

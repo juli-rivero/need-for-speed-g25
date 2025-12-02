@@ -1,17 +1,19 @@
 target_sources(taller_client
         PRIVATE
         # .cpp files
-        game.cpp
         sdl_app.cpp
-        assets.cpp
-        car.cpp
+        game.cpp
         screen.cpp
         sound.cpp
+        assets.cpp
         bounding_box.cpp
+        car.cpp
         PUBLIC
         # .h files
         sdl_app.h
-        classes.h    # TODO(franco): TEMPORAL, SEPARAR.
+        game.h
+        screen.h
+        sound.h
         assets.h
         bounding_box.h
         car.h

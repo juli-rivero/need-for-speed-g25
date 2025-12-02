@@ -4,7 +4,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 
-#include "client/game/classes.h"
+#include "client/game/game.h"
 
 SdlApp::SdlApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     // Evitar que SDL intente usar políticas/valores RT inválidos en Linux.
