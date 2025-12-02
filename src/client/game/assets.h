@@ -1,33 +1,56 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
+#include <memory>
 #include <string>
 #include <unordered_map>
 
 #include "common/macros.h"
 #include "common/structs.h"
 
-class Assets final {
+class AssetsScreen final {
+   private:
+    static const std::unordered_map<CityName, std::string> CITY_PATH;
+
    public:
-    explicit Assets(SDL2pp::Renderer& renderer);
+    AssetsScreen(SDL2pp::Renderer& renderer, const CityName& city);
 
     // Assets a secas
-    SDL2pp::Texture car1;
-    SDL2pp::Texture car2;
-    SDL2pp::Texture car3;
-    SDL2pp::Texture car4;
-    SDL2pp::Texture car5;
-    SDL2pp::Texture car6;
-    SDL2pp::Texture car7;
-    SDL2pp::Texture city_liberty;
-    SDL2pp::Chunk sound_brake;
-    SDL2pp::Chunk sound_crash;
-    SDL2pp::Chunk sound_finish;
+    SDL2pp::Texture car_speedster;
+    SDL2pp::Texture car_tank;
+    SDL2pp::Texture car_drifter;
+    SDL2pp::Texture car_rocket;
+    SDL2pp::Texture car_classic;
+    SDL2pp::Texture car_offroad;
+    SDL2pp::Texture car_ghost;
+
+    std::unique_ptr<SDL2pp::Texture> city;
+
     SDL2pp::Font font;
 
-    // Mapeos de cadena
-    std::unordered_map<CarSpriteType, SDL2pp::Texture*> car_name;
-    std::unordered_map<std::string, SDL2pp::Texture*> city_name;
+    SDL2pp::Texture arrow;
+    SDL2pp::Texture white;
 
-    MAKE_FIXED(Assets)
+    // Mapeos
+    std::unordered_map<CarType, SDL2pp::Texture*> car_name;
+
+    MAKE_FIXED(AssetsScreen)
+};
+
+class AssetsSound final {
+   private:
+    static const std::unordered_map<CityName, std::string> CITY_PATH;
+
+   public:
+    explicit AssetsSound(const CityName& city_name);
+
+    SDL2pp::Chunk brake;
+    SDL2pp::Chunk crash;
+    SDL2pp::Chunk checkpoint;
+    SDL2pp::Chunk explosion;
+    SDL2pp::Chunk goal;
+
+    std::unique_ptr<SDL2pp::Music> music;
+
+    MAKE_FIXED(AssetsSound)
 };

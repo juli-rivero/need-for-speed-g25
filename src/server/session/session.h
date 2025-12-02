@@ -32,7 +32,7 @@ class Session final {
     std::unordered_map<PlayerId, UserSetup> users_setup;
     std::mutex mtx;
 
-    GameSessionFacade game;
+    std::unique_ptr<GameSessionFacade> game;
 
     YamlGameConfig& yaml_config;
 
@@ -40,7 +40,9 @@ class Session final {
 
    public:
     struct Listener : common::Listener<Session::Listener> {
-        virtual void on_start_game(GameSessionFacade& game) = 0;
+        virtual void on_start_game(GameSessionFacade& game, const CityInfo&,
+                                   const RaceInfo&,
+                                   const std::vector<UpgradeChoice>&) = 0;
         virtual void on_session_updated(
             const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
 
@@ -61,9 +63,7 @@ class Session final {
     bool full() const;
     bool empty() const;
 
-    std::vector<CarStaticInfo> get_types_of_static_cars() const;
-
-    void set_car(PlayerId client_id, const std::string& car_name);
+    void set_car(PlayerId client_id, const CarType&);
 
     void set_ready(PlayerId client_id, bool ready);
 

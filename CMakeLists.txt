@@ -10,9 +10,18 @@ endif ()
 
 set(CMAKE_POLICY_VERSION_MINIMUM 3.5)
 
+# Eliminar warnings de deprecación de cmake de las dependencias
+set(OLD_CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1)
+#[[add_subdirectory(_deps/sdl2-src EXCLUDE_FROM_ALL)
+add_subdirectory(_deps/yaml-src EXCLUDE_FROM_ALL)
+add_subdirectory(_deps/googletest-src EXCLUDE_FROM_ALL)]]
+set(OLD_CMAKE_SUPPRESS_DEVELOPER_WARNINGS 0)
+
 set(CMAKE_CXX_EXTENSIONS ON)
 # Genera el compile_commands.json para los clang
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+set(CMAKE_SUPPRESS_DEVELOPER_WARNINGS 1 CACHE INTERNAL "")
 
 project(taller_tp
         VERSION 1.0
@@ -38,7 +47,6 @@ add_library(taller_common STATIC)
 # HEY!! TODO XXX: add more subfolders here
 add_subdirectory(src/common)
 
-
 # set compiler warnings to the targets
 include(cmake/CompilerWarnings.cmake)
 set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
@@ -48,10 +56,8 @@ set_project_warnings(taller_common ${TALLER_MAKE_WARNINGS_AS_ERRORS} FALSE)
 # location (so our dependants will not have to explicitly request this)
 target_include_directories(taller_common PUBLIC ${CMAKE_SOURCE_DIR}/src/)
 
-include(cmake/FetchContent_Declare.cmake)
-
-include(cmake/FindPackage.cmake)
+include(cmake/Dependencies.cmake)
 
 include(cmake/Executables.cmake)
 
-include(cmake/Assets.cmake)
+include(cmake/StaticData.cmake)

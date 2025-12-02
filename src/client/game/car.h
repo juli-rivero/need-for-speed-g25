@@ -3,38 +3,35 @@
 #include <SDL2pp/SDL2pp.hh>
 #include <string>
 
-#include "client/game/game.h"
-#include "client/game/mock_api.h"
-#include "common/macros.h"
+#include "client/game/bounding_box.h"
+#include "common/structs.h"
 
-class Game;  // friend class Car;
-
-class Car final {
-   private:
-    Game& game;
-
-    // Parametros mutables
-    int id;
-    std::string name;
-    float x;
-    float y;
-    float angle;
-    float speed;
-    float health;
-    SDL2pp::Texture& sprite;
-
-    int get_vol() const;
-
+struct BaseCar {
    public:
-    Car(Game& game, const PlayerSnapshot& base);
+    const BoundingBox pos;
+    const CarType type;
+    const RenderLayer layer;
 
-    void set_camera();
-    void sound_crash();
-    void draw(bool with_name);
+    BaseCar(const Bound& bound, float angle, CarType type, RenderLayer layer);
+};
 
-    size_t get_id() const;
-    float get_health() const;
-    float get_speed() const;
+struct PlayerCar : BaseCar {
+   public:
+    // Atributos utilizados del snapshot
+    const std::string& name;
+    const uint32_t next_checkpoint;
+    const bool finished;
+    const bool disqualified;
+    const bool braking;
+    const int health;
+    const int speed;
+    const PlayerId id;
+    const float time;
 
-    MAKE_FIXED(Car)
+    explicit PlayerCar(const PlayerSnapshot& snapshot);
+};
+
+struct NpcCar : BaseCar {
+   public:
+    explicit NpcCar(const NpcSnapshot& snapshot);
 };

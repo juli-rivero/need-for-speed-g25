@@ -2,55 +2,59 @@
 
 #include <QGraphicsScene>
 #include <QGraphicsView>
-#include <QMouseEvent>
+#include <QList>
 
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
-#include "editor/hint_item.h"
 #include "editor/map_item.h"
+#include "editor/overpass_item.h"
+#include "editor/sensor_item.h"
 
 class MapCanvas : public QGraphicsView {
     Q_OBJECT
 
    public:
     explicit MapCanvas(QWidget* parent = nullptr);
-    ~MapCanvas() override;
+    ~MapCanvas();
 
-    // Modos de colocación
-    void placeCheckpoint(CheckpointItem::CheckpointType type);
-    void placeHint();
-
-    // 🆕 Edificios
-    void startPlacingBuilding();
-    void finishCurrentBuilding();
-    void cancelCurrentBuilding();
-    void removeLastBuildingVertex();
-
-    // Selección y eliminación
-    void deleteSelectedItems();
-
-    // Add item to scene
-    void addItemToScene(QGraphicsItem* item);
-
-    // Background image
     void loadBackgroundImage(const QString& imagePath);
     void clearBackgroundImage();
 
-    // Acceso a items
-    QList<CheckpointItem*> getCheckpoints() const;
-    QList<HintItem*> getHints() const;
-    QList<BuildingItem*> getBuildings() const;
-    QList<MapItem*> getItems() const { return items; }
+    // --- Checkpoints ---
+    void placeCheckpoint(CheckpointItem::CheckpointType type);
 
-    // Acceso a la escena
-    QGraphicsScene* getScene() const { return scene; }
+    // --- Buildings ---
+    void startPlacingBuilding(const QString& type);
+    void finishCurrentBuilding();  // Declarado UNA sola vez
+    void cancelCurrentBuilding();
+    void removeLastBuildingVertex();
+    void addBuildingVertex(const QPointF& pos);
 
-    // Limpieza
+    // --- Sensors (NUEVO: Lógica por vértices) ---
+    void startPlacingSensor(SensorItem::SensorType type);
+    void finishCurrentSensor();
+    void cancelCurrentSensor();
+
+    // --- Overpasses (NUEVO) ---
+    void startPlacingOverpass();
+    void finishCurrentOverpass();
+    void cancelCurrentOverpass();
+
+    // --- General ---
+    void addItemToScene(QGraphicsItem* item);
+    void deleteSelectedItems();
     void clearAll();
 
+    QList<CheckpointItem*> getCheckpoints() const;
+    QList<BuildingItem*> getBuildings() const;
+    QList<SensorItem*> getSensors() const;
+    QList<OverpassItem*> getOverpasses() const;
+
+    QGraphicsScene* getScene() const { return scene; }
+
    signals:
-    void selectionChanged();
     void itemPlaced();
+    void selectionChanged();
     void buildingVertexAdded(int count);
     void buildingFinished();
     void mousePositionChanged(const QPointF& pos);
@@ -62,21 +66,27 @@ class MapCanvas : public QGraphicsView {
 
    private:
     QGraphicsScene* scene;
-    QGraphicsPixmapItem* backgroundItem;  // Item para la imagen de fondo
-
-    // Estados de colocación
-    bool placingCheckpoint;
-    bool placingHint;
-    bool placingBuilding;
-    CheckpointItem::CheckpointType currentCheckpointType;
-
-    // Edificio en construcción
-    BuildingItem* currentBuilding;
+    QList<MapItem*> items;
 
     QPixmap backgroundImage;
-    QList<MapItem*> items;
-    QString currentMapFile;
+    QGraphicsPixmapItem* backgroundItem;
+
+    // Estados
+    bool placingCheckpoint;
+    CheckpointItem::CheckpointType currentCheckpointType;
+
+    bool placingBuilding;
+    BuildingItem* currentBuilding;
+    QString currentBuildingType;
+
+    // Estado Sensores
+    bool placingSensor;
+    SensorItem::SensorType currentSensorType;
+    SensorItem* currentSensor;  // Puntero al sensor que estamos dibujando
+
+    // Estado Overpass
+    bool placingOverpass;
+    OverpassItem* currentOverpass;
 
     void updateCursor();
-    void addBuildingVertex(const QPointF& pos);
 };

@@ -18,8 +18,14 @@ Sender::Sender(ProtocolSender& sender) : sender(sender) {}
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            auto response = responses.pop();
-            sender << response << ProtocolSender::send;
+            // Try to put in the same packet as match responses as posible,
+            // blocking first response, as a packet needs at least 1 response,
+            // and adding consequent packets if there are.
+            dto::Request request = requests.pop();
+            do {
+                sender << request;
+            } while (requests.try_pop(request));
+            sender.send();
         } catch (ClosedQueue&) {
             return;
         } catch (ClosedProtocol&) {
@@ -32,60 +38,73 @@ void Sender::run() {
 void Sender::stop() {
     Thread::stop();
     if (not sender.is_stream_send_closed()) sender.close_stream_send();
-    responses.close();
+    requests.close();
 }
 
 void Sender::request_search_all_sessions() {
     spdlog::trace("requesting search all sessions");
-    responses.try_push(SearchRequest{});
+    requests.try_push(SearchRequest{});
 }
 void Sender::request_join_session(const std::string& session) {
     spdlog::trace("requesting join session {}", session);
-    responses.try_push(JoinRequest{session});
+    requests.try_push(JoinRequest{session});
+}
+void Sender::request_static_session_data() {
+    spdlog::trace("requesting static session data");
+    requests.try_push(dto_search::StaticSessionDataRequest{});
 }
 void Sender::request_create_and_join_session(const SessionConfig& config) {
     spdlog::trace("requesting create and join session {}", config.name);
-    responses.try_push(CreateRequest{config});
+    requests.try_push(CreateRequest{config});
 }
 void Sender::request_leave_current_session() {
     spdlog::trace("requesting leave current session");
-    responses.try_push(LeaveRequest{});
+    requests.try_push(LeaveRequest{});
 }
 void Sender::set_ready(const bool ready) {
     spdlog::trace("setting ready to {}", ready);
-    responses.try_push(StartRequest{ready});
+    requests.try_push(StartRequest{ready});
 }
-void Sender::choose_car(const std::string& car_name) {
-    spdlog::trace("choosing car {}", car_name);
-    responses.try_push(ChooseCarRequest{car_name});
+void Sender::choose_car(const CarType& car_type) {
+    spdlog::trace("choosing car {}", static_cast<int>(car_type));
+    requests.try_push(ChooseCarRequest{car_type});
 }
 
 // Game
 void Sender::start_turning(TurnDirection dir) {
     spdlog::trace("start turning {}", static_cast<int>(dir));
-    responses.try_push(TurnRequest{dir, true});
+    requests.try_push(TurnRequest{dir, true});
 }
 void Sender::stop_turning(TurnDirection dir) {
     spdlog::trace("stop turning {}", static_cast<int>(dir));
-    responses.try_push(TurnRequest{dir, false});
+    requests.try_push(TurnRequest{dir, false});
 }
 void Sender::start_accelerating() {
     spdlog::trace("start accelerating");
-    responses.try_push(AccelerateRequest{true});
+    requests.try_push(AccelerateRequest{true});
 }
 void Sender::stop_accelerating() {
     spdlog::trace("stop accelerating");
-    responses.try_push(AccelerateRequest{false});
+    requests.try_push(AccelerateRequest{false});
 }
 void Sender::start_breaking() {
     spdlog::trace("start reversing/braking");
-    responses.try_push(ReverseRequest{true});
+    requests.try_push(ReverseRequest{true});
 }
 void Sender::stop_breaking() {
     spdlog::trace("stop reversing/braking");
-    responses.try_push(ReverseRequest{false});
+    requests.try_push(ReverseRequest{false});
 }
 void Sender::start_using_nitro() {
     spdlog::trace("use nitro");
-    responses.try_push(UseBoostRequest{true});
+    requests.try_push(UseBoostRequest{true});
+}
+
+void Sender::cheat(Cheat cheat) {
+    spdlog::trace("sending cheat {}", static_cast<int>(cheat));
+    requests.try_push(dto_game::CheatMessage{cheat});
+}
+void Sender::upgrade(UpgradeStat stat) {
+    spdlog::trace("sending upgrade {}", static_cast<int>(stat));
+    requests.try_push(dto_game::UpgradeRequest{stat});
 }

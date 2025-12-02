@@ -1,12 +1,15 @@
 #include "client/qt/qt_app.h"
 
 #include <QApplication>
+#include <string>
 
 #include "client/qt/theme_manager.h"
 #include "spdlog/spdlog.h"
 
-QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
-    : stack(([this] {
+QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit,
+                                 GameSetUp& setup)
+    : shouldQuit(quit),
+      stack(([this] {
           setWindowTitle("Need for Speed - Lobby");
           setMinimumSize(1000, 700);
           spdlog::trace("window configurated");
@@ -15,7 +18,10 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
       searchingWindow(&stack, connexion),
       creatingWindow(&stack, connexion),
       selectingWindow(&stack, connexion),
-      waitingWindow(&stack, connexion) {
+      waitingWindow(&stack, connexion),
+      setup(setup) {
+    shouldQuit = true;
+
     setCentralWidget(&stack);
 
     // Agregarlas al stack
@@ -58,8 +64,6 @@ QtWindowManager::QtWindowManager(Connexion& connexion, bool& quit)
     show();
 
     spdlog::trace("showing window");
-
-    quit = false;  // TODO(juli): borrar
 }
 
 void QtWindowManager::show_searching_window() {
@@ -78,8 +82,17 @@ void QtWindowManager::show_waiting_window() {
     setWindowTitle("Need for Speed - Sala de Espera");
     stack.setCurrentWidget(&waitingWindow);
 }
+void QtWindowManager::continue_game(
+    const CityInfo& city_info, const RaceInfo& race_info,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
+    setup.city_info = city_info;
+    setup.race_info = race_info;
+    setup.upgrade_choices = upgrade_choices;
 
-void QtWindowManager::continue_game() { QCoreApplication::quit(); }
+    shouldQuit = false;
+
+    QCoreApplication::quit();
+}
 
 void QtWindowManager::applyTheme() {
     const ThemeManager& theme = ThemeManager::instance();
@@ -90,13 +103,13 @@ void QtWindowManager::applyTheme() {
                             .arg(palette.cardBackgroundHover));
 }
 
-QtApp::QtApp(Connexion& connexion, bool& quit) {
+QtApp::QtApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     int argc = 0;
 
     spdlog::trace("creando qt app");
     QApplication app(argc, nullptr);
     spdlog::trace("creando main");
-    QtWindowManager main(connexion, quit);
+    QtWindowManager main(connexion, quit, setup);
     spdlog::trace("exec");
     app.exec();
 }

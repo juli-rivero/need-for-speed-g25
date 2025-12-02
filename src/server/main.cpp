@@ -1,5 +1,3 @@
-#include <box2d/box2d.h>
-
 #include <exception>
 #include <fstream>
 #include <iostream>
@@ -24,10 +22,10 @@ int main(const int argc, const char* argv[]) {
             args_parser.print_help();
             return SUCCESS;
         }
+        YamlGameConfig config("config.yaml");
 #if OFFLINE
-        test();
+        test(config);
 #else
-        YamlGameConfig config("assets/config.yaml");
         const Server server(args_parser.get_port(), config);
         while (std::cin.get() != 'q') {}
 #endif

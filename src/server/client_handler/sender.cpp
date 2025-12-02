@@ -4,9 +4,9 @@
 #include "common/dto/dto_session.h"
 
 using dto::ErrorResponse;
-using dto_game::GameSnapshot;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
+using dto_search::StaticSessionDataResponse;
 using dto_session::LeaveResponse;
 using dto_session::SessionSnapshot;
 using dto_session::StartResponse;
@@ -20,8 +20,14 @@ Sender::Sender(ProtocolSender& sender, spdlog::logger* log)
 void Sender::run() {
     while (should_keep_running()) {
         try {
-            auto response = responses.pop();
-            sender << response << ProtocolSender::send;
+            // Try to put in the same packet as match responses as posible,
+            // blocking first response, as a packet needs at least 1 response,
+            // and adding consequent packets if there are.
+            dto::Response response = responses.pop();
+            do {
+                sender << response;
+            } while (responses.try_pop(response));
+            sender.send();
         } catch (ClosedQueue&) {
             log->debug("Sender stopped by closed queue");
             return;
@@ -46,8 +52,13 @@ void Sender::reply_search(const vector<SessionInfo>& info) {
     responses.try_push(SearchResponse{info});
 }
 
+void Sender::reply_static_session_data(const StaticSessionData& data) {
+    log->trace("sending static session data response");
+    responses.try_push(StaticSessionDataResponse{data});
+}
+
 void Sender::reply_joined(const SessionInfo& session,
-                          const vector<CarStaticInfo>& carTypes) {
+                          const vector<CarInfo>& carTypes) {
     log->trace("sending join response");
     responses.try_push(JoinResponse{session, carTypes});
 }
@@ -66,12 +77,23 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started() {
+void Sender::notify_game_started(
+    const CityInfo& city_info, const RaceInfo& first_race,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{});
+    responses.try_push(StartResponse{city_info, first_race, upgrade_choices});
 }
-void Sender::send_game_snapshot(float raceTimeLeft,
-                                const std::vector<PlayerSnapshot>& players) {
+
+void Sender::send_game_static_snapshot(const RaceInfo& race) {
+    log->trace("sending game static snapshot");
+    responses.try_push(dto_game::GameStaticSnapshot{race});
+}
+
+void Sender::send_game_snapshot(const GameSnapshot& snapshot) {
     log->trace("sending game snapshot");
-    responses.try_push(GameSnapshot{raceTimeLeft, players});
+    responses.try_push(dto_game::GameSnapshotPacket{snapshot});
+}
+void Sender::send_collision_event(const CollisionEvent& event) {
+    log->trace("sending collision event");
+    responses.try_push(dto_game::EventPacket{event});
 }

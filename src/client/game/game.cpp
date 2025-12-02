@@ -1,60 +1,66 @@
-#include "client/game/game.h"
-
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
 
+#include "client/game/classes.h"
+#include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
+//
+// INICIALIZACION
+//
 Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
-           Connexion& connexion)
-    : renderer(renderer),
-      mixer(mixer),
-      assets(renderer),
-      api(connexion.get_api()),
-      id(connexion.unique_id) {
-    renderer.Clear();
+           Connexion& connexion, const GameSetUp& setup)
+    : api(connexion.get_api()),
+      city_info(setup.city_info),
+      race_info(setup.race_info),
+      screen(renderer, *this, setup.city_info.name),
+      sound(mixer, *this, setup.city_info.name),
+      my_id(connexion.unique_id) {
+    // Configurar componentes de snapshot estatico
+    for (const Bound& b : city_info.bridges) {
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.railings) {
+        bridges.emplace_back(b);
+    }
+    for (const Bound& b : city_info.overpasses) {
+        overpasses.emplace_back(b);
+    }
+    for (const CheckpointInfo& ci : race_info.checkpoints) {
+        checkpoints.emplace_back(ci.bound, ci.angle);
+    }
+    checkpoint_amount = checkpoints.size();
+
     Responder::subscribe(connexion);
 }
 Game::~Game() { Responder::unsubscribe(); }
 
 //
-// AUXILIAR
+// DATOS SERVIDOR
 //
-void Game::render(SDL2pp::Texture& texture, int x, int y, double angle,
-                  bool in_world) {
-    SDL2pp::Point pos(x, y);
-    if (in_world) pos -= SDL2pp::Point(cam_x, cam_y);
+void Game::on_game_snapshot(const GameSnapshot& game_snapshot) {
+    std::lock_guard lock(snapshot_mutex);
 
-    renderer.Copy(texture, SDL2pp::NullOpt, pos, angle);
+    current_snapshot = game_snapshot;
 }
 
-void Game::render(const std::string& texto, int x, int y, bool in_world) {
-    SDL2pp::Surface s =
-        assets.font.RenderText_Solid(texto, SDL_Color{255, 255, 255, 255});
-    SDL2pp::Texture t(renderer, s);
-
-    render(t, x, y, 0, in_world);
-}
-
-void Game::render_rect(SDL2pp::Rect rect, const SDL2pp::Color& color,
-                       bool in_world) {
-    if (in_world) rect -= SDL2pp::Point(cam_x, cam_y);
-
-    renderer.SetDrawColor(color).FillRect(rect);
+void Game::on_collision_event(const CollisionEvent& collision_event) {
+    collisions.try_push(collision_event);
 }
 
 //
-// PRINCIPAL
+// CAMARA
 //
-
-void Game::on_game_snapshot(
-    const float time_elapsed,
-    const std::vector<PlayerSnapshot>& player_snapshots) {
-    std::lock_guard lock(mutex);
-    elapsed = time_elapsed;
-    players = player_snapshots;
+void Game::set_camera(const PlayerCar& car) {
+    SDL2pp::Point center = car.pos.get_center();
+    cam_x = center.GetX();
+    cam_y = center.GetY();
 }
+
+//
+// PASOS ACTUALIZACION
+//
 bool Game::send_events() {
     SDL_Event event;
     while (SDL_PollEvent(&event)) {
@@ -63,7 +69,7 @@ bool Game::send_events() {
         if (event.type == SDL_KEYDOWN) {
             auto tecla = event.key.keysym.sym;
 
-            if (tecla == SDLK_q || tecla == SDLK_ESCAPE) return true;
+            if (tecla == SDLK_ESCAPE) return true;
 
             if (tecla == SDLK_LEFT || tecla == SDLK_a)
                 api.start_turning(TurnDirection::Left);
@@ -73,6 +79,27 @@ bool Game::send_events() {
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.start_breaking();
 
             if (tecla == SDLK_SPACE) api.start_using_nitro();
+
+            if (tecla == SDLK_RALT) cheat_mode = true;
+            if (cheat_mode && tecla == SDLK_v) {
+                api.cheat(Cheat::InfiniteHealth);
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_g) {
+                api.cheat(Cheat::FinishRace);
+                cheat_used = true;
+            }
+            if (cheat_mode && tecla == SDLK_p) {
+                api.cheat(Cheat::DestroyAllCars);
+                cheat_used = true;
+            }
+
+            if (match_state == MatchState::Intermission) {
+                if (tecla == SDLK_1) api.upgrade(UpgradeStat::Acceleration);
+                if (tecla == SDLK_2) api.upgrade(UpgradeStat::MaxSpeed);
+                if (tecla == SDLK_3) api.upgrade(UpgradeStat::Nitro);
+                if (tecla == SDLK_4) api.upgrade(UpgradeStat::Health);
+            }
         }
 
         if (event.type == SDL_KEYUP) {
@@ -84,79 +111,68 @@ bool Game::send_events() {
                 api.stop_turning(TurnDirection::Right);
             if (tecla == SDLK_UP || tecla == SDLK_w) api.stop_accelerating();
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.stop_breaking();
+
+            if (tecla == SDLK_RALT) cheat_mode = false;
         }
     }
 
     return false;
 }
 
-void Game::get_state() {
-    std::lock_guard lock(mutex);
+void Game::update_state() {
+    std::lock_guard lock(snapshot_mutex);
+
+    // Estado para eventos de sonido
+    if (my_car != nullptr) {
+        old_checkpoint = my_car->next_checkpoint;
+        old_finished = my_car->finished;
+    }
+    for (auto& [id, car] : cars) {
+        old_braking[id] = car.braking;
+        old_disqualified[id] = car.disqualified;
+    }
+
+    // Sumado/reemplazo de jugadores y NPCs
     cars.clear();
-
-    for (auto& player : players) {
-        cars.emplace_back(*this, player);
-        if (player.id == id) my_car = &cars.back();
-    }
-}
-
-void Game::draw_state() {
-    renderer.Clear();
-
-    // Ciudad
-    spdlog::trace("cargando ciudad");
-    render(assets.city_liberty, 0, 0);
-
-    // Coches
-    spdlog::trace("poniendo camara");
-    if (my_car) my_car->set_camera();
-
-    spdlog::trace("dibujando coches");
-    for (Car& car : cars) {
-        if (&car == my_car) continue;
-        car.draw(true);
-    }
-
-    if (my_car) my_car->draw(false);
-
-    // HUD
-    spdlog::trace("mostrando HUD");
-    // render("Hola, mundo!", 10, 10, false);
-    if (my_car) {
-        render_rect({10, 10, static_cast<int>(my_car->get_health()), 10},
-                    {0, 255, 0, 255}, false);
-        render_rect({10, 30, static_cast<int>(my_car->get_speed()), 10},
-                    {255, 165, 0, 255}, false);
-    }
-
-    renderer.SetDrawColor(0, 0, 0, 255);
-    renderer.Present();
-}
-
-void Game::play_sounds() {
-    // for (Car& car : cars) {
-    //     if (car.get_id() == 1) car.sound_crash();
-    // }
-}
-
-void Game::wait_next_frame() {
-    // TODO(crook): hacer 60 FPS verdaderos.
-    SDL_Delay(1000 / 60);
-}
-
-bool Game::start() {
-    while (1) {
-        frame += 1;
-
-        bool quit = send_events();
-        get_state();
-        draw_state();
-        play_sounds();
-
-        if (quit) {
-            return true;
-        } else {
-            wait_next_frame();
+    for (auto& player : current_snapshot.players) {
+        cars.emplace(player.id, player);
+        if (player.id == my_id) {
+            my_car = &cars.at(player.id);
+            my_upgrades = player.upgrades;
         }
+    }
+
+    npcs.clear();
+    for (auto& npc : current_snapshot.npcs) {
+        npcs.emplace_back(npc);
+    }
+
+    // Tiempo y estado de carrera
+    time_elapsed = current_snapshot.race.raceElapsed;
+    time_countdown = current_snapshot.race.raceCountdown;
+    time_left = current_snapshot.race.raceTimeLeft;
+    race_state = current_snapshot.race.raceState;
+    match_state = current_snapshot.match.matchState;
+}
+
+//
+// PRINCIPAL
+//
+bool Game::start() {
+    constexpr std::chrono::duration<double> dt(1.f / 60.f);
+    TimerIterator iterator(dt);
+
+    sound.start();
+    while (1) {
+        bool quit = send_events();
+        update_state();
+
+        if (my_car) set_camera(*my_car);
+        screen.update();
+        sound.update();
+
+        if (quit) return true;
+
+        iterator.next();
     }
 }

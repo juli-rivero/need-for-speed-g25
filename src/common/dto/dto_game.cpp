@@ -1,84 +1,76 @@
 #include "common/dto/dto_game.h"
 
-namespace dto_game {
+#include "common/dto/structs_serializable.h"
+
+using namespace dto_game;
+
+// GameStaticSnapshot SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameStaticSnapshot& r) {
+    return p >> r.new_race_info;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const GameStaticSnapshot& r) {
+    return p << r.new_race_info;
+}
 
 // TurnRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, TurnRequest& e) {
-    e.direction = static_cast<TurnDirection>(p.get<uint8_t>());
-    p >> e.turn;
-    return p;
+    return p >> e.direction >> e.turn;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const TurnRequest& e) {
-    p << static_cast<uint8_t>(e.direction) << e.turn;
-    return p;
+    return p << e.direction << e.turn;
 }
 
 // AccelerateRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, AccelerateRequest& e) {
-    p >> e.accelerate;
-    return p;
+    return p >> e.accelerate;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const AccelerateRequest& e) {
-    p << e.accelerate;
-    return p;
+    return p << e.accelerate;
 }
 
 // UseBoostRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, UseBoostRequest& e) {
-    p >> e.useBoost;
-    return p;
+    return p >> e.useBoost;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const UseBoostRequest& e) {
-    p << e.useBoost;
-    return p;
+    return p << e.useBoost;
 }
 
 // ReverseRequest SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, ReverseRequest& e) {
-    p >> e.reverse;
-    return p;
+    return p >> e.reverse;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const ReverseRequest& e) {
-    p << e.reverse;
-    return p;
+    return p << e.reverse;
 }
 
 // GameSnapshot SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshot& r) {
-    p >> r.raceTimeLeft;
-
-    r.players.resize(p.get<size_t>());
-    for (auto& player : r.players) {
-        p >> player.id >> player.name;
-
-        CarSnapshot& car = player.car;
-        car.type = static_cast<CarSpriteType>(p.get<uint8_t>());
-        p >> car.x >> car.y >> car.vx >> car.vy >> car.angle >> car.speed >>
-            car.health >> car.nitroActive >> car.braking >> car.accelerating;
-
-        RaceProgressSnapshot& progress = player.raceProgress;
-        p >> progress.playerId >> progress.nextCheckpoint >>
-            progress.finished >> progress.disqualified >> progress.elapsedTime;
-    }
-    return p;
+ProtocolReceiver& operator>>(ProtocolReceiver& p, GameSnapshotPacket& packet) {
+    return p >> packet.snapshot;
 }
-ProtocolSender& operator<<(ProtocolSender& p, const GameSnapshot& r) {
-    p << r.raceTimeLeft;
-
-    p << r.players.size();
-    for (const auto& player : r.players) {
-        p << player.id << player.name;
-
-        const CarSnapshot& car = player.car;
-        p << static_cast<uint8_t>(car.type);
-        p << car.x << car.y << car.vx << car.vy << car.angle << car.speed
-          << car.health << car.nitroActive << car.braking << car.accelerating;
-
-        const RaceProgressSnapshot& progress = player.raceProgress;
-        p << progress.playerId << progress.nextCheckpoint << progress.finished
-          << progress.disqualified << progress.elapsedTime;
-    }
-    return p;
+ProtocolSender& operator<<(ProtocolSender& p,
+                           const GameSnapshotPacket& packet) {
+    return p << packet.snapshot;
 }
 
-}  // namespace dto_game
+ProtocolSender& operator<<(ProtocolSender& p, const EventPacket& r) {
+    return p << r.collision;
+}
+
+ProtocolReceiver& operator>>(ProtocolReceiver& p, EventPacket& r) {
+    return p >> r.collision;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const dto_game::CheatMessage& c) {
+    return p << c.type;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_game::CheatMessage& c) {
+    return p >> c.type;
+}
+
+// UpgradeRequest SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, UpgradeRequest& r) {
+    return p >> r.stat;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const UpgradeRequest& r) {
+    return p << r.stat;
+}

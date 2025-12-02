@@ -48,6 +48,12 @@ class Box2DBodyAdapter : public IPhysicalBody {
         b2Vec2 vel = b2Body_GetLinearVelocity(body->getId());
         return {vel.x, vel.y};
     }
-
-    b2BodyId getId() const override { return body->getId(); }
+    void setCollisionFilter(uint16_t categoryBits, uint16_t maskBits) override {
+        b2ShapeId shape = body->getShapeId();
+        b2Filter filter = b2Shape_GetFilter(shape);
+        filter.categoryBits = categoryBits;
+        filter.maskBits = maskBits;
+        b2Shape_SetFilter(shape, filter);
+    }
+    b2BodyId getId() const { return body->getId(); }
 };

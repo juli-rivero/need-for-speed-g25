@@ -1,7 +1,8 @@
 #include "server/client_handler/controller.h"
 
 Controller::Controller(SessionsMonitor& monitor, const PlayerId id, Api& api,
-                       Receiver& receiver, spdlog::logger* log)
+                       Receiver& receiver, spdlog::logger* log,
+                       const YamlGameConfig& config)
     : log(log),
       id(id),
       api(api),
@@ -9,7 +10,8 @@ Controller::Controller(SessionsMonitor& monitor, const PlayerId id, Api& api,
       search_controller(std::make_unique<SearchController>(
           monitor, id, api, receiver, *this, log)),
       session_controller(nullptr),
-      game_controller(nullptr) {}
+      game_controller(nullptr),
+      config(config) {}
 
 void Controller::run() {
     while (should_keep_running()) {
@@ -20,13 +22,16 @@ void Controller::run() {
 }
 void Controller::stop() {
     Thread::stop();
+    game_controller = nullptr;
+    session_controller = nullptr;
+    search_controller = nullptr;
     events.close();
 }
 
 void Controller::on_join_session(Session& session) {
     events.try_push([&session, this] {
         session_controller = std::make_unique<SessionController>(
-            session, id, api, receiver, *this, log);
+            session, id, api, receiver, *this, log, config);
     });
 }
 
