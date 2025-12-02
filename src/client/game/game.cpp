@@ -88,7 +88,7 @@ bool Game::send_events() {
 
             if (tecla == SDLK_SPACE) api.start_using_nitro();
 
-            if (tecla == SDLK_RALT) cheat_mode = true;
+            if (tecla == SDLK_LALT) cheat_mode = true;
             if (cheat_mode && tecla == SDLK_v) {
                 api.cheat(Cheat::InfiniteHealth);
                 cheat_used = true;
@@ -120,7 +120,7 @@ bool Game::send_events() {
             if (tecla == SDLK_UP || tecla == SDLK_w) api.stop_accelerating();
             if (tecla == SDLK_DOWN || tecla == SDLK_s) api.stop_breaking();
 
-            if (tecla == SDLK_RALT) cheat_mode = false;
+            if (tecla == SDLK_LALT) cheat_mode = false;
         }
         screen.handle_event(event);
     }

@@ -341,7 +341,9 @@ void Screen::draw_intermission() {
     } else if (game.match_state == MatchState::Finished) {
         render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
                     false);
-        if (buttons.empty()) make_btn_end(WIDTH / 2, HEIGHT / 2);
+        if (buttons.empty())
+            make_btn_end(WIDTH / 2 - EXIT_WIDTH / 2,
+                         HEIGHT / 2 - EXIT_HEIGHT / 2);
     }
 }
 
@@ -349,7 +351,9 @@ void Screen::draw_game_over() {
     render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
     render_text_title("Coche destruido...", {WIDTH / 2, HEIGHT / 2 - 120},
                       {255, 255, 0, 255}, false);
-    if (buttons.empty()) make_btn_end(WIDTH / 2, HEIGHT / 2 + 120);
+    if (buttons.empty())
+        make_btn_end(WIDTH / 2 - EXIT_WIDTH / 2,
+                     HEIGHT / 2 + 120 - EXIT_HEIGHT / 2);
 }
 
 void Screen::update() {
