@@ -1,7 +1,7 @@
 #pragma once
 
 #include <SDL2pp/SDL2pp.hh>
-#include <list>
+#include <unordered_map>
 
 #include "client/game/assets.h"
 #include "client/game/car.h"
@@ -16,35 +16,39 @@ class Sound final {
     Game& game;
     AssetsSound assets;
 
+    // Prioridad de sonidos (mas alto = sobreescribe el anterior)
+    enum SoundPriority {
+        BRAKE = 1,
+        NITRO = 2,
+        CRASH = 3,
+        EXPLOSION = 4
+        // CHECKPOINT y GOAL siempre se reproducen.
+    };
+
     // Manejo interno de sonidos
     struct SoundInfo {
-        PlayerId from;
         int channel_id;
+        SoundPriority priority;
     };
-    std::list<SoundInfo> brakes;
-    std::list<SoundInfo> crashes;
-    std::list<SoundInfo> explosions;
+    std::unordered_map<PlayerId, SoundInfo> sound_playing;
 
     // Reproduccion de efectos
     void try_brake(const PlayerCar& car);
     void try_crash(const PlayerCar& car);
     void try_explosion(const PlayerCar& car);
+    void try_nitro(const PlayerCar& car);
     void play_checkpoint();
     void play_goal();
 
-    // Finalizacion interna (por update)
-    void finish();
-
     // Auxiliares de reproduccion
     int get_vol(const PlayerCar& car) const;
-    void try_play(const PlayerCar& car, std::list<SoundInfo>& info,
-                  SDL2pp::Chunk& sound);
+    void try_play(const PlayerCar& car, SDL2pp::Chunk& sound,
+                  SoundPriority priority);
 
    public:
     Sound(SDL2pp::Mixer& mixer, Game& game, const CityName& city_name);
 
-    // Metodos de control
-    void start();
+    // Metodo principal de actualizacion
     void update();
 
     MAKE_FIXED(Sound)

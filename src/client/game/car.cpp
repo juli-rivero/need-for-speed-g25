@@ -16,7 +16,8 @@ PlayerCar::PlayerCar(const PlayerSnapshot& snapshot)
       health(snapshot.car.health),
       speed(snapshot.car.speed),
       id(snapshot.id),
-      time(snapshot.raceProgress.elapsed) {}
+      time(snapshot.raceProgress.elapsed),
+      nitro_active(snapshot.car.nitroActive) {}
 
 NpcCar::NpcCar(const NpcSnapshot& snapshot)
     : BaseCar(snapshot.bound, snapshot.angle, snapshot.type, snapshot.layer) {}
