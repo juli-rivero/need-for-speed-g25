@@ -23,7 +23,8 @@ AssetsScreen::AssetsScreen(SDL2pp::Renderer& renderer,
       car_ghost(renderer, "assets/cars/ghost.png"),
       font("assets/fonts/OpenSans-Regular.ttf", 20),
       arrow(renderer, "assets/misc/arrow.png"),
-      white(renderer, "assets/misc/white.png") {
+      white(renderer, "assets/misc/white.png"),
+      explosion(renderer, "assets/misc/explosion.png") {
     car_name.insert({CarType::Speedster, &car_speedster});
     car_name.insert({CarType::Tank, &car_tank});
     car_name.insert({CarType::Drifter, &car_drifter});

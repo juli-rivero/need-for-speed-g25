@@ -1,8 +1,9 @@
+#include "client/game/game.h"
+
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
 
-#include "client/game/classes.h"
 #include "common/timer_iterator.h"
 #include "spdlog/spdlog.h"
 
@@ -18,6 +19,9 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
       sound(mixer, *this, setup.city_info.name),
       my_id(connexion.unique_id) {
     // Configurar componentes de snapshot estatico
+    for (const Bound& b : city_info.walls) {
+        walls.emplace_back(b);
+    }
     for (const Bound& b : city_info.bridges) {
         bridges.emplace_back(b);
     }
