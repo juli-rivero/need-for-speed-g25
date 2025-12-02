@@ -60,3 +60,17 @@ ProtocolSender& operator<<(ProtocolSender& p, const EventPacket& r) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, EventPacket& r) {
     return p >> r.collision;
 }
+ProtocolSender& operator<<(ProtocolSender& p, const dto_game::CheatMessage& c) {
+    return p << c.type;
+}
+ProtocolReceiver& operator>>(ProtocolReceiver& p, dto_game::CheatMessage& c) {
+    return p >> c.type;
+}
+
+// UpgradeRequest SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, UpgradeRequest& r) {
+    return p >> r.stat;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const UpgradeRequest& r) {
+    return p << r.stat;
+}

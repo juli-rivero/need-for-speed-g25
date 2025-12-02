@@ -15,6 +15,7 @@ struct StartRequest {
 struct StartResponse {
     CityInfo city_info;
     RaceInfo first_race_info;
+    std::vector<UpgradeChoice> upgrade_choices;
 };
 
 struct LeaveRequest {};

@@ -19,6 +19,8 @@ class GameSessionFacade : public Thread {
     MatchSession match;
 
     Queue<std::pair<PlayerId, CarInput>> queue_actions;
+    Queue<std::pair<PlayerId, Cheat>> queue_cheats;
+    Queue<std::pair<PlayerId, UpgradeStat>> queue_upgrades;
 
    public:
     void run() override;
@@ -49,6 +51,9 @@ class GameSessionFacade : public Thread {
     void startReversing(PlayerId id);
     void stopReversing(PlayerId id);
     void useNitro(PlayerId id);
+
+    void cheat(PlayerId id, Cheat);
+    void upgrade(PlayerId id, UpgradeStat);
 
     GameSnapshot getSnapshot() const { return match.getSnapshot(); }
     CityInfo getCityInfo() const { return match.getCityInfo(); }

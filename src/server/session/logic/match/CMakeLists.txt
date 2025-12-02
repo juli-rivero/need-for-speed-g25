@@ -4,7 +4,6 @@ target_sources(taller_server
         MatchSessionIntermission.cpp
         MatchSessionRaceInit.cpp
         MatchSessionSnapshots.cpp
-        MatchSessionUpgrades.cpp
         PUBLIC
         MatchSession.h
 )

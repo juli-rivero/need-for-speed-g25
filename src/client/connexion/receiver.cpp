@@ -39,6 +39,10 @@ void Receiver::recv(const dto_search::SearchResponse& response) {
     spdlog::trace("received search response");
     emitter.dispatch(&Listener::on_search_response, response.sessions);
 }
+void Receiver::recv(const dto_search::StaticSessionDataResponse& response) {
+    spdlog::trace("received static session data response");
+    emitter.dispatch(&Listener::on_static_session_data_response, response.data);
+}
 void Receiver::recv(const dto_search::JoinResponse& response) {
     spdlog::trace("received join response");
     emitter.dispatch(&Listener::on_join_response, response.session,
@@ -51,7 +55,7 @@ void Receiver::recv(const dto_session::LeaveResponse&) {
 void Receiver::recv(const dto_session::StartResponse& response) {
     spdlog::trace("received start response");
     emitter.dispatch(&Listener::on_start_game, response.city_info,
-                     response.first_race_info);
+                     response.first_race_info, response.upgrade_choices);
 }
 void Receiver::recv(const dto_session::SessionSnapshot& snapshot) {
     spdlog::trace("received session snapshot");
