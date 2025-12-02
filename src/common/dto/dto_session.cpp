@@ -14,19 +14,27 @@ ProtocolSender& operator<<(ProtocolSender& p, const StartRequest& e) {
 
 // StartResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, StartResponse& r) {
-    return p >> r.city_info >> r.first_race_info;
+    return p >> r.city_info >> r.first_race_info >> r.upgrade_choices;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const StartResponse& r) {
-    return p << r.city_info << r.first_race_info;
+    return p << r.city_info << r.first_race_info << r.upgrade_choices;
 }
 
 // LeaveRequest SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveRequest&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const LeaveRequest&) { return p; }
-// LeaveResponse SERIALIZABLE
-ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveResponse&) { return p; }
-ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
+ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveRequest&) {
+    p.get<uint8_t>();
     return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const LeaveRequest&) {
+    return p << static_cast<uint8_t>(0);
+}
+// LeaveResponse SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, LeaveResponse&) {
+    p.get<uint8_t>();
+    return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const LeaveResponse&) {
+    return p << static_cast<uint8_t>(0);
 }
 
 // ChooseCarRequest SERIALIZABLE

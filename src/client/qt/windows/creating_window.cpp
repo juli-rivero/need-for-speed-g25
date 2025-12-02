@@ -9,14 +9,8 @@
 
 CreatingWindow::CreatingWindow(QWidget* parent, Connexion& connexion)
     : QWidget(parent), api(connexion.get_api()) {
-    setupUI();
-
-    // Conectar al sistema de temas
-    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
-            &CreatingWindow::applyTheme);
-    applyTheme();  // Aplicar tema inicial
-
     Responder::subscribe(connexion);
+    api.request_static_session_data();
 }
 CreatingWindow::~CreatingWindow() { Responder::unsubscribe(); }
 
@@ -25,8 +19,14 @@ void CreatingWindow::on_join_response(const SessionInfo&,
     QMetaObject::invokeMethod(
         this, [this]() { emit sessionCreated(); }, Qt::QueuedConnection);
 }
+void CreatingWindow::on_static_session_data_response(
+    const StaticSessionData& staticData) {
+    QMetaObject::invokeMethod(
+        this, [this, staticData]() { setupUI(staticData); },
+        Qt::QueuedConnection);
+}
 
-void CreatingWindow::setupUI() {
+void CreatingWindow::setupUI(const StaticSessionData& staticData) {
     // Layout principal
     QVBoxLayout* mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(50, 30, 50, 30);
@@ -57,8 +57,8 @@ void CreatingWindow::setupUI() {
 
     // Número de jugadores
     playersSpin = new QSpinBox(this);
-    playersSpin->setMinimum(2);
-    playersSpin->setMaximum(8);
+    playersSpin->setMinimum(1);
+    playersSpin->setMaximum(staticData.playersCapacity);
     playersSpin->setValue(4);
     playersSpin->setSuffix(" jugadores");
     playersSpin->setMinimumHeight(35);
@@ -67,31 +67,21 @@ void CreatingWindow::setupUI() {
 
     // Número de carreras
     racesSpin = new QSpinBox(this);
-    racesSpin->setMinimum(1);
-    racesSpin->setMaximum(10);
+    racesSpin->setMinimum(3);
+    racesSpin->setMaximum(3);
     racesSpin->setValue(3);
     racesSpin->setSuffix(" carreras");
     racesSpin->setMinimumHeight(35);
     QLabel* racesLabel = new QLabel("🏁 Cantidad de carreras:", this);
     formLayout->addRow(racesLabel, racesSpin);
 
-    // Número de vueltas
-    // TODO(nico): borrar, el numero vueltas en un circuito siempre es 1
-    lapsSpin = new QSpinBox(this);
-    lapsSpin->setMinimum(1);
-    lapsSpin->setMaximum(10);
-    lapsSpin->setValue(3);
-    lapsSpin->setSuffix(" vueltas");
-    lapsSpin->setMinimumHeight(35);
-    QLabel* lapsLabel = new QLabel("🔄 Vueltas por carrera:", this);
-    formLayout->addRow(lapsLabel, lapsSpin);
-
     // Ciudad/Mapa
     // TODO(juli): hacer que el cliente obtenga los mapas del servidor
     cityCombo = new QComboBox(this);
-    cityCombo->addItem("🏙️  Liberty City", "LibertyCity");
-    cityCombo->addItem("🏙️  San Andreas", "SanAndreas");
-    cityCombo->addItem("🏙️  Vice City", "ViceCity");
+    for (const auto& city : staticData.cities) {
+        cityCombo->addItem(QString::fromStdString("🏙️  " + city),
+                           QString::fromStdString(city));
+    }
     cityCombo->setMinimumHeight(35);
     QLabel* cityLabel = new QLabel("🗺️  Mapa/Ciudad:", this);
     formLayout->addRow(cityLabel, cityCombo);
@@ -127,6 +117,11 @@ void CreatingWindow::setupUI() {
 
     // Foco inicial en el nombre
     nameEdit->setFocus();
+
+    // Conectar al sistema de temas
+    connect(&ThemeManager::instance(), &ThemeManager::themeChanged, this,
+            &CreatingWindow::applyTheme);
+    applyTheme();  // Aplicar tema inicial
 }
 
 void CreatingWindow::validateInput() {

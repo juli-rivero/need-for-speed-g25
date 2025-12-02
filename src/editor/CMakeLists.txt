@@ -9,6 +9,7 @@ target_sources(taller_editor
     checkpoint_item.cpp
     building_item.cpp
     sensor_item.cpp
+    overpass_item.cpp
 
     PUBLIC
     # .h files
@@ -20,14 +21,5 @@ target_sources(taller_editor
     map_item.h
     checkpoint_item.h
     building_item.h
+    overpass_item.h
 )
-
-# Buscar yaml-cpp usando pkg-config
-find_package(PkgConfig REQUIRED)
-pkg_check_modules(YAML_CPP REQUIRED yaml-cpp)
-
-# Agregar directorios de include de yaml-cpp
-target_include_directories(taller_editor PRIVATE ${YAML_CPP_INCLUDE_DIRS})
-
-# Enlazar con yaml-cpp
-target_link_libraries(taller_editor ${YAML_CPP_LIBRARIES})

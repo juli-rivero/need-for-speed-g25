@@ -22,7 +22,7 @@ int main(const int argc, const char* argv[]) {
             args_parser.print_help();
             return SUCCESS;
         }
-        YamlGameConfig config("assets/config.yaml");
+        YamlGameConfig config("config.yaml");
 #if OFFLINE
         test(config);
 #else

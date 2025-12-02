@@ -26,6 +26,16 @@ void GameSessionFacade::run() {
             match.applyInput(input.first, input.second);
         }
 
+        std::pair<PlayerId, Cheat> cheater;
+        while (queue_cheats.try_pop(cheater)) {
+            match.applyCheat(cheater.first, cheater.second);
+        }
+
+        std::pair<PlayerId, UpgradeStat> upgrader;
+        while (queue_upgrades.try_pop(upgrader)) {
+            match.applyUpgrade(upgrader.first, upgrader.second);
+        }
+
         world.step(passed_iterations * dt.count());
         match.update(passed_iterations * dt.count());
 
@@ -38,10 +48,10 @@ void GameSessionFacade::run() {
         }
 
         // TODO(juli)
-        //  if (match->hasPendingEndRacePacket()) {
-        //      auto pkt = match->consumeEndRacePacket();
-        //      onRaceFinished(pkt);
-        //  }
+        // if (match.hasFinalSummary()) {
+        //     auto pkt = match.consumeFinalSummary();
+        //     emitter.dispatch(&Listener::on_match_finished, pkt);
+        // }
 
         passed_iterations = iterator.next();
     }
@@ -76,4 +86,10 @@ void GameSessionFacade::stopReversing(PlayerId id) {
 }
 void GameSessionFacade::useNitro(PlayerId id) {
     queue_actions.try_push({id, CarInput::StartUsingNitro});
+}
+void GameSessionFacade::cheat(PlayerId id, Cheat cheat) {
+    queue_cheats.try_push({id, cheat});
+}
+void GameSessionFacade::upgrade(PlayerId id, UpgradeStat upgrade_stat) {
+    queue_upgrades.try_push({id, upgrade_stat});
 }
