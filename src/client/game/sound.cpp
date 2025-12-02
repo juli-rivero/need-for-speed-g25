@@ -1,8 +1,8 @@
+#include "client/game/sound.h"
+
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
-
-#include "client/game/classes.h"
 
 Sound::Sound(SDL2pp::Mixer& mixer, Game& game, const CityName& city_name)
     : mixer(mixer), game(game), assets(city_name) {}
