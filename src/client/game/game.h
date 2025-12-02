@@ -64,24 +64,28 @@ class Game final : Connexion::Responder {
     std::list<NpcCar> npcs;
     PlayerCar* my_car = nullptr;
     UpgradeStats my_upgrades;
+    float penalty = 0;
 
     float time_elapsed = 0;
     float time_countdown = 0;
     float time_left = 0;
     RaceState race_state = RaceState::Countdown;
     MatchState match_state = MatchState::Starting;
+    MatchState old_match_state = MatchState::Starting;
 
     // Componentes parseados de snapshot de actualizacion (sonido)
     Queue<CollisionEvent> collisions;
 
     std::unordered_map<PlayerId, bool> old_braking;
     std::unordered_map<PlayerId, bool> old_disqualified;
+    std::unordered_map<PlayerId, bool> old_nitro_active;
     uint32_t old_checkpoint = 0;
     bool old_finished = false;
 
     // Componentes miscelaneos
     bool cheat_mode = false;
     bool cheat_used = false;
+    bool force_exit = false;
 
     // Componentes de camara a usar
     int cam_x = 0;

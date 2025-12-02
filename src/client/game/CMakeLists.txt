@@ -8,6 +8,7 @@ target_sources(taller_client
         assets.cpp
         bounding_box.cpp
         car.cpp
+        sdl_button.cpp
         PUBLIC
         # .h files
         sdl_app.h
@@ -17,4 +18,5 @@ target_sources(taller_client
         assets.h
         bounding_box.h
         car.h
+        sdl_button.cpp
 )
