@@ -90,7 +90,6 @@ void Sender::send_game_static_snapshot(const RaceInfo& race) {
 }
 
 void Sender::send_game_snapshot(const GameSnapshot& snapshot) {
-    log->trace("sending game snapshot");
     responses.try_push(dto_game::GameSnapshotPacket{snapshot});
 }
 void Sender::send_collision_event(const CollisionEvent& event) {
