@@ -16,6 +16,10 @@ Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
       HEIGHT(renderer.GetOutputHeight()) {
     renderer.Clear();
     renderer.SetDrawBlendMode(SDL_BLENDMODE_BLEND);
+
+    minimap_texture = std::make_unique<SDL2pp::Texture>(
+        renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, WIDTH,
+        HEIGHT);
 }
 
 //
@@ -86,8 +90,13 @@ void Screen::render_car(PlayerCar& car, bool with_name) {
 // MANEJO DE CAMARA (VISUAL)
 //
 void Screen::update_camera() {
-    cam_offset_x = game.cam_x - WIDTH / 2;
-    cam_offset_y = game.cam_y - HEIGHT / 2;
+    cam_offset_x = game.cam_x - this->WIDTH / 2;
+    cam_offset_y = game.cam_y - this->HEIGHT / 2;
+}
+
+void Screen::update_camera(int width, int height) {
+    cam_offset_x = game.cam_x - width / 2;
+    cam_offset_y = game.cam_y - height / 2;
 }
 
 //
@@ -160,6 +169,46 @@ void Screen::draw_hud() {
     }
 }
 
+void Screen::draw_minimap() {
+    // Temporalmente dibujar todo en el minimapa
+    renderer.SetTarget(*minimap_texture);
+    renderer.Clear();
+
+    // Base y paredes
+    render_solid({0, 0, WIDTH, HEIGHT}, {100, 100, 100, 255}, false);
+    for (const BoundingBox& b : game.walls)
+        render_solid(b.as_rect(), {255, 0, 0, 255});
+
+    // Jugador
+    const BoundingBox& my_b = game.my_car->pos;
+    render_solid(my_b.as_rect(), {255, 255, 0, 255}, my_b.get_angle() + 90);
+
+    // Checkpoint
+    auto next_checkpoint = game.my_car->next_checkpoint;
+    if (next_checkpoint < game.checkpoint_amount) {
+        const BoundingBox& b = game.checkpoints[next_checkpoint];
+
+        render_solid(b.as_rect(), {0, 255, 0, 150}, b.get_angle());
+    }
+
+    // Fin
+    renderer.SetTarget();
+
+    // Ahora si, dibujar el minimapa con un marco, en un cuadrado del 20% de la
+    // pantalla en la esquina derecha inferior
+    const int mini_width = WIDTH / 5, mini_height = HEIGHT / 5;
+    const int start_x = WIDTH - 10 - mini_width;
+    const int start_y = HEIGHT - 10 - mini_height;
+
+    render_solid({start_x - 5, start_y - 5, mini_width + 10, mini_height + 10},
+                 {0, 0, 0, 255}, false);
+
+    renderer.SetViewport(
+        SDL2pp::Rect(start_x, start_y, mini_width, mini_height));
+    renderer.Copy(*minimap_texture, SDL2pp::NullOpt, SDL2pp::NullOpt);
+    renderer.SetViewport(SDL2pp::NullOpt);
+}
+
 void Screen::draw_end_overlay(bool finished) {
     render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
 
@@ -222,6 +271,7 @@ void Screen::update() {
             draw_end_overlay(game.my_car->finished);
         } else {
             draw_hud();
+            draw_minimap();
         }
     }
 
