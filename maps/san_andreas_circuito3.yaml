@@ -1,0 +1,99 @@
+map:
+  name: "San Andreas - Circuito 3"
+  gravity: [0.0, 0.0]
+  city: "SanAndreas"
+  checkpoints:
+    - type: start
+      x: 1598.79
+      y: 521.548
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 2354.73
+      y: 527.757
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 3244.15
+      y: 645.726
+      rotation: 180
+      width: 100
+    - type: intermediate
+      x: 3365.22
+      y: 1482.38
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 4159.96
+      y: 1813
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 4222.05
+      y: 2328.34
+      rotation: 180
+      width: 100
+    - type: intermediate
+      x: 4223.61
+      y: 3969.04
+      rotation: 180
+      width: 100
+    - type: intermediate
+      x: 3585.64
+      y: 4291.9
+      rotation: 270
+      width: 100
+    - type: intermediate
+      x: 429.966
+      y: 4296.56
+      rotation: 270
+      width: 100
+    - type: intermediate
+      x: 299.58
+      y: 3186.72
+      rotation: 0
+      width: 100
+    - type: intermediate
+      x: 304.236
+      y: 2672.93
+      rotation: 0
+      width: 100
+    - type: intermediate
+      x: 498.264
+      y: 2376.46
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 563.458
+      y: 2561.17
+      rotation: 270
+      width: 100
+    - type: intermediate
+      x: 32.5967
+      y: 1926.31
+      rotation: 0
+      width: 100
+    - type: intermediate
+      x: 327.52
+      y: 1719.87
+      rotation: 90
+      width: 100
+    - type: intermediate
+      x: 1179.69
+      y: 1204.53
+      rotation: 0
+      width: 100
+    - type: finish
+      x: 1179.69
+      y: 776.113
+      rotation: 0
+      width: 100
+  spawn_points:
+    - { x: 1510, y: 495, angle: 0 }
+    - { x: 1510, y: 515, angle: 0 }
+    - { x: 1510, y: 525, angle: 0 }
+    - { x: 1510, y: 545, angle: 0 }
+    - { x: 1475, y: 495, angle: 0 }
+    - { x: 1475, y: 515, angle: 0 }
+    - { x: 1475, y: 525, angle: 0 }
+    - { x: 1475, y: 545, angle: 0 }

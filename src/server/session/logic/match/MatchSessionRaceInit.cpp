@@ -31,7 +31,7 @@ static void attachPlayers(
         world.getCollisionManager().registerCar(car.get(), pc.id);
 
         auto player = std::make_unique<Player>(pc.id, pc.name, std::move(car));
-        player->resetRaceState(0);
+        player->resetRaceState();
 
         racePlayers.push_back(player.get());
         outPlayers[pc.id] = std::move(player);
@@ -74,7 +74,7 @@ void MatchSession::startRace(std::size_t raceIndex) {
                   racePlayers);
 
     //  sistema NPC
-    _traffic = std::make_unique<TrafficSystem>(factory);
+    _traffic = std::make_unique<TrafficSystem>(factory, spawnPoints);
     initRoadGraph(_roadGraph, roadShapes);
     _traffic->loadGraph(&_roadGraph);
     spawnNPCs(*_traffic, _cfg.getMaxNPCS());

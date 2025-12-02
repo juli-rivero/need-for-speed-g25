@@ -43,6 +43,10 @@ void Receiver::recv(const dto_search::CreateRequest& request) {
     log->trace("Received CreateRequest");
     emitter.dispatch(&Listener::on_create_request, request.config);
 }
+void Receiver::recv(const dto_search::StaticSessionDataRequest&) {
+    log->trace("Received StaticSessionDataRequest");
+    emitter.dispatch(&Listener::on_static_session_data_request);
+}
 void Receiver::recv(const dto_session::LeaveRequest&) {
     log->trace("Received LeaveRequest");
     emitter.dispatch(&Listener::on_leave_request);
@@ -54,6 +58,14 @@ void Receiver::recv(const dto_session::StartRequest& request) {
 void Receiver::recv(const dto_session::ChooseCarRequest& request) {
     log->trace("Received ChooseCarRequest");
     emitter.dispatch(&Listener::on_choose_car, request.car_type);
+}
+void Receiver::recv(const dto_game::CheatMessage& request) {
+    log->trace("Received CheatMessage");
+    emitter.dispatch(&Listener::on_cheat, request.type);
+}
+void Receiver::recv(const dto_game::UpgradeRequest& request) {
+    log->trace("Received UpgradeRequest");
+    emitter.dispatch(&Listener::on_upgrade_request, request.stat);
 }
 
 // -------------------- Game requests --------------------
