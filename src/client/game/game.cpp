@@ -85,37 +85,23 @@ bool Game::send_events() {
 
             if (tecla == SDLK_RALT) cheat_mode = true;
             if (cheat_mode && tecla == SDLK_v) {
-                spdlog::info("EVENT: cheat - vida infinita");
+                api.cheat(Cheat::InfiniteHealth);
                 cheat_used = true;
             }
             if (cheat_mode && tecla == SDLK_g) {
-                spdlog::info("EVENT: cheat - ganar la carrera");
+                api.cheat(Cheat::FinishRace);
                 cheat_used = true;
             }
             if (cheat_mode && tecla == SDLK_p) {
-                spdlog::info(
-                    "EVENT: cheat - perder la carrera (autodescalificarse)");
+                api.cheat(Cheat::DestroyAllCars);
                 cheat_used = true;
             }
 
-            if (match_state == MatchState::Intermission &&
-                upgrade_chosen == 0) {
-                if (tecla == SDLK_1) {
-                    spdlog::info("EVENT: mejora - aceleracion");
-                    upgrade_chosen = 1;
-                }
-                if (tecla == SDLK_2) {
-                    spdlog::info("EVENT: mejora - velocidad maxima");
-                    upgrade_chosen = 2;
-                }
-                if (tecla == SDLK_3) {
-                    spdlog::info("EVENT: mejora - nitro");
-                    upgrade_chosen = 3;
-                }
-                if (tecla == SDLK_4) {
-                    spdlog::info("EVENT: mejora - vida");
-                    upgrade_chosen = 4;
-                }
+            if (match_state == MatchState::Intermission) {
+                if (tecla == SDLK_1) api.upgrade(UpgradeStat::Acceleration);
+                if (tecla == SDLK_2) api.upgrade(UpgradeStat::MaxSpeed);
+                if (tecla == SDLK_3) api.upgrade(UpgradeStat::Nitro);
+                if (tecla == SDLK_4) api.upgrade(UpgradeStat::Health);
             }
         }
 
@@ -153,7 +139,10 @@ void Game::update_state() {
     cars.clear();
     for (auto& player : current_snapshot.players) {
         cars.emplace(player.id, player);
-        if (player.id == my_id) my_car = &cars.at(player.id);
+        if (player.id == my_id) {
+            my_car = &cars.at(player.id);
+            my_upgrades = player.upgrades;
+        }
     }
 
     npcs.clear();
@@ -167,7 +156,6 @@ void Game::update_state() {
     time_left = current_snapshot.race.raceTimeLeft;
     race_state = current_snapshot.race.raceState;
     match_state = current_snapshot.match.matchState;
-    if (match_state != MatchState::Intermission) upgrade_chosen = 0;
 }
 
 //

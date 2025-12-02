@@ -28,4 +28,5 @@ class SearchController final : Receiver::Listener {
     void on_join_request(const std::string&) override;
     void on_search_request() override;
     void on_create_request(const SessionConfig&) override;
+    void on_static_session_data_request() override;
 };

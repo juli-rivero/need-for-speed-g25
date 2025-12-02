@@ -10,7 +10,8 @@
 
 class TrafficSystem {
    public:
-    explicit TrafficSystem(EntityFactory& f);
+    explicit TrafficSystem(EntityFactory& f,
+                           const std::vector<SpawnPoint>& playerSpawnPoints);
 
     void loadGraph(RoadGraph* g) { graph = g; }
     void spawnNPCs();
@@ -20,5 +21,8 @@ class TrafficSystem {
    private:
     RoadGraph* graph = nullptr;
     EntityFactory& factory;
+    std::vector<SpawnPoint> playerSpawnPoints;
     std::vector<std::unique_ptr<NPCVehicle>> npcs;
+
+    bool isTooCloseToSpawnPoints(const b2Vec2& pos) const;
 };

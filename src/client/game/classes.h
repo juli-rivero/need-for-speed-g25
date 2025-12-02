@@ -166,6 +166,7 @@ class Game final : Connexion::Responder {
     std::unordered_map<PlayerId, PlayerCar> cars;
     std::list<NpcCar> npcs;
     PlayerCar* my_car = nullptr;
+    UpgradeStats my_upgrades;
 
     float time_elapsed = 0;
     float time_countdown = 0;
@@ -182,7 +183,6 @@ class Game final : Connexion::Responder {
     bool old_finished = false;
 
     // Componentes miscelaneos
-    unsigned int upgrade_chosen = 0;
     bool cheat_mode = false;
     bool cheat_used = false;
 

@@ -153,11 +153,10 @@ void Screen::draw_hud() {
     render_solid({10, 30, game.my_car->speed, 10}, {255, 165, 0, 255}, false);
 
     if (game.cheat_used) {
-        render_text("TRAMPOSO", {10, 50}, {255, 255, 0, 255}, false);
-    } else {
-        render_text(format_time(game.time_elapsed), {10, 50},
-                    {255, 255, 255, 255}, false);
+        render_text("TRAMPOSO", {10, 70}, {255, 255, 0, 255}, false);
     }
+    render_text(format_time(game.time_elapsed), {10, 50}, {255, 255, 255, 255},
+                false);
 
     auto next_checkpoint = game.my_car->next_checkpoint;
     if (next_checkpoint < game.checkpoint_amount) {
@@ -229,18 +228,19 @@ void Screen::draw_end_overlay(bool finished) {
         render_text("Elegi una mejora!", {30, 130}, {255, 255, 255, 255},
                     false);
 
-        auto& upgrade = game.upgrade_chosen;
         SDL2pp::Color upgrade_yes(255, 255, 0, 255);
         SDL2pp::Color upgrade_no(255, 255, 255, 255);
 
-        render_text("1 - Mejor Aceleracion", {30, 170},
-                    (upgrade == 1) ? upgrade_yes : upgrade_no, false);
-        render_text("2 - Mejor Velocidad Maxima", {30, 190},
-                    (upgrade == 2) ? upgrade_yes : upgrade_no, false);
-        render_text("3 - Mejor Nitro", {30, 210},
-                    (upgrade == 3) ? upgrade_yes : upgrade_no, false);
-        render_text("4 - Mejor Vida Maxima", {30, 230},
-                    (upgrade == 4) ? upgrade_yes : upgrade_no, false);
+        auto _color = [upgrade_no, upgrade_yes](int num) {
+            return num == 0 ? upgrade_no : upgrade_yes;
+        };
+        const auto& [max_speed, acc, health, nitro] = game.my_upgrades;
+
+        render_text("1 - Mejor Aceleracion", {30, 170}, _color(acc), false);
+        render_text("2 - Mejor Velocidad Maxima", {30, 190}, _color(max_speed),
+                    false);
+        render_text("3 - Mejor Nitro", {30, 210}, _color(nitro), false);
+        render_text("4 - Mejor Vida Maxima", {30, 230}, _color(health), false);
 
         // TODO(franco): como muestro el tiempo restante hasta la siguiente,
         // donde esta? render_text("Siguiente carrera en: " +

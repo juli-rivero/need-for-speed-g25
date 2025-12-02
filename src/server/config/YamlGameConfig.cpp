@@ -13,16 +13,50 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                      filePath);
 
         // === Sección "race" ===
-        if (root["race"]) {
-            const auto& race = root["race"];
-            maxPlayers = race["max_players"].as<int>();
-            maxNPCs = race["max_NPCs"].as<int>();
-            timeLimitSec = race["time_limit_sec"].as<float>();
-            intermissionSec = race["intermission_sec"].as<float>();
+        if (root["config"]) {
+            const auto& config = root["config"];
+            if (config["match"]) {
+                const auto& match = config["match"];
+                maxRaces = match["max_races"].as<int>();
+            }
+            if (config["race"]) {
+                const auto& race = config["race"];
+                maxPlayers = race["max_players"].as<int>();
+                maxNPCs = race["max_NPCs"].as<int>();
+                timeLimitSec = race["time_limit_sec"].as<float>();
+                intermissionSec = race["intermission_sec"].as<float>();
+            }
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
 
+        if (root["upgrades"]) {
+            const auto& upgrades = root["upgrades"];
+            if (upgrades["max_speed"]) {
+                const auto& upgrade = upgrades["max_speed"];
+                upgradesTable[UpgradeStat::MaxSpeed] = {
+                    UpgradeStat::MaxSpeed, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["acceleration"]) {
+                const auto& upgrade = upgrades["acceleration"];
+                upgradesTable[UpgradeStat::Acceleration] = {
+                    UpgradeStat::Acceleration, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["nitro"]) {
+                const auto& upgrade = upgrades["nitro"];
+                upgradesTable[UpgradeStat::Nitro] = {
+                    UpgradeStat::Nitro, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["health"]) {
+                const auto& upgrade = upgrades["health"];
+                upgradesTable[UpgradeStat::Health] = {
+                    UpgradeStat::Health, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+        }
         // === Sección "car_types" ===
         if (root["car_types"]) {
             for (const auto& c : root["car_types"]) {
@@ -48,6 +82,7 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
                 stats.width = c["width"].as<float>();
                 stats.height = c["height"].as<float>();
 
+                stats.driftFactor = c["drift_factor"].as<float>();
                 stats.density = c["density"] ? c["density"].as<float>() : 1.0f;
                 stats.friction =
                     c["friction"] ? c["friction"].as<float>() : 0.8f;
@@ -95,7 +130,15 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     }
 }
 
-const std::vector<std::string>& YamlGameConfig::getRaces(
+const std::vector<CityName> YamlGameConfig::getAvailableCities() const {
+    std::vector<CityName> cities;
+    for (const auto& city : races | std::views::keys) {
+        cities.push_back(city);
+    }
+    return cities;
+}
+
+const std::vector<RaceName>& YamlGameConfig::getRaces(
     const CityName& city) const {
     return races.at(city);
 }

@@ -81,12 +81,12 @@ void SessionController::on_session_updated(
     }
 }
 
-void SessionController::on_start_game(GameSessionFacade& game,
-                                      const CityInfo& city_info,
-                                      const RaceInfo& race_info) {
+void SessionController::on_start_game(
+    GameSessionFacade& game, const CityInfo& city_info,
+    const RaceInfo& race_info, const std::vector<UpgradeChoice>& choices) {
     try {
         dispatcher.on_start_game(game);
-        api.notify_game_started(city_info, race_info);
+        api.notify_game_started(city_info, race_info, choices);
     } catch (std::exception& e) {
         log->warn("could not start game: {}", e.what());
         api.reply_error(e.what());

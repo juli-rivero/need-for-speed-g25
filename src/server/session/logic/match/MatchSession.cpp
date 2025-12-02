@@ -1,6 +1,8 @@
 
 #include "MatchSession.h"
 
+#include <limits>
+#include <ranges>
 #include <utility>
 
 MatchSession::MatchSession(const YamlGameConfig& cfg,
@@ -10,8 +12,7 @@ MatchSession::MatchSession(const YamlGameConfig& cfg,
     : _cfg(cfg),
       _world(world),
       _raceFiles(std::move(raceFiles)),
-      _playerConfigs(std::move(playersCfg)),
-      _upgradeSystem(cfg) {
+      _playerConfigs(std::move(playersCfg)) {
     if (_raceFiles.empty()) {
         _state = MatchState::Finished;
         return;
@@ -33,7 +34,6 @@ void MatchSession::update(float dt) {
             _race->update(dt);
 
             if (_race->isFinished()) {
-                pendingEndRacePacket = finishRaceAndComputeTotals();
                 startIntermission();
             }
             break;
@@ -53,4 +53,29 @@ void MatchSession::update(float dt) {
 void MatchSession::applyInput(PlayerId id, const CarInput& input) const {
     if (_race && _race->getState() != RaceState::Countdown)
         _players.at(id)->applyInput(input);
+}
+
+void MatchSession::applyCheat(const PlayerId id, const Cheat cheat) const {
+    switch (cheat) {
+        case Cheat::FinishRace:
+            _players.at(id)->markFinished();
+            break;
+        case Cheat::DestroyAllCars:
+            for (const auto& player : _players | std::views::values) {
+                player->getCar()->damage(std::numeric_limits<float>::max());
+            }
+            break;
+        case Cheat::InfiniteHealth:
+            _players.at(id)->getCar()->upgrade(
+                UpgradeStat::Health, std::numeric_limits<float>::infinity());
+            break;
+    }
+}
+
+void MatchSession::applyUpgrade(const PlayerId id, const UpgradeStat upgrade) {
+    auto& player = _players.at(id);
+
+    const auto& data = _cfg.getUpgradesMap().at(upgrade);
+
+    player->applyUpgrade(upgrade, data.delta, data.penalty);
 }
