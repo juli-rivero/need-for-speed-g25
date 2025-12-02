@@ -1,53 +1,100 @@
 #include "YamlGameConfig.h"
 
 #include <iostream>
+#include <ranges>
+#include <utility>
+
+#include "spdlog/spdlog.h"
 
 YamlGameConfig::YamlGameConfig(const std::string& filePath) {
     try {
         root = YAML::LoadFile(filePath);
-        std::cout << "[YamlGameConfig] Cargando configuración desde: "
-                  << filePath << "\n";
+        spdlog::info("[YamlGameConfig] Cargando configuración desde: {}",
+                     filePath);
 
         // === Sección "race" ===
-        if (root["race"]) {
-            const auto& race = root["race"];
-            maxPlayers = race["max_players"].as<int>();
-            timeLimitSec = race["time_limit_sec"].as<float>();
-            intermissionSec = race["intermission_sec"].as<float>();
+        if (root["config"]) {
+            const auto& config = root["config"];
+            if (config["match"]) {
+                const auto& match = config["match"];
+                maxRaces = match["max_races"].as<int>();
+            }
+            if (config["race"]) {
+                const auto& race = config["race"];
+                maxPlayers = race["max_players"].as<int>();
+                maxNPCs = race["max_NPCs"].as<int>();
+                timeLimitSec = race["time_limit_sec"].as<float>();
+                intermissionSec = race["intermission_sec"].as<float>();
+            }
         } else {
             throw std::runtime_error(" Falta la sección 'race' en config.yaml");
         }
 
+        if (root["upgrades"]) {
+            const auto& upgrades = root["upgrades"];
+            if (upgrades["max_speed"]) {
+                const auto& upgrade = upgrades["max_speed"];
+                upgradesTable[UpgradeStat::MaxSpeed] = {
+                    UpgradeStat::MaxSpeed, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["acceleration"]) {
+                const auto& upgrade = upgrades["acceleration"];
+                upgradesTable[UpgradeStat::Acceleration] = {
+                    UpgradeStat::Acceleration, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["nitro"]) {
+                const auto& upgrade = upgrades["nitro"];
+                upgradesTable[UpgradeStat::Nitro] = {
+                    UpgradeStat::Nitro, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+            if (upgrades["health"]) {
+                const auto& upgrade = upgrades["health"];
+                upgradesTable[UpgradeStat::Health] = {
+                    UpgradeStat::Health, upgrade["delta"].as<float>(),
+                    upgrade["penalty"].as<float>()};
+            }
+        }
         // === Sección "car_types" ===
         if (root["car_types"]) {
             for (const auto& c : root["car_types"]) {
-                CarType type;
-                type.name = c["name"].as<std::string>();
-                type.description =
-                    c["description"] ? c["description"].as<std::string>() : "";
-                type.width = c["width"].as<float>();
-                type.height = c["height"].as<float>();
-                type.maxSpeed = c["max_speed"].as<float>();
-                type.acceleration = c["acceleration"].as<float>();
-                type.mass = c["mass"].as<float>();
-                type.control = c["control"].as<float>();
-                type.maxHealth = c["health"].as<float>();
-                type.nitroMultiplier = c["nitro_multiplier"].as<float>();
-                type.nitroDuration = c["nitro_duration"].as<float>();
-                type.nitroCooldown = c["nitro_cooldown"].as<float>();
-                type.density = c["density"] ? c["density"].as<float>() : 1.0f;
-                type.friction =
-                    c["friction"] ? c["friction"].as<float>() : 0.8f;
-                type.restitution =
-                    c["restitution"] ? c["restitution"].as<float>() : 0.1f;
-                type.linearDamping = c["linear_damping"]
-                                         ? c["linear_damping"].as<float>()
-                                         : 0.3f;
-                type.angularDamping = c["angular_damping"]
-                                          ? c["angular_damping"].as<float>()
-                                          : 0.8f;
+                CarType type = getCarType(c["name"].as<std::string>());
 
-                carTypes.push_back(type);
+                CarDisplayInfo display;
+                display.name = c["name"].as<std::string>();
+                display.description =
+                    c["description"] ? c["description"].as<std::string>() : "";
+                carsDisplayInfo[type] = std::move(display);
+
+                CarStaticStats stats;
+                stats.maxSpeed = c["max_speed"].as<float>();
+                stats.acceleration = c["acceleration"].as<float>();
+                stats.mass = c["mass"].as<float>();
+                stats.control = c["control"].as<float>();
+                stats.maxHealth = c["health"].as<float>();
+
+                stats.nitroMultiplier = c["nitro_multiplier"].as<float>();
+                stats.nitroDuration = c["nitro_duration"].as<float>();
+                stats.nitroCooldown = c["nitro_cooldown"].as<float>();
+
+                stats.width = c["width"].as<float>();
+                stats.height = c["height"].as<float>();
+
+                stats.driftFactor = c["drift_factor"].as<float>();
+                stats.density = c["density"] ? c["density"].as<float>() : 1.0f;
+                stats.friction =
+                    c["friction"] ? c["friction"].as<float>() : 0.8f;
+                stats.restitution =
+                    c["restitution"] ? c["restitution"].as<float>() : 0.1f;
+                stats.linearDamping = c["linear_damping"]
+                                          ? c["linear_damping"].as<float>()
+                                          : 0.3f;
+                stats.angularDamping = c["angular_damping"]
+                                           ? c["angular_damping"].as<float>()
+                                           : 0.8f;
+                carsStaticStats[type] = std::move(stats);
             }
         } else {
             throw std::runtime_error(
@@ -64,66 +111,75 @@ YamlGameConfig::YamlGameConfig(const std::string& filePath) {
         // === Sección "cities" ===
         if (root["cities"]) {
             for (const auto& cityNode : root["cities"]) {
-                CityDefinition city;
-                city.name = cityNode["city"].as<std::string>();
+                const auto cityId = cityNode["city"].as<std::string>();
+                std::vector<std::string> raceFiles;
                 if (cityNode["races"]) {
                     for (const auto& raceNode : cityNode["races"]) {
-                        RaceDefinition race;
-                        race.mapFile = raceNode["map_file"].as<std::string>();
-                        race.city = city.name;
-                        city.races.push_back(race);
+                        raceFiles.push_back(
+                            raceNode["map_file"].as<std::string>());
                     }
                 }
-                cities.push_back(city);
+                races.emplace(cityId, raceFiles);
             }
         }
 
         printSummary();
     } catch (const std::exception& e) {
-        std::cerr << "Error cargando config YAML: " << e.what() << std::endl;
+        spdlog::error("Error cargando config YAML: {}", e.what());
         throw;
     }
 }
 
-const std::vector<RaceDefinition>& YamlGameConfig::getRaces(
-    const CityId& city) const {
-    for (const auto& c : cities) {
-        if (c.name == city) return c.races;
+const std::vector<CityName> YamlGameConfig::getAvailableCities() const {
+    std::vector<CityName> cities;
+    for (const auto& city : races | std::views::keys) {
+        cities.push_back(city);
     }
-    throw std::invalid_argument("City not found: " + city);
+    return cities;
 }
 
-CarSpriteType YamlGameConfig::getCarSpriteType(const std::string& name) {
-    if (name == "Speedster") return CarSpriteType::Speedster;
-    if (name == "Tank") return CarSpriteType::Tank;
-    if (name == "Drifter") return CarSpriteType::Drifter;
-    if (name == "Rocket") return CarSpriteType::Rocket;
-    if (name == "Classic") return CarSpriteType::Classic;
-    if (name == "Offroad") return CarSpriteType::Offroad;
-    if (name == "Ghost") return CarSpriteType::Ghost;
+const std::vector<RaceName>& YamlGameConfig::getRaces(
+    const CityName& city) const {
+    return races.at(city);
+}
+
+CarType YamlGameConfig::getCarType(const std::string& name) {
+    if (name == "Speedster") return CarType::Speedster;
+    if (name == "Tank") return CarType::Tank;
+    if (name == "Drifter") return CarType::Drifter;
+    if (name == "Rocket") return CarType::Rocket;
+    if (name == "Classic") return CarType::Classic;
+    if (name == "Offroad") return CarType::Offroad;
+    if (name == "Ghost") return CarType::Ghost;
 
     throw std::invalid_argument("Unknown car type: " + name);
 }
 void YamlGameConfig::printSummary() const {
-    std::cout << "\n=== CONFIGURACIÓN GLOBAL ===\n";
-    std::cout << "Jugadores máx: " << maxPlayers << "\n";
-    std::cout << "Límite tiempo: " << timeLimitSec << " s\n";
-    std::cout << "Intermission:   " << intermissionSec << " s\n";
+    spdlog::info("=== CONFIGURACIÓN GLOBAL ===");
+    spdlog::info("Jugadores máx: {}", maxPlayers);
+    spdlog::info("Límite tiempo: {} s", timeLimitSec);
+    spdlog::info("Intermission: {} s", intermissionSec);
 
-    std::cout << "\n=== AUTOS DISPONIBLES ===\n";
-    for (const auto& c : carTypes) {
-        std::cout << c.name << " (" << c.description << ")\n";
-        std::cout << "   speed=" << c.maxSpeed << ", acc=" << c.acceleration
-                  << ", mass=" << c.mass << ", control=" << c.control
-                  << ", hp=" << c.maxHealth << ", nitro×" << c.nitroMultiplier
-                  << "\n";
+    spdlog::info("=== AUTOS DISPONIBLES ===");
+    for (const auto& c : carsDisplayInfo | std::views::keys) {
+        const auto& displayInfo = carsDisplayInfo.at(c);
+        const auto& staticStats = carsStaticStats.at(c);
+
+        spdlog::info("{} ({})", displayInfo.name, displayInfo.description);
+        spdlog::debug(
+            "\tspeed={}, acc={}, mass={}, control={}, hp={}, nitro×{}",
+            staticStats.maxSpeed, staticStats.acceleration, staticStats.mass,
+            staticStats.control, staticStats.maxHealth,
+            staticStats.nitroMultiplier);
     }
 
-    std::cout << "\n=== CIUDADES ===\n";
-    for (const auto& c : cities) {
-        std::cout << c.name << " (" << c.races.size() << " circuitos)\n";
-        for (const auto& r : c.races) std::cout << "   - " << r.mapFile << "\n";
+    spdlog::info("=== CIUDADES ===");
+    for (const auto& [city, raceFiles] : races) {
+        spdlog::info("{} ({} circuitos)", city, raceFiles.size());
+        for (const auto& r : raceFiles) {
+            spdlog::debug("   - {}", r);
+        }
     }
 
-    std::cout << "=============================\n\n";
+    spdlog::info("=============================");
 }

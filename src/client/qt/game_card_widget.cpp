@@ -144,11 +144,6 @@ QString GameCardWidget::getStatusText(const SessionStatus& status) const {
         case SessionStatus::Waiting:
             return "Esperando";
     }
-    /*if (status == "waiting") return "Esperando";
-    if (status == "ready") return "Lista";
-    if (status == "playing") return "En juego";
-    if (status == "full") return "Llena";
-    if (status == "finished") return "Finalizada";*/
     return "Desconocido";
 }
 
@@ -161,10 +156,5 @@ QString GameCardWidget::getStatusColor(const SessionStatus& status) const {
         case SessionStatus::Waiting:
             return "#4CAF50";
     }
-    /*if (status == "waiting") return "#4CAF50";
-    if (status == "ready") return "#FF9800";
-    if (status == "playing") return "#F44336";
-    if (status == "full") return "#9E9E9E";
-    if (status == "finished") return "#607D8B";*/
     return "#000000";
 }

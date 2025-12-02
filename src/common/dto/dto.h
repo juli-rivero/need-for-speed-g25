@@ -8,30 +8,31 @@
 #include "common/dto/dto_session.h"
 #include "common/protocol.h"
 namespace dto {
-#include "common/dto/macros.inl"
 
 struct ErrorResponse {
-    DECLARE_SERIALIZABLE(ErrorResponse)
     std::string message;
 };
 
-using Request =
-    std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_search::CreateRequest, dto_session::LeaveRequest,
-                 dto_session::StartRequest, dto_session::ChooseCarRequest,
-                 dto_game::TurnRequest, dto_game::AccelerateRequest,
-                 dto_game::UseBoostRequest, dto_game::ReverseRequest>;
+using Request = std::variant<
+    dto_search::SearchRequest, dto_search::JoinRequest,
+    dto_search::CreateRequest, dto_search::StaticSessionDataRequest,
+    dto_session::LeaveRequest, dto_session::StartRequest,
+    dto_session::ChooseCarRequest, dto_game::TurnRequest,
+    dto_game::AccelerateRequest, dto_game::UseBoostRequest,
+    dto_game::ReverseRequest, dto_game::CheatMessage, dto_game::UpgradeRequest>;
 
 using Response =
     std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
+                 dto_search::StaticSessionDataResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
-                 dto_game::GameSnapshot>;
+                 dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
+                 dto_game::EventPacket>;
 
-#include "common/dto/macros_undef.inl"
 }  // namespace dto
 
-ProtocolSender& operator<<(ProtocolSender& p, const dto::Request&);
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto::Request&);
-ProtocolSender& operator<<(ProtocolSender& p, const dto::Response&);
-ProtocolReceiver& operator>>(ProtocolReceiver& p, dto::Response&);
+#include "common/dto/macros.inl"
+DECLARE_SERIALIZABLE(dto::ErrorResponse)
+DECLARE_SERIALIZABLE(dto::Request)
+DECLARE_SERIALIZABLE(dto::Response)
+#include "common/dto/macros_undef.inl"

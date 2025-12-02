@@ -2,12 +2,11 @@
 
 #include <box2d/box2d.h>
 
-#include <iostream>
+#include <deque>
 #include <memory>
 #include <unordered_map>
-#include <vector>
 
-#include "../logic/RaceSession.h"
+#include "../logic/race/RaceSession.h"
 #include "Box2DHash.h"
 
 class CollisionManager {
@@ -16,7 +15,7 @@ class CollisionManager {
     std::unordered_map<b2ShapeId, Entity*, b2ShapeIdHasher, b2ShapeIdEqual>
         shapeToEntity;
     std::unordered_map<const Car*, PlayerId> carToPlayer;
-    std::vector<CollisionEvent> collisionEvents;
+    std::deque<CollisionEvent> collisionEvents;
     RaceSession* raceSession{nullptr};
 
     void handleHitEvents(const b2ContactEvents& events);
@@ -35,9 +34,10 @@ class CollisionManager {
         carToPlayer[car] = playerId;
     }
     bool hasCollisionEvent() const { return !collisionEvents.empty(); }
-    std::vector<CollisionEvent> consumeEvents() {
-        auto out = collisionEvents;
-        collisionEvents.clear();
+
+    CollisionEvent consumeEvent() {
+        const auto out = collisionEvents.front();
+        collisionEvents.pop_front();
         return out;
     }
 

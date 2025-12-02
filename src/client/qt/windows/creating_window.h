@@ -20,7 +20,8 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
     ~CreatingWindow() override;
 
     void on_join_response(const SessionInfo&,
-                          const std::vector<CarStaticInfo>&) override;
+                          const std::vector<CarInfo>&) override;
+    void on_static_session_data_response(const StaticSessionData&) override;
 
     void reset();
    signals:
@@ -34,7 +35,7 @@ class CreatingWindow final : public QWidget, Connexion::Responder {
     void onCancelClicked();
 
    private:
-    void setupUI();
+    void setupUI(const StaticSessionData& staticData);
 
     // Widgets
     QLineEdit* nameEdit;

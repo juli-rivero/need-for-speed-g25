@@ -29,7 +29,6 @@ SearchController::~SearchController() { Listener::unsubscribe(); }
 void SearchController::on_join_request(const std::string& session_id) {
     try {
         Session& session = sessions_monitor.get_session(session_id);
-        session.add_client(client_id);
         dispatcher.on_join_session(session);
         log->trace("added client to session");
     } catch (const std::exception& e) {
@@ -63,6 +62,20 @@ void SearchController::on_create_request(const SessionConfig& session_config) {
         on_join_request(session_config.name);
     } catch (std::exception& e) {
         log->warn("could not create session: {}", e.what());
+        api.reply_error(e.what());
+    }
+}
+
+void SearchController::on_static_session_data_request() {
+    try {
+        log->trace("sending static session data");
+        StaticSessionData data;
+        data.playersCapacity = sessions_monitor.get_max_players_per_session();
+        data.racesCapacity = sessions_monitor.get_max_races_per_session();
+        data.cities = sessions_monitor.get_available_cities();
+        api.reply_static_session_data(data);
+    } catch (std::exception& e) {
+        log->warn("could not send static session data: {}", e.what());
         api.reply_error(e.what());
     }
 }

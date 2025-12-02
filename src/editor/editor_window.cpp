@@ -11,6 +11,8 @@
 #include <QVBoxLayout>
 
 #include "editor/yaml_handler.h"
+// Asegúrate de incluir esto si no lo tienes indirectamente
+#include "editor/sensor_item.h"
 
 EditorWindow::EditorWindow(EditorMode mode, QWidget* parent)
     : QMainWindow(parent),
@@ -34,8 +36,12 @@ EditorWindow::EditorWindow(EditorMode mode, QWidget* parent)
             &EditorWindow::updateItemList);
     connect(mapCanvas, &MapCanvas::buildingVertexAdded, this,
             &EditorWindow::updateBuildingStatus);
+
+    // --- IMPORTANTE: Usar la señal para actualizar UI, NO llamar lógica
+    // repetida
     connect(mapCanvas, &MapCanvas::buildingFinished, this,
             &EditorWindow::onFinishBuilding);
+
     connect(mapCanvas, &MapCanvas::mousePositionChanged, this,
             &EditorWindow::updateStatusBar);
     connect(mapCanvas, &MapCanvas::selectionChanged, this,
@@ -52,7 +58,6 @@ EditorWindow::EditorWindow(EditorMode mode, QWidget* parent)
 
     if (editorMode == EditRaceMode) {
         setWindowTitle("Need for Speed - Editor de Carreras");
-        // Abrir automáticamente el diálogo para cargar un mapa existente
         QTimer::singleShot(100, this, &EditorWindow::onLoadProject);
     } else {
         setWindowTitle("Need for Speed - Editor de Mapas");
@@ -70,58 +75,85 @@ void EditorWindow::setupToolbar() {
     QToolBar* toolbar = addToolBar("Tools");
     toolbar->setMovable(false);
 
-    // Checkpoints y hints (disponibles en ambos modos)
+    // Checkpoints
     startAction = toolbar->addAction("🏁 Start");
-    startAction->setToolTip("Place Start Checkpoint");
     connect(startAction, &QAction::triggered, this,
             &EditorWindow::onPlaceStart);
 
     checkpointAction = toolbar->addAction("⚑ Checkpoint");
-    checkpointAction->setToolTip("Place Intermediate Checkpoint");
     connect(checkpointAction, &QAction::triggered, this,
             &EditorWindow::onPlaceCheckpoint);
 
     finishAction = toolbar->addAction("🏆 Finish");
-    finishAction->setToolTip("Place Finish Checkpoint");
     connect(finishAction, &QAction::triggered, this,
             &EditorWindow::onPlaceFinish);
 
-    hintAction = toolbar->addAction("➡️ Hint");
-    hintAction->setToolTip("Place Direction Hint");
-    connect(hintAction, &QAction::triggered, this, &EditorWindow::onPlaceHint);
-
     toolbar->addSeparator();
 
-    //  Herramientas de edificios (solo en modo CreateMap)
     if (editorMode == CreateMapMode) {
         buildingAction = toolbar->addAction("🏢 New Building");
-        buildingAction->setToolTip("Start Building Placement (Ctrl+B)");
         buildingAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_B));
         connect(buildingAction, &QAction::triggered, this,
                 &EditorWindow::onStartPlacingBuilding);
 
         finishBuildingAction = toolbar->addAction("✅ Finish Building");
-        finishBuildingAction->setToolTip("Finish Current Building (Ctrl+F)");
         finishBuildingAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_F));
         finishBuildingAction->setEnabled(false);
-        connect(finishBuildingAction, &QAction::triggered, this,
-                &EditorWindow::onFinishBuilding);
+
+        // --- CORRECCIÓN CRÍTICA: Conectar directo al canvas para evitar loop
+        // ---
+        connect(finishBuildingAction, &QAction::triggered, mapCanvas,
+                &MapCanvas::finishCurrentBuilding);
 
         cancelBuildingAction = toolbar->addAction("❌ Cancel Building");
-        cancelBuildingAction->setToolTip("Cancel Current Building (Esc)");
         cancelBuildingAction->setEnabled(false);
         connect(cancelBuildingAction, &QAction::triggered, this,
                 &EditorWindow::onCancelBuilding);
 
         undoVertexAction = toolbar->addAction("↶ Undo Vertex");
-        undoVertexAction->setToolTip("Remove Last Vertex (Ctrl+Z)");
         undoVertexAction->setEnabled(false);
         connect(undoVertexAction, &QAction::triggered, this,
                 &EditorWindow::onRemoveLastVertex);
 
         toolbar->addSeparator();
         toolbar->addWidget(buildingStatusLabel);
+        toolbar->addSeparator();
+
+        // Buildings types
+        QAction* bridgeAction = toolbar->addAction("🌉 Bridge");
+        connect(bridgeAction, &QAction::triggered, [this]() {
+            mapCanvas->startPlacingBuilding("bridge");
+            finishBuildingAction->setEnabled(true);
+            cancelBuildingAction->setEnabled(true);
+            undoVertexAction->setEnabled(true);
+        });
+
+        QAction* railingAction = toolbar->addAction("🚧 Railing");
+        connect(railingAction, &QAction::triggered, [this]() {
+            mapCanvas->startPlacingBuilding("railing");
+            finishBuildingAction->setEnabled(true);
+            cancelBuildingAction->setEnabled(true);
+            undoVertexAction->setEnabled(true);
+        });
     }
+
+    toolbar->addSeparator();
+
+    // SENSORS
+    QAction* upperSensorAction = toolbar->addAction("⬆️ Upper Sensor");
+    connect(upperSensorAction, &QAction::triggered,
+            [this]() { mapCanvas->startPlacingSensor(SensorItem::Upper); });
+
+    QAction* lowerSensorAction = toolbar->addAction("⬇️ Lower Sensor");
+    connect(lowerSensorAction, &QAction::triggered,
+            [this]() { mapCanvas->startPlacingSensor(SensorItem::Lower); });
+
+    toolbar->addSeparator();
+
+    // OVERPASS
+    QAction* overpassAction = toolbar->addAction("🌉 Overpass");
+    connect(overpassAction, &QAction::triggered,
+            [this]() { mapCanvas->startPlacingOverpass(); });
 }
 
 void EditorWindow::setupMenuBar() {
@@ -131,15 +163,12 @@ void EditorWindow::setupMenuBar() {
     newAction->setShortcut(QKeySequence::New);
     connect(newAction, &QAction::triggered, this, &EditorWindow::onNewMap);
 
-    // Diferentes opciones según el modo
     if (editorMode == EditRaceMode) {
-        // Solo permitir cargar proyectos YAML existentes
         QAction* loadProjectAction = fileMenu->addAction("&Open Race (YAML)");
         loadProjectAction->setShortcut(QKeySequence::Open);
         connect(loadProjectAction, &QAction::triggered, this,
                 &EditorWindow::onLoadProject);
     } else {
-        // Modo CreateMap: permitir cargar imagen o proyecto
         QAction* loadImageAction =
             fileMenu->addAction("Load &Background Image");
         connect(loadImageAction, &QAction::triggered, this,
@@ -164,54 +193,42 @@ void EditorWindow::setupMenuBar() {
 }
 
 void EditorWindow::setupDocks() {
-    // Dock con lista de items
     QDockWidget* listDock = new QDockWidget("Items", this);
     listDock->setWidget(itemList);
     addDockWidget(Qt::RightDockWidgetArea, listDock);
-
-    connect(itemList, &QListWidget::itemDoubleClicked,
-            [](QListWidgetItem* item) {
-                Q_UNUSED(item);
-                // Aquí podrías centrar la vista en el item seleccionado
-            });
 }
 
+// ... (onPlaceStart, onPlaceCheckpoint, onPlaceFinish sin cambios) ...
 void EditorWindow::onPlaceStart() {
     mapCanvas->placeCheckpoint(CheckpointItem::Start);
     statusBar()->showMessage("Click to place start checkpoint", 3000);
 }
-
 void EditorWindow::onPlaceCheckpoint() {
     mapCanvas->placeCheckpoint(CheckpointItem::Normal);
     statusBar()->showMessage("Click to place intermediate checkpoint", 3000);
 }
-
 void EditorWindow::onPlaceFinish() {
     mapCanvas->placeCheckpoint(CheckpointItem::Finish);
     statusBar()->showMessage("Click to place finish checkpoint", 3000);
 }
 
-void EditorWindow::onPlaceHint() {
-    mapCanvas->placeHint();
-    statusBar()->showMessage("Click to place hint arrow", 3000);
-}
-
 void EditorWindow::onStartPlacingBuilding() {
-    mapCanvas->startPlacingBuilding();
-    finishBuildingAction->setEnabled(true);
-    cancelBuildingAction->setEnabled(true);
-    undoVertexAction->setEnabled(true);
-    buildingStatusLabel->setText("Placing building: 0 vertices");
-    statusBar()->showMessage(
-        "Click to add vertices. Press Enter to finish, Esc to cancel.", 5000);
+    if (!mapCanvas) return;
+    mapCanvas->startPlacingBuilding(QStringLiteral("generic"));
+    if (finishBuildingAction) finishBuildingAction->setEnabled(true);
+    if (cancelBuildingAction) cancelBuildingAction->setEnabled(true);
+    if (undoVertexAction) undoVertexAction->setEnabled(true);
+    buildingStatusLabel->setText(tr("Placing building: generic"));
 }
 
 void EditorWindow::onFinishBuilding() {
-    mapCanvas->finishCurrentBuilding();
+    // IMPORTANTE: NO LLAMAR A mapCanvas->finishCurrentBuilding() AQUÍ
+    // Porque esta función se llama como respuesta a que YA terminó.
+
     buildingStatusLabel->setText("");
-    finishBuildingAction->setEnabled(false);
-    cancelBuildingAction->setEnabled(false);
-    undoVertexAction->setEnabled(false);
+    if (finishBuildingAction) finishBuildingAction->setEnabled(false);
+    if (cancelBuildingAction) cancelBuildingAction->setEnabled(false);
+    if (undoVertexAction) undoVertexAction->setEnabled(false);
     statusBar()->showMessage("Building finished", 3000);
 }
 
@@ -231,34 +248,28 @@ void EditorWindow::onRemoveLastVertex() {
 void EditorWindow::updateBuildingStatus(int vertexCount) {
     buildingStatusLabel->setText(
         QString("Building: %1 vertices").arg(vertexCount));
-
-    if (vertexCount >= 3) {
+    if (vertexCount >= 3)
         finishBuildingAction->setEnabled(true);
-    } else {
+    else
         finishBuildingAction->setEnabled(false);
-    }
 }
 
 void EditorWindow::onSaveMap() {
     QString fileName;
-
     if (currentMapFile.isEmpty()) {
-        // Si no hay archivo previo, pedir nombre nuevo
         fileName = QFileDialog::getSaveFileName(
-            this, tr("Save Map Configuration"), "../maps",
-            tr("YAML Files (*.yaml *.yml)"));
-
-        if (fileName.isEmpty()) {
-            return;
-        }
+            this, tr("Save Map"), "../maps", tr("YAML Files (*.yaml *.yml)"));
+        if (fileName.isEmpty()) return;
     } else {
         fileName = currentMapFile;
     }
 
-    // Guardar el YAML con la configuración actual
     if (mapCanvas && yamlHandler) {
+        // Guardar pasando los sensores también
         yamlHandler->saveMap(fileName, mapCanvas->getCheckpoints(),
-                             mapCanvas->getHints(), mapCanvas->getBuildings());
+                             mapCanvas->getBuildings(),
+                             mapCanvas->getSensors(),
+                             mapCanvas->getOverpasses());  // <--- Agregado
         currentMapFile = fileName;
         statusBar()->showMessage(tr("Map saved: %1").arg(fileName));
     }
@@ -266,78 +277,55 @@ void EditorWindow::onSaveMap() {
 
 void EditorWindow::onLoadBackgroundImage() {
     QString fileName = QFileDialog::getOpenFileName(
-        this, tr("Load Background Image"), "../maps",
-        tr("Image Files (*.png *.jpg *.bmp)"));
-
-    if (fileName.isEmpty()) {
-        return;
-    }
-
+        this, tr("Load Image"), "../maps", tr("Image Files (*.png *.jpg)"));
+    if (fileName.isEmpty()) return;
     if (mapCanvas) {
         mapCanvas->loadBackgroundImage(fileName);
-        currentMapFile = "";  // No hay archivo YAML todavía
-        statusBar()->showMessage(
-            tr("Background image loaded: %1").arg(fileName));
+        currentMapFile = "";
+        statusBar()->showMessage(tr("Background loaded: %1").arg(fileName));
     }
 }
 
 void EditorWindow::onLoadProject() {
-    QString yamlFileName =
-        QFileDialog::getOpenFileName(this, tr("Open Map Project"), "../maps",
-                                     tr("YAML Files (*.yaml *.yml)"));
+    QString yamlFileName = QFileDialog::getOpenFileName(
+        this, tr("Open Map"), "../maps", tr("YAML Files (*.yaml *.yml)"));
+    if (yamlFileName.isEmpty()) return;
 
-    if (yamlFileName.isEmpty()) {
-        return;
-    }
-
-    // Cargar el YAML
     QString backgroundPath;
     QList<CheckpointItem*> checkpoints;
-    QList<HintItem*> hints;
     QList<BuildingItem*> buildings;
+    QList<SensorItem*> sensors;
+    QList<OverpassItem*> overpasses;
 
-    if (!yamlHandler->loadMap(yamlFileName, backgroundPath, checkpoints, hints,
-                              buildings)) {
-        QMessageBox::warning(this, "Error",
-                             "Failed to load map from YAML file.");
+    // --- 2. Pasar sensores como 5to argumento ---
+    if (!yamlHandler->loadMap(yamlFileName, backgroundPath, checkpoints,
+                              buildings, sensors, overpasses)) {
+        QMessageBox::warning(this, "Error", "Failed to load map.");
         return;
     }
 
-    // Limpiar el canvas actual
     mapCanvas->clearAll();
 
-    // Cargar la imagen de fondo si está especificada en el YAML
     if (!backgroundPath.isEmpty()) {
-        // Resolver la ruta relativa desde el YAML
         QFileInfo yamlFileInfo(yamlFileName);
         QString absoluteBackgroundPath =
             yamlFileInfo.dir().absoluteFilePath(backgroundPath);
-
         if (QFile::exists(absoluteBackgroundPath)) {
             mapCanvas->loadBackgroundImage(absoluteBackgroundPath);
         } else {
-            // Si no encuentra la imagen, preguntar al usuario
+            // Fallback manual
             QString imgFileName = QFileDialog::getOpenFileName(
-                this, tr("Select Background Image for this map"),
-                yamlFileInfo.dir().absolutePath(),
-                tr("Image Files (*.png *.jpg *.bmp)"));
-
-            if (!imgFileName.isEmpty()) {
+                this, tr("Select Background"),
+                yamlFileInfo.dir().absolutePath(), tr("Images (*.png *.jpg)"));
+            if (!imgFileName.isEmpty())
                 mapCanvas->loadBackgroundImage(imgFileName);
-            }
         }
     }
 
-    // Agregar todos los items al canvas
-    for (CheckpointItem* cp : checkpoints) {
-        mapCanvas->addItemToScene(cp);
-    }
-    for (HintItem* hint : hints) {
-        mapCanvas->addItemToScene(hint);
-    }
-    for (BuildingItem* building : buildings) {
-        mapCanvas->addItemToScene(building);
-    }
+    for (CheckpointItem* cp : checkpoints) mapCanvas->addItemToScene(cp);
+    for (BuildingItem* b : buildings) mapCanvas->addItemToScene(b);
+    for (SensorItem* s : sensors) mapCanvas->addItemToScene(s);
+    for (OverpassItem* o : overpasses) mapCanvas->addItemToScene(o);
 
     currentMapFile = yamlFileName;
     updateItemList();
@@ -346,12 +334,9 @@ void EditorWindow::onLoadProject() {
 }
 
 void EditorWindow::onNewMap() {
-    auto reply = QMessageBox::question(this, "New Map",
-                                       "Are you sure you want to create a new "
-                                       "map? Unsaved changes will be lost.",
-                                       QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
+    if (QMessageBox::Yes ==
+        QMessageBox::question(this, "New Map", "Unsaved changes will be lost.",
+                              QMessageBox::Yes | QMessageBox::No)) {
         mapCanvas->clearAll();
         updateItemList();
         statusBar()->showMessage("New map created", 3000);
@@ -360,14 +345,14 @@ void EditorWindow::onNewMap() {
 
 void EditorWindow::updateItemList() {
     itemList->clear();
-
-    int checkpointCount = mapCanvas->getCheckpoints().size();
-    int hintCount = mapCanvas->getHints().size();
-    int buildingCount = mapCanvas->getBuildings().size();
-
-    itemList->addItem(QString("Checkpoints: %1").arg(checkpointCount));
-    itemList->addItem(QString("Hints: %1").arg(hintCount));
-    itemList->addItem(QString("Buildings: %1").arg(buildingCount));
+    itemList->addItem(
+        QString("Checkpoints: %1").arg(mapCanvas->getCheckpoints().size()));
+    itemList->addItem(
+        QString("Buildings: %1").arg(mapCanvas->getBuildings().size()));
+    itemList->addItem(
+        QString("Sensors: %1").arg(mapCanvas->getSensors().size()));
+    itemList->addItem(
+        QString("Overpasses: %1").arg(mapCanvas->getOverpasses().size()));
 }
 
 void EditorWindow::updateStatusBar(const QPointF& pos) {
@@ -377,49 +362,18 @@ void EditorWindow::updateStatusBar(const QPointF& pos) {
 }
 
 void EditorWindow::updateSelectionInfo() {
-    QList<CheckpointItem*> checkpoints = mapCanvas->getCheckpoints();
-    QList<HintItem*> hints = mapCanvas->getHints();
-    QList<BuildingItem*> buildings = mapCanvas->getBuildings();
-
-    QString info = QString("Items: %1 checkpoints, %2 hints, %3 buildings")
-                       .arg(checkpoints.size())
-                       .arg(hints.size())
-                       .arg(buildings.size());
-
-    // Mostrar info del item seleccionado si hay uno
     QList<QGraphicsItem*> selected = mapCanvas->getScene()->selectedItems();
     if (!selected.isEmpty()) {
         QGraphicsItem* item = selected.first();
-        QPointF pos = item->pos();
-
-        if (CheckpointItem* cp = dynamic_cast<CheckpointItem*>(item)) {
-            QString typeStr;
-            switch (cp->getType()) {
-                case CheckpointItem::Start:
-                    typeStr = "Start";
-                    break;
-                case CheckpointItem::Finish:
-                    typeStr = "Finish";
-                    break;
-                case CheckpointItem::Normal:
-                    typeStr = "Normal";
-                    break;
-            }
-            info += QString(" | Selected: Checkpoint %1 at (%2, %3)")
-                        .arg(typeStr)
-                        .arg(pos.x(), 0, 'f', 1)
-                        .arg(pos.y(), 0, 'f', 1);
-        } else if (HintItem* hint = dynamic_cast<HintItem*>(item)) {
-            Q_UNUSED(hint);
-            info += QString(" | Selected: Hint at (%1, %2)")
-                        .arg(pos.x(), 0, 'f', 1)
-                        .arg(pos.y(), 0, 'f', 1);
-        } else if (BuildingItem* building = dynamic_cast<BuildingItem*>(item)) {
-            int vertices = building->getVertices().size();
-            info +=
-                QString(" | Selected: Building with %1 vertices").arg(vertices);
-        }
+        if (dynamic_cast<CheckpointItem*>(item))
+            selectedItemLabel->setText("Selected: Checkpoint");
+        else if (dynamic_cast<BuildingItem*>(item))
+            selectedItemLabel->setText("Selected: Building");
+        else if (dynamic_cast<SensorItem*>(item))
+            selectedItemLabel->setText("Selected: Sensor");
+        else if (dynamic_cast<OverpassItem*>(item))
+            selectedItemLabel->setText("Selected: Overpass");
+    } else {
+        selectedItemLabel->setText("");
     }
-
-    selectedItemLabel->setText(info);
 }

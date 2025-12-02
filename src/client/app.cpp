@@ -13,11 +13,12 @@ App::~App() { spdlog::trace("app destroyed"); }
 
 void App::run() {
     bool quit = false;
+    GameSetUp setup;
     while (true) {
-        QtApp(connexion, quit);
+        QtApp(connexion, quit, setup);
         if (quit) return;
         spdlog::trace("qt app closed");
-        SdlApp(connexion, quit);
+        SdlApp(connexion, quit, setup);
         if (quit) return;
         spdlog::trace("sdl app closed");
     }

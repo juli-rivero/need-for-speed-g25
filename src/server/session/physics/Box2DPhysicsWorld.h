@@ -17,7 +17,7 @@ class Box2DPhysicsWorld {
     Box2DPhysicsWorld();
     ~Box2DPhysicsWorld();
 
-    void step(float dt);
+    void step(double dt);
     b2WorldId getWorldId() const { return world; }
     CollisionManager& getCollisionManager() { return *collisionManager; }
     float getTime() const { return _timeAccumulator; }

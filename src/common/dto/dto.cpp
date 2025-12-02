@@ -2,18 +2,13 @@
 
 #include <iostream>
 
-namespace dto {
-
 // ErrorResponse SERIALIZABLE
 ProtocolReceiver& operator>>(ProtocolReceiver& p, dto::ErrorResponse& e) {
-    p >> e.message;
-    return p;
+    return p >> e.message;
 }
 ProtocolSender& operator<<(ProtocolSender& p, const dto::ErrorResponse& e) {
-    p << e.message;
-    return p;
+    return p << e.message;
 }
-}  // namespace dto
 
 using dto::Request;
 // Request SENDABLE
@@ -26,10 +21,13 @@ ProtocolSender& operator<<(ProtocolSender& p, const Request& e) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
     /*
     * std::variant<dto_search::SearchRequest, dto_search::JoinRequest,
-                 dto_search::CreateRequest, dto_session::LeaveRequest,
-                 dto_session::StartRequest, dto_session::ChooseCarRequest,
-                 dto_game::TurnRequest, dto_game::AccelerateRequest,
-                 dto_game::UseBoostRequest>;
+                 dto_search::CreateRequest,
+                 dto_search::StaticSessionDataRequest,
+                 dto_session::LeaveRequest, dto_session::StartRequest,
+                 dto_session::ChooseCarRequest, dto_game::TurnRequest,
+                 dto_game::AccelerateRequest, dto_game::UseBoostRequest,
+                 dto_game::ReverseRequest, dto_game::CheatMessage,
+                 dto_game::UpgradeRequest>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -42,25 +40,34 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Request& e) {
             e = p.get<dto_search::CreateRequest>();
             break;
         case 3:
-            e = p.get<dto_session::LeaveRequest>();
+            e = p.get<dto_search::StaticSessionDataRequest>();
             break;
         case 4:
-            e = p.get<dto_session::StartRequest>();
+            e = p.get<dto_session::LeaveRequest>();
             break;
         case 5:
-            e = p.get<dto_session::ChooseCarRequest>();
+            e = p.get<dto_session::StartRequest>();
             break;
         case 6:
-            e = p.get<dto_game::TurnRequest>();
+            e = p.get<dto_session::ChooseCarRequest>();
             break;
         case 7:
-            e = p.get<dto_game::AccelerateRequest>();
+            e = p.get<dto_game::TurnRequest>();
             break;
         case 8:
-            e = p.get<dto_game::UseBoostRequest>();
+            e = p.get<dto_game::AccelerateRequest>();
             break;
         case 9:
+            e = p.get<dto_game::UseBoostRequest>();
+            break;
+        case 10:
             e = p.get<dto_game::ReverseRequest>();
+            break;
+        case 11:
+            e = p.get<dto_game::CheatMessage>();
+            break;
+        case 12:
+            e = p.get<dto_game::UpgradeRequest>();
             break;
         default:
             throw std::runtime_error("Unknown request type");
@@ -78,9 +85,11 @@ ProtocolSender& operator<<(ProtocolSender& p, const Response& e) {
 ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
     /*
     * std::variant<dto_search::SearchResponse, dto_search::JoinResponse,
+                 dto_search::StaticSessionDataResponse,
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
-                 dto_game::SnapshotResponse>;
+                 dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
+                 dto_game::EventPacket>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -90,19 +99,28 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             e = p.get<dto_search::JoinResponse>();
             break;
         case 2:
-            e = p.get<dto_session::LeaveResponse>();
+            e = p.get<dto_search::StaticSessionDataResponse>();
             break;
         case 3:
-            e = p.get<dto_session::StartResponse>();
+            e = p.get<dto_session::LeaveResponse>();
             break;
         case 4:
-            e = p.get<dto::ErrorResponse>();
+            e = p.get<dto_session::StartResponse>();
             break;
         case 5:
-            e = p.get<dto_session::SessionSnapshot>();
+            e = p.get<dto::ErrorResponse>();
             break;
         case 6:
-            e = p.get<dto_game::GameSnapshot>();
+            e = p.get<dto_session::SessionSnapshot>();
+            break;
+        case 7:
+            e = p.get<dto_game::GameStaticSnapshot>();
+            break;
+        case 8:
+            e = p.get<dto_game::GameSnapshotPacket>();
+            break;
+        case 9:
+            e = p.get<dto_game::EventPacket>();
             break;
         default:
             throw std::runtime_error("Unknown request type");

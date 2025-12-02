@@ -1,30 +1,36 @@
 #pragma once
 #include <memory>
 
-#include "../model/Bridge.h"
 #include "../model/Car.h"
 #include "../model/Checkpoint.h"
 #include "../model/Wall.h"
+#include "Box2DPhysicsFactory.h"
 #include "Box2DPhysicsWorld.h"
+#include "server/session/model/BridgeSensor.h"
 
 class EntityFactory {
-   private:
+    Box2DPhysicsWorld& world;
+    const YamlGameConfig& cfg;
+    Box2DPhysicsFactory physicsFactory;
+
     static int nextId() {
         static int counter = 0;
         return counter++;
     }
 
    public:
+    EntityFactory(Box2DPhysicsWorld&, const YamlGameConfig&);
+
     // Todos reciben una referencia al mundo físico
-    static std::unique_ptr<Car> createCar(Box2DPhysicsWorld& world,
-                                          const CarType& type, float x,
-                                          float y);
-    static std::unique_ptr<Wall> createWall(Box2DPhysicsWorld& world, float x,
-                                            float y, float w, float h);
-    static std::unique_ptr<Checkpoint> createCheckpoint(
-        Box2DPhysicsWorld& world, float x, float y, float w, float h,
-        float angle, int order);
-    static std::unique_ptr<Bridge> createBridge(Box2DPhysicsWorld& world,
-                                                float x, float y, float w,
-                                                float h, bool driveable);
+    std::unique_ptr<Car> createCar(const CarType&, float x, float y,
+                                   float angleDeg, EntityType entType);
+    std::unique_ptr<Car> createNpcCar(CarType type, float x, float y);
+    std::unique_ptr<Wall> createBuilding(float x, float y, float w, float h,
+                                         EntityType type);
+    std::unique_ptr<Checkpoint> createCheckpoint(float x, float y, float w,
+                                                 float h, float angle,
+                                                 int order,
+                                                 CheckpointType type);
+    std::unique_ptr<BridgeSensor> createBridgeSensor(RenderLayer type, float x,
+                                                     float y, float w, float h);
 };

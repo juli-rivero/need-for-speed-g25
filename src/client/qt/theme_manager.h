@@ -39,6 +39,7 @@ struct ColorPalette {
     QString textPrimary;
     QString textSecondary;
     QString textLight;
+    QString textBackground;
 
     // Estados
     QString statusSuccess;

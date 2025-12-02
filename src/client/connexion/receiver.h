@@ -25,13 +25,17 @@ class Receiver final : public Thread {
     struct Listener : common::Listener<Receiver::Listener> {
         virtual void on_error_response(const std::string&) {}
         virtual void on_search_response(const std::vector<SessionInfo>&) {}
+        virtual void on_static_session_data_response(const StaticSessionData&) {
+        }
         virtual void on_join_response(const SessionInfo&,
-                                      const std::vector<CarStaticInfo>&) {}
+                                      const std::vector<CarInfo>&) {}
         virtual void on_leave_response() {}
-        virtual void on_start_game() {}
+        virtual void on_start_game(const CityInfo&, const RaceInfo&,
+                                   const std::vector<UpgradeChoice>&) {}
         virtual void on_session_snapshot(const SessionConfig&,
                                          const std::vector<PlayerInfo>&) {}
 
+        virtual void on_game_static_snapshot(const RaceInfo&) {}
         /**
          * This method is called to process a snapshot of the current game
          * state.
@@ -42,8 +46,10 @@ class Receiver final : public Thread {
          * players, including their positions, speeds, and other relevant
          * information.
          */
-        virtual void on_game_snapshot(const float,
-                                      const std::vector<PlayerSnapshot>&) {}
+        virtual void on_game_snapshot(const GameSnapshot&) {}
+
+        virtual void on_collision_event(const CollisionEvent&) {}
+
         ~Listener() override = default;
 
        protected:
@@ -55,9 +61,12 @@ class Receiver final : public Thread {
 
     void recv(const dto::ErrorResponse&);
     void recv(const dto_search::SearchResponse&);
+    void recv(const dto_search::StaticSessionDataResponse&);
     void recv(const dto_search::JoinResponse&);
     void recv(const dto_session::LeaveResponse&);
     void recv(const dto_session::StartResponse&);
     void recv(const dto_session::SessionSnapshot&);
-    void recv(const dto_game::GameSnapshot&);
+    void recv(const dto_game::GameStaticSnapshot&);
+    void recv(const dto_game::GameSnapshotPacket&);
+    void recv(const dto_game::EventPacket&);
 };

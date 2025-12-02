@@ -9,7 +9,7 @@ Box2DPhysicsWorld::Box2DPhysicsWorld() {
 
 Box2DPhysicsWorld::~Box2DPhysicsWorld() { b2DestroyWorld(world); }
 
-void Box2DPhysicsWorld::step(float dt) {
+void Box2DPhysicsWorld::step(double dt) {
     b2World_Step(world, dt, 4);
     _timeAccumulator += dt;
 
