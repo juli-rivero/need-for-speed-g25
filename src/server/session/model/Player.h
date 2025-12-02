@@ -12,11 +12,7 @@ class Player {
     const std::string name;
     const std::unique_ptr<Car> car;  // su auto actual
     PlayerRaceData raceState;
-
     float totalAccumulated{0.0f};
-
-    // Upgrades elegidos por el jugador y TODAVIA no aplicados
-    std::vector<UpgradeChoice> pendingUpgrades;
 
    public:
     Player(const PlayerId id, const std::string& name,
@@ -28,19 +24,19 @@ class Player {
     // ------------------------------
     void applyInput(CarInput input) { car->applyInput(input); }
     void update(float dt) { car->update(dt); }
-    const Car* getCar() const { return car.get(); }
+    Car* getCar() const { return car.get(); }
 
     // ------------------------------
     //  ESTADO DE CARRERA
     // ------------------------------
 
     // para reiniciar el estado de carrera para una nueva Race
-    void resetRaceState(float initialPenaltyTime = 0.0f) {
+    void resetRaceState() {
         raceState.nextCheckpoint = 0;
         raceState.finished = false;
         raceState.disqualified = false;
         raceState.elapsed = 0.0f;
-        raceState.penaltyTime = initialPenaltyTime;
+        // penalty sigue igual
     }
 
     void tickTime(float dt) {
@@ -66,30 +62,14 @@ class Player {
     //  TIEMPOS Y PENALIZACIONES
     // ------------------------------
     void setPenalty(float p) { raceState.penaltyTime = p; }
-    float getPenalty() const { return raceState.penaltyTime; }
     PlayerId getId() const { return id; }
-    float getRawTime() const { return raceState.elapsed; }
-    float getNetTime() const {
-        return raceState.elapsed + raceState.penaltyTime;
+    void applyUpgrade(UpgradeStat stat, float delta, float penalty) {
+        car->upgrade(stat, delta);
+        float newPenalty = raceState.penaltyTime + penalty;
+        raceState.penaltyTime = newPenalty;
     }
-
-    void accumulateTotal() { totalAccumulated += getNetTime(); }
-    float getTotalAccumulated() const { return totalAccumulated; }
-
-    // ------------------------------
-    //  UPGRADES
-    // ------------------------------
-    void setUpgrades(const std::vector<UpgradeChoice>& ups) {
-        pendingUpgrades = ups;
-    }
-    const std::vector<UpgradeChoice>& getUpgrades() const {
-        return pendingUpgrades;
-    }
-    void applyUpgrades() {
-        for (const auto& up : pendingUpgrades) {
-            car->upgrade(up);
-        }
-        pendingUpgrades.clear();
+    void accumulateTotal() {
+        totalAccumulated += raceState.elapsed + raceState.penaltyTime;
     }
 
     // ------------------------------
@@ -100,7 +80,7 @@ class Player {
         ps.id = id;
         ps.name = name;
         ps.car = car->getSnapshot();
-
+        ps.upgrades = car->getUpgrades();
         RaceProgressSnapshot rp;
         rp.nextCheckpoint = static_cast<uint32_t>(raceState.nextCheckpoint);
         rp.finished = raceState.finished;
@@ -108,6 +88,10 @@ class Player {
         rp.elapsedTime = raceState.elapsed;
 
         ps.raceProgress = rp;
+
+        ps.rawTime = totalAccumulated;
+        ps.penalty = raceState.penaltyTime;
+        ps.netTime = ps.rawTime + ps.penalty;
         return ps;
     }
 };

@@ -11,6 +11,7 @@
 #include "Entity.h"
 #include "box2d/box2d.h"
 #include "box2d/types.h"
+#include "common/structs.h"
 #include "server/session/logic/types.h"
 #include "server/session/physics/IPhysicalBody.h"
 #include "spdlog/spdlog.h"
@@ -25,13 +26,6 @@ enum class CarInput {
     StartReversing,
     StopReversing,
     StartUsingNitro,
-};
-
-struct UpgradeStats {
-    float bonusMaxSpeed = 0;
-    float bonusAcceleration = 0;
-    float bonusHealth = 0;
-    float bonusNitro = 0;
 };
 
 class Car : public Entity {
@@ -68,26 +62,31 @@ class Car : public Entity {
     static constexpr EntityType Type = EntityType::Car;
     std::shared_ptr<IPhysicalBody> getBody() { return body; }
     CarType getType() const { return carType; }
-
+    UpgradeStats getUpgrades() const { return upgrades; }
     void setLayer(RenderLayer l) {
         layer = l;
 
-        b2ShapeId shape = body->getShapeId();
-        b2Filter filter = b2Shape_GetFilter(shape);
-
         bool isNPC = (getEntityType() == EntityType::NPCCar);
-        filter.categoryBits = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        // Siempre detectar sensores sin importar layer
-        filter.maskBits = CATEGORY_SENSOR | CATEGORY_WALL | CATEGORY_CAR;
+        uint16_t category = isNPC ? CATEGORY_NPC : CATEGORY_CAR;
 
-        // Jugador debe detectar NPCs
-        if (!isNPC) filter.maskBits |= CATEGORY_NPC;
+        uint16_t mask = CATEGORY_WALL | CATEGORY_SENSOR;
 
-        // Railing solo en OVER
-        if (layer == RenderLayer::OVER) filter.maskBits |= CATEGORY_RAILING;
+        // Los de OVER agregan colisión con barandas
+        if (layer == RenderLayer::OVER) {
+            mask |= CATEGORY_RAILING;
+        }
 
-        b2Shape_SetFilter(shape, filter);
+        if (isNPC) {
+            // NPC choca con jugador, paredes, sensores, barandas (si OVER)
+            mask |= CATEGORY_CAR;
+            // NO agregar CATEGORY_NPC
+        } else {
+            mask |= CATEGORY_CAR;
+            mask |= CATEGORY_NPC;
+        }
+
+        body->setCollisionFilter(category, mask);
     }
 
    private:
@@ -127,31 +126,57 @@ class Car : public Entity {
 
     void killLateralVelocity() {
         Vec2 vel = body->getLinearVelocity();
+        float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
+        float maxSpeed = staticStats.maxSpeed + upgrades.bonusMaxSpeed;
+
+        // dirección del auto
         Vec2 dir = getDirection();
         Vec2 lateralNormal = {-dir.y, dir.x};
 
+        // proyección lateral
         float lateralSpeed = vel.x * lateralNormal.x + vel.y * lateralNormal.y;
 
-        Vec2 lateralVel = {lateralNormal.x * lateralSpeed,
-                           lateralNormal.y * lateralSpeed};
+        // cuando estás quieto: NO derrapa nada
+        // a máxima velocidad: derrape leve (configurado por YAML)
+        float t = std::clamp(speed / maxSpeed, 0.0f, 1.0f);
+
+        // interpolación:
+        // quieto -> menos slip (0.98)
+        // rápido -> driftFactor (0.90)
+        float slip =
+            std::lerp(0.98f, static_cast<float>(staticStats.driftFactor), t);
+
+        Vec2 lateralVel = {lateralNormal.x * lateralSpeed * slip,
+                           lateralNormal.y * lateralSpeed * slip};
 
         body->setLinearVelocity(vel.x - lateralVel.x, vel.y - lateralVel.y);
     }
 
     void turn() {
-        // la magnitud de giro depende de la velocidad
         Vec2 vel = body->getLinearVelocity();
         float speed = std::sqrt(vel.x * vel.x + vel.y * vel.y);
 
-        if (speed < 0.5f) return;  // NO girasi está casi quieto
+        // No gira en el lugar
+        // Para simular tracción delantera: si el auto está casi quieto, NO
+        // gira.
+        if (speed < 2.0f) {  // podés ajustar 1.5f / 2.0f según gusto
+            body->setAngularVelocity(0.0f);
+            return;
+        }
 
-        float steerStrength = staticStats.control;
-        float turnRate = steerStrength * (speed / staticStats.maxSpeed);
+        // A partir de aquí, velocidad suficiente para girar
+        float speedNorm =
+            std::clamp(speed / (staticStats.maxSpeed + 0.1f), 0.0f, 1.0f);
+
+        // Curva suave: menos giro a alta velocidad, más en media velocidad
+        float speedFactor = 0.3 * (1.0f - speedNorm);
+
+        float turnRate = staticStats.control * speedFactor;
 
         if (turning == TurnDirection::Left)
-            body->setAngularVelocity(-turnRate * 5.0f);
+            body->setAngularVelocity(-turnRate);
         else if (turning == TurnDirection::Right)
-            body->setAngularVelocity(turnRate * 5.0f);
+            body->setAngularVelocity(turnRate);
         else
             body->setAngularVelocity(0.0f);
     }
@@ -173,6 +198,12 @@ class Car : public Entity {
     bool isDestroyed() const { return health <= 0; }
 
     void update(float dt) {
+        if (isDestroyed()) {
+            body->setLinearVelocity(0.0, 0.0);
+            body->setAngularVelocity(0);
+            return;
+        }
+
         updateNitro(dt);
 
         if (accelerating) accelerate();
@@ -239,33 +270,23 @@ class Car : public Entity {
         }
     }
 
-    // TODO(elvis): esto no es de upgrades?
-    // Fijate si te gusta mas usar upgradeStats como valores o directamente
-    // modificar el CarStaticStats (hacerlo no const) para no andar sumando los
-    // upgrades todo el tiempo, y utilizar los tiempos de penalizacion de otra
-    // manera, por ejemplo, una sola variable que suma los tiempos de
-    // penalizacion para casos rapidos como los snapshots o comparacion entre
-    // los atributos del coche con los del yaml para casos aislados como el fin
-    // de partida en caso de que se quiera mostrar cada penalizacion (¿se quiere
-    // eso?)
-    void upgrade(const UpgradeChoice up) {
-        switch (up.stat) {
+    void upgrade(const UpgradeStat up, float amount) {
+        switch (up) {
             case UpgradeStat::MaxSpeed:
-                upgrades.bonusMaxSpeed += up.delta;
+                upgrades.bonusMaxSpeed += amount;
                 break;
 
             case UpgradeStat::Acceleration:
-                upgrades.bonusAcceleration += up.delta;
+                upgrades.bonusAcceleration += amount;
                 break;
 
             case UpgradeStat::Health:
-                upgrades.bonusHealth += up.delta;
-                health += up.delta;  // TODO(elvis): no se resetea la vida en
-                                     // cada carrera?
+                upgrades.bonusHealth += amount;
+                health += amount;
                 break;
 
             case UpgradeStat::Nitro:
-                upgrades.bonusNitro += up.delta;
+                upgrades.bonusNitro += amount;
                 break;
         }
     }

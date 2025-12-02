@@ -15,7 +15,7 @@ void RaceSession::start() {
     _state = RaceState::Countdown;
     _raceClock = 0.0f;
 
-    for (auto* p : players) p->resetRaceState(p->getPenalty());
+    for (auto* p : players) p->resetRaceState();
 }
 
 void RaceSession::update(float dt) {

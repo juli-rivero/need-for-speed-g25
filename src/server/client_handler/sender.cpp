@@ -6,6 +6,7 @@
 using dto::ErrorResponse;
 using dto_search::JoinResponse;
 using dto_search::SearchResponse;
+using dto_search::StaticSessionDataResponse;
 using dto_session::LeaveResponse;
 using dto_session::SessionSnapshot;
 using dto_session::StartResponse;
@@ -51,6 +52,11 @@ void Sender::reply_search(const vector<SessionInfo>& info) {
     responses.try_push(SearchResponse{info});
 }
 
+void Sender::reply_static_session_data(const StaticSessionData& data) {
+    log->trace("sending static session data response");
+    responses.try_push(StaticSessionDataResponse{data});
+}
+
 void Sender::reply_joined(const SessionInfo& session,
                           const vector<CarInfo>& carTypes) {
     log->trace("sending join response");
@@ -71,10 +77,11 @@ void Sender::send_session_snapshot(const SessionConfig& config,
     log->trace("sending session snapshot");
     responses.try_push(SessionSnapshot{config, players});
 }
-void Sender::notify_game_started(const CityInfo& city_info,
-                                 const RaceInfo& first_race) {
+void Sender::notify_game_started(
+    const CityInfo& city_info, const RaceInfo& first_race,
+    const std::vector<UpgradeChoice>& upgrade_choices) {
     log->trace("sending start response");
-    responses.try_push(StartResponse{city_info, first_race});
+    responses.try_push(StartResponse{city_info, first_race, upgrade_choices});
 }
 
 void Sender::send_game_static_snapshot(const RaceInfo& race) {

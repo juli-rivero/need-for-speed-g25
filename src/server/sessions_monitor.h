@@ -30,6 +30,10 @@ class SessionsMonitor {
 
     std::vector<std::string> get_sessions_ids();
 
+    int get_max_players_per_session();
+    int get_max_races_per_session();
+    std::vector<CityName> get_available_cities();
+
    private:
     void reap_sessions();
 };

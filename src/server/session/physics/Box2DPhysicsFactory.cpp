@@ -61,8 +61,7 @@ std::shared_ptr<Box2dPhysicsBody> Box2DPhysicsFactory::createNpcCar(
     sdef.enableHitEvents = true;
 
     sdef.filter.categoryBits = CATEGORY_NPC;
-    sdef.filter.maskBits =
-        CATEGORY_WALL | CATEGORY_RAILING | CATEGORY_CAR | CATEGORY_SENSOR;
+    sdef.filter.maskBits = 0;
 
     b2ShapeId shape = b2CreatePolygonShape(body->getId(), &sdef, &box);
 

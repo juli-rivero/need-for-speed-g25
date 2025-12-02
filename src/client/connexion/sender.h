@@ -12,6 +12,7 @@
 struct Api {
     virtual void request_search_all_sessions() = 0;
     virtual void request_join_session(const std::string&) = 0;
+    virtual void request_static_session_data() = 0;
     virtual void request_create_and_join_session(const SessionConfig&) = 0;
     virtual void request_leave_current_session() = 0;
     virtual void set_ready(bool ready) = 0;
@@ -24,6 +25,9 @@ struct Api {
     virtual void start_breaking() = 0;
     virtual void stop_breaking() = 0;
     virtual void start_using_nitro() = 0;
+
+    virtual void cheat(Cheat) = 0;
+    virtual void upgrade(UpgradeStat) = 0;
 
     virtual ~Api() = default;
 };
@@ -43,6 +47,7 @@ class Sender final : public Thread, public Api {
 
     void request_search_all_sessions() override;
     void request_join_session(const std::string&) override;
+    void request_static_session_data() override;
     void request_create_and_join_session(const SessionConfig&) override;
     void request_leave_current_session() override;
     void set_ready(bool ready) override;
@@ -56,4 +61,7 @@ class Sender final : public Thread, public Api {
     void start_breaking() override;
     void stop_breaking() override;
     void start_using_nitro() override;
+
+    void cheat(Cheat) override;
+    void upgrade(UpgradeStat) override;
 };
