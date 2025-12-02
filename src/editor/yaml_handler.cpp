@@ -8,6 +8,7 @@
 
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
+#include "editor/overpass_item.h"
 #include "editor/sensor_item.h"
 
 YamlHandler::YamlHandler(QObject* parent) : QObject(parent) {}
@@ -16,7 +17,8 @@ YamlHandler::YamlHandler(QObject* parent) : QObject(parent) {}
 bool YamlHandler::saveMap(const QString& filename,
                           const QList<CheckpointItem*>& checkpoints,
                           const QList<BuildingItem*>& buildings,
-                          const QList<SensorItem*>& sensors) {
+                          const QList<SensorItem*>& sensors,
+                          const QList<OverpassItem*>& overpasses) {
     QFile file(filename);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text)) {
         qWarning() << "Cannot open file for writing:" << filename;
@@ -124,6 +126,22 @@ bool YamlHandler::saveMap(const QString& filename,
         writeSensorsList(lowerSensors);
     }
 
+    // Overpasses
+    out << "overpass:\n";
+    if (overpasses.isEmpty()) {
+        out << "  []\n";
+    } else {
+        for (OverpassItem* o : overpasses) {
+            out << "  - type: overpass\n";
+            out << "    vertices:\n";
+            for (const QPointF& v : o->getVertices()) {
+                out << QString("      - { x: %1, y: %2 }\n")
+                           .arg(v.x())
+                           .arg(v.y());
+            }
+        }
+    }
+
     file.close();
     qDebug() << "Map saved:" << filename;
     return true;
@@ -132,7 +150,8 @@ bool YamlHandler::saveMap(const QString& filename,
 bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
                           QList<CheckpointItem*>& checkpoints,
                           QList<BuildingItem*>& buildings,
-                          QList<SensorItem*>& sensors) {
+                          QList<SensorItem*>& sensors,
+                          QList<OverpassItem*>& overpasses) {
     QFile file(filename);
     if (!file.open(QIODevice::ReadOnly | QIODevice::Text)) {
         qWarning() << "Cannot open file for reading:" << filename;
@@ -147,6 +166,7 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
     CheckpointItem* currentCheckpoint = nullptr;
     BuildingItem* currentBuilding = nullptr;
     SensorItem* currentSensor = nullptr;
+    OverpassItem* currentOverpass = nullptr;
 
     SensorItem::SensorType currentSensorType = SensorItem::Upper;
 
@@ -170,6 +190,14 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
             currentSensor->finish();  // Cerrar el polígono
             sensors.append(currentSensor);
             currentSensor = nullptr;
+        }
+    };
+
+    auto flushCurrentOverpass = [&]() {
+        if (currentOverpass) {
+            currentOverpass->finish();
+            overpasses.append(currentOverpass);
+            currentOverpass = nullptr;
         }
     };
 
@@ -201,6 +229,11 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
             // seguridad:
             currentBuilding = nullptr;
             currentSection = "sensors";
+            continue;
+        }
+        if (line == "overpass:") {
+            flushCurrentSensor();
+            currentSection = "overpass";
             continue;
         }
 
@@ -270,6 +303,13 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
             } else if (line.startsWith("- {") && currentSensor) {  // Vértice
                 currentSensor->addVertex(parseVertex(line));
             }
+        } else if (currentSection == "overpass") {
+             if (line.startsWith("- type: overpass")) {
+                flushCurrentOverpass();
+                currentOverpass = new OverpassItem();
+            } else if (line.startsWith("- {") && currentOverpass) {
+                currentOverpass->addVertex(parseVertex(line));
+            }
         }
     }
 
@@ -282,6 +322,7 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
     }
 
     flushCurrentSensor();  // Guardar el último sensor si quedó colgado
+    flushCurrentOverpass();
 
     file.close();
     qDebug() << "Map loaded:" << filename;

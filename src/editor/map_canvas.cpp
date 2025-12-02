@@ -15,7 +15,9 @@ MapCanvas::MapCanvas(QWidget* parent)
       currentBuilding(nullptr),
       placingSensor(false),
       currentSensorType(SensorItem::Upper),
-      currentSensor(nullptr) {
+      currentSensor(nullptr),
+      placingOverpass(false),
+      currentOverpass(nullptr) {
     // permitir recibir eventos de teclado
     setFocusPolicy(Qt::StrongFocus);
     setMouseTracking(true);
@@ -60,15 +62,54 @@ void MapCanvas::clearBackgroundImage() {
     }
 }
 
+// --- OVERPASSES ---
+void MapCanvas::startPlacingOverpass() {
+    placingOverpass = true;
+    placingBuilding = false;
+    placingCheckpoint = false;
+    placingSensor = false;
+
+    if (currentBuilding) cancelCurrentBuilding();
+    if (currentSensor) cancelCurrentSensor();
+    if (currentOverpass) cancelCurrentOverpass();
+
+    currentOverpass = new OverpassItem();
+    scene->addItem(currentOverpass);
+    updateCursor();
+}
+
+void MapCanvas::finishCurrentOverpass() {
+    if (currentOverpass) {
+        currentOverpass->finish();
+        items.append(currentOverpass);
+        currentOverpass = nullptr;
+        emit itemPlaced();
+    }
+    placingOverpass = false;
+    updateCursor();
+}
+
+void MapCanvas::cancelCurrentOverpass() {
+    if (currentOverpass) {
+        scene->removeItem(currentOverpass);
+        delete currentOverpass;
+        currentOverpass = nullptr;
+    }
+    placingOverpass = false;
+    updateCursor();
+}
+
 // --- CHECKPOINTS ---
 void MapCanvas::placeCheckpoint(CheckpointItem::CheckpointType type) {
     placingCheckpoint = true;
     placingBuilding = false;
     placingSensor = false;
+    placingOverpass = false;
     currentCheckpointType = type;
 
     if (currentSensor) cancelCurrentSensor();
     if (currentBuilding) cancelCurrentBuilding();
+    if (currentOverpass) cancelCurrentOverpass();
 
     updateCursor();
 }
@@ -78,10 +119,12 @@ void MapCanvas::startPlacingBuilding(const QString& type) {
     placingBuilding = true;
     placingCheckpoint = false;
     placingSensor = false;
+    placingOverpass = false;
     currentBuildingType = type;
 
     if (currentBuilding) finishCurrentBuilding();
     if (currentSensor) cancelCurrentSensor();
+    if (currentOverpass) cancelCurrentOverpass();
 
     currentBuilding = new BuildingItem();
     currentBuilding->setBuildingType(type);
@@ -134,10 +177,12 @@ void MapCanvas::startPlacingSensor(SensorItem::SensorType type) {
     placingSensor = true;
     placingBuilding = false;
     placingCheckpoint = false;
+    placingOverpass = false;
     currentSensorType = type;
 
     if (currentSensor) cancelCurrentSensor();
     if (currentBuilding) cancelCurrentBuilding();
+    if (currentOverpass) cancelCurrentOverpass();
 
     // Creamos el sensor vacío y empezamos a agregar vértices
     currentSensor = new SensorItem(type);
@@ -196,9 +241,11 @@ void MapCanvas::clearAll() {
     backgroundItem = nullptr;
     currentBuilding = nullptr;
     currentSensor = nullptr;
+    currentOverpass = nullptr;
     placingCheckpoint = false;
     placingBuilding = false;
     placingSensor = false;
+    placingOverpass = false;
 }
 
 QList<CheckpointItem*> MapCanvas::getCheckpoints() const {
@@ -219,11 +266,23 @@ QList<BuildingItem*> MapCanvas::getBuildings() const {
 }
 
 QList<SensorItem*> MapCanvas::getSensors() const {
-    QList<SensorItem*> list;
+    QList<SensorItem*> sensors;
     for (MapItem* item : items) {
-        if (SensorItem* s = dynamic_cast<SensorItem*>(item)) list.append(s);
+        if (auto s = dynamic_cast<SensorItem*>(item)) {
+            sensors.append(s);
+        }
     }
-    return list;
+    return sensors;
+}
+
+QList<OverpassItem*> MapCanvas::getOverpasses() const {
+    QList<OverpassItem*> overpasses;
+    for (MapItem* item : items) {
+        if (auto o = dynamic_cast<OverpassItem*>(item)) {
+            overpasses.append(o);
+        }
+    }
+    return overpasses;
 }
 
 // --- EVENTOS ---
@@ -245,6 +304,13 @@ void MapCanvas::mousePressEvent(QMouseEvent* event) {
             return;
         }
 
+        if (placingOverpass) {
+            if (currentOverpass) {
+                currentOverpass->addVertex(scenePos);
+            }
+            return;
+        }
+
         if (placingSensor) {
             if (currentSensor) {
                 currentSensor->addVertex(scenePos);
@@ -254,6 +320,11 @@ void MapCanvas::mousePressEvent(QMouseEvent* event) {
 
         if (placingBuilding) {
             addBuildingVertex(scenePos);
+            return;
+        }
+    } else if (event->button() == Qt::RightButton) {
+        if (placingOverpass) {
+            finishCurrentOverpass();
             return;
         }
     }
@@ -279,6 +350,8 @@ void MapCanvas::keyPressEvent(QKeyEvent* event) {
             cancelCurrentBuilding();
         } else if (placingSensor) {
             cancelCurrentSensor();
+        } else if (placingOverpass) {
+            cancelCurrentOverpass();
         } else {
             placingCheckpoint = false;
             updateCursor();
@@ -291,13 +364,22 @@ void MapCanvas::keyPressEvent(QKeyEvent* event) {
         if (placingSensor) {
             finishCurrentSensor();
         }
+        if (placingOverpass) {
+            finishCurrentOverpass();
+        }
     }
 
     QGraphicsView::keyPressEvent(event);
 }
 
 void MapCanvas::updateCursor() {
-    if (placingCheckpoint || placingBuilding || placingSensor) {
+    if (placingSensor) {
+        setCursor(Qt::CrossCursor);
+    } else if (placingBuilding) {
+        setCursor(Qt::CrossCursor);
+    } else if (placingCheckpoint) {
+        setCursor(Qt::PointingHandCursor);
+    } else if (placingOverpass) {
         setCursor(Qt::CrossCursor);
     } else {
         setCursor(Qt::ArrowCursor);
