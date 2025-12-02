@@ -49,6 +49,10 @@ void Sender::request_join_session(const std::string& session) {
     spdlog::trace("requesting join session {}", session);
     requests.try_push(JoinRequest{session});
 }
+void Sender::request_static_session_data() {
+    spdlog::trace("requesting static session data");
+    requests.try_push(dto_search::StaticSessionDataRequest{});
+}
 void Sender::request_create_and_join_session(const SessionConfig& config) {
     spdlog::trace("requesting create and join session {}", config.name);
     requests.try_push(CreateRequest{config});
@@ -94,4 +98,13 @@ void Sender::stop_breaking() {
 void Sender::start_using_nitro() {
     spdlog::trace("use nitro");
     requests.try_push(UseBoostRequest{true});
+}
+
+void Sender::cheat(Cheat cheat) {
+    spdlog::trace("sending cheat {}", static_cast<int>(cheat));
+    requests.try_push(dto_game::CheatMessage{cheat});
+}
+void Sender::upgrade(UpgradeStat stat) {
+    spdlog::trace("sending upgrade {}", static_cast<int>(stat));
+    requests.try_push(dto_game::UpgradeRequest{stat});
 }

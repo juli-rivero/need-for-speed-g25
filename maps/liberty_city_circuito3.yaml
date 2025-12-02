@@ -7,16 +7,130 @@ map:
   # CHECKPOINTS
   # ============================
   checkpoints:
-    - { x: 30,  y:  50,  w: 10, h: 5, angle: 0.0, order: 0 }
-    - { x: 180, y:  70,  w: 14, h: 5, angle: 0.0, order: 1}
-    - { x: 280, y: 160,  w: 14, h: 5, angle: 0.0, order: 2}
-    - { x: 100, y: 120, w: 14, h: 5, angle: 0.0, order: 3 }
-
+    - type: start
+      x: 1636.17
+      y: 4127.98
+      rotation: 0
+      width: 100
+      order: 0
+    - type: intermediate
+      x: 1636.17
+      y: 3476.19
+      rotation: 0
+      width: 100
+      order: 1
+    - type: intermediate
+      x: 1630.81
+      y: 2870
+      rotation: 0
+      width: 100
+      order: 2
+    - type: intermediate
+      x: 1815.88
+      y: 2389.88
+      rotation: 90
+      width: 100
+      order: 3
+    - type: intermediate
+      x: 2558.86
+      y: 2266.5
+      rotation: 0
+      width: 100
+      order: 4
+    - type: intermediate
+      x: 2939.74
+      y: 1660.31
+      rotation: 0
+      width: 100
+      order: 5
+    - type: intermediate
+      x: 3089.95
+      y: 922.693
+      rotation: 0
+      width: 100
+      order: 6
+    - type: intermediate
+      x: 3682.72
+      y: 831.496
+      rotation: 90
+      width: 100
+      order: 7
+    - type: intermediate
+      x: 3956.31
+      y: 295.047
+      rotation: 0
+      width: 100
+      order: 8
+    - type: intermediate
+      x: 4382.79
+      y: 88.5141
+      rotation: 90
+      width: 100
+      order: 9
+    - type: intermediate
+      x: 4519.58
+      y: 804.674
+      rotation: 180
+      width: 100
+      order: 10
+    - type: intermediate
+      x: 4079.7
+      y: 1408.18
+      rotation: 180
+      width: 100
+      order: 11
+    - type: intermediate
+      x: 3881.21
+      y: 1984.86
+      rotation: 180
+      width: 100
+      order: 12
+    - type: intermediate
+      x: 3878.53
+      y: 3025.57
+      rotation: 180
+      width: 100
+      order: 13
+    - type: intermediate
+      x: 3883.89
+      y: 3773.92
+      rotation: 180
+      width: 100
+      order: 14
+    - type: intermediate
+      x: 3663.95
+      y: 4237.95
+      rotation: 270
+      width: 100
+      order: 15
+    - type: intermediate
+      x: 3028.26
+      y: 4417.66
+      rotation: 180
+      width: 100
+      order: 16
+    - type: intermediate
+      x: 2325.51
+      y: 4554.45
+      rotation: 270
+      width: 100
+      order: 17
+    - type: finish
+      x: 1636.17
+      y: 4484.71
+      rotation: 0
+      width: 100
+      order: 18
 
   # ============================
   # SPAWN POINTS
   # ============================
   spawn_points:
-    - { x: 20, y: 50, angle: 0 }
-    - { x: 22, y: 50, angle: 0 }
-    - { x: 24, y: 50, angle: 0 }
+    - { x: 1606, y: 4155, angle: 270 } # Player 1
+    - { x: 1623, y: 4155, angle: 270 } # Player 2
+    - { x: 1640, y: 4155, angle: 270 } # Player 3
+    - { x: 1660, y: 4155, angle: 270} # Player 4
+    - { x: 1606, y: 4186, angle: 270} # Player 5
+    - { x: 1623, y: 4186, angle: 270} # Player 6
+    - { x: 1640, y: 4186, angle: 270} # Player 7
+    - { x: 1660, y: 4186, angle: 270} # Player 8

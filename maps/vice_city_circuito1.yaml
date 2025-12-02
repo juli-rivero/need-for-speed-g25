@@ -1,20 +1,111 @@
+include: "vice_city_map.yaml"
+
 map:
   name: "Vice City - Circuito 1"
-  gravity: [0.0, 0.0]
-  city: "ViceCity"
-
-  walls:
-    - { id: 1, x: 0, y: 0, w: 90, h: 2 }
-    - { id: 2, x: 0, y: 45, w: 90, h: 2 }
 
   checkpoints:
-    - { id: 300, x: 5, y: 5, w: 12, h: 2, order: 1 }
-    - { id: 301, x: 45, y: 20, w: 12, h: 2, order: 2 }
-    - { id: 302, x: 85, y: 5, w: 12, h: 2, order: 3 }
-
-  hints:
-    - { id: 400, x: 25, y: 10, angle: 0.1 }
-    - { id: 401, x: 65, y: 10, angle: -0.2 }
-
+    - type: start
+      x: 2325.75
+      y: 4443.25
+      rotation: 0
+      width: 100
+      order: 0
+    - type: intermediate
+      x: 2577.99
+      y: 4259.57
+      rotation: 90
+      width: 100
+      order: 1
+    - type: intermediate
+      x: 3758.97
+      y: 4254.39
+      rotation: 90
+      width: 100
+      order: 2
+    - type: intermediate
+      x: 4452.3
+      y: 3669.72
+      rotation: 0
+      width: 100
+      order: 3
+    - type: intermediate
+      x: 4457.47
+      y: 2825.05
+      rotation: 0
+      width: 100
+      order: 4
+    - type: intermediate
+      x: 3906.43
+      y: 2751.32
+      rotation: 270
+      width: 100
+      order: 5
+    - type: intermediate
+      x: 3683.95
+      y: 2554.7
+      rotation: 0
+      width: 100
+      order: 6
+    - type: intermediate
+      x: 3827.53
+      y: 1421.58
+      rotation: 0
+      width: 100
+      order: 7
+    - type: intermediate
+      x: 4128.92
+      y: 675.218
+      rotation: 0
+      width: 100
+      order: 8
+    - type: intermediate
+      x: 2935
+      y: 238.008
+      rotation: 270
+      width: 100
+      order: 9
+    - type: intermediate
+      x: 2345.15
+      y: 341.49
+      rotation: 180
+      width: 100
+      order: 10
+    - type: intermediate
+      x: 1794.11
+      y: 494.125
+      rotation: 180
+      width: 100
+      order: 11
+    - type: intermediate
+      x: 1791.53
+      y: 1783.77
+      rotation: 180
+      width: 100
+      order: 12
+    - type: intermediate
+      x: 2336.1
+      y: 1889.83
+      rotation: 180
+      width: 100
+      order: 13
+    - type: intermediate
+      x: 2333.51
+      y: 2850.92
+      rotation: 180
+      width: 100
+      order: 14
+    - type: finish
+      x: 2333.51
+      y: 4051.31
+      rotation: 180
+      width: 100
+      order: 15
   spawn_points:
-    - { x: 5, y: 5, angle: 0.0 }
+    - { x: 2295, y: 4470, angle: 270}
+    - { x: 2308, y: 4470, angle: 270}
+    - { x: 2325, y: 4470, angle: 270}
+    - { x: 2338, y: 4470, angle: 270}
+    - { x: 2295, y: 4495, angle: 270}
+    - { x: 2308, y: 4495, angle: 270}
+    - { x: 2325, y: 4495, angle: 270}
+    - { x: 2338, y: 4495, angle: 270}

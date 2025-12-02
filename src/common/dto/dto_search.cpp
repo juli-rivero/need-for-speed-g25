@@ -42,3 +42,22 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, CreateRequest& e) {
 ProtocolSender& operator<<(ProtocolSender& p, const CreateRequest& e) {
     return p << e.config;
 }
+
+// StaticSessionDataRequest SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p, StaticSessionDataRequest&) {
+    p.get<uint8_t>();  // para que al enviar, no se envien 0 bytes y salte un
+                       // error
+    return p;
+}
+ProtocolSender& operator<<(ProtocolSender& p, const StaticSessionDataRequest&) {
+    return p << static_cast<uint8_t>(0);
+}
+// StaticSessionDataResponse SERIALIZABLE
+ProtocolReceiver& operator>>(ProtocolReceiver& p,
+                             StaticSessionDataResponse& r) {
+    return p >> r.data;
+}
+ProtocolSender& operator<<(ProtocolSender& p,
+                           const StaticSessionDataResponse& r) {
+    return p << r.data;
+}

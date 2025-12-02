@@ -239,6 +239,8 @@ void MapCanvas::mousePressEvent(QMouseEvent* event) {
             CheckpointItem* checkpoint = new CheckpointItem(
                 checkpointId++, currentCheckpointType, scenePos);
             addItemToScene(checkpoint);
+            placingCheckpoint = false;
+            updateCursor();
             emit itemPlaced();
             return;
         }

@@ -45,3 +45,7 @@ void GameController::on_snapshot(const GameSnapshot& snapshot) {
 void GameController::on_collision_event(const CollisionEvent& event) {
     api.send_collision_event(event);
 }
+void GameController::on_cheat(Cheat cheat) { game.cheat(client_id, cheat); }
+void GameController::on_upgrade_request(UpgradeStat upgrade_stat) {
+    game.upgrade(client_id, upgrade_stat);
+}
