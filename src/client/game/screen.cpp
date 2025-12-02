@@ -160,14 +160,14 @@ void Screen::make_btn_upgrade(const UpgradeStat stat, int x, int y,
     ss << std::fixed << std::setprecision(2);
     ss << "+" << delta << " " << stat_name << " -" << penalty << "s";
     SdlButton btn(renderer, assets.font,
-                  SDL2pp::Rect(x, y, upgrade_btn_width, upgrade_btn_height),
-                  ss.str(), [this, stat]() { api.upgrade(stat); });
+                  SDL2pp::Rect(x, y, UPGRADE_WIDTH, UPGRADE_HEIGHT), ss.str(),
+                  [this, stat]() { api.upgrade(stat); });
     buttons.push_back(std::move(btn));
 }
 
 void Screen::make_btn_end(int x, int y) {
-    SdlButtbnn btn(renderer, assets.font, {x, y, EXIT_WIDTH, EXIT_HEIGHT},
-                   "SALIR", [&]() { game.force_exit = true; });
+    SdlButton btn(renderer, assets.font, {x, y, EXIT_WIDTH, EXIT_HEIGHT},
+                  "SALIR", [&]() { game.force_exit = true; });
     buttons.push_back(std::move(btn));
 }
 
@@ -346,6 +346,7 @@ void Screen::draw_intermission() {
 }
 
 void Screen::draw_game_over() {
+    render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
     render_text_title("Coche destruido...", {WIDTH / 2, HEIGHT / 2 - 120},
                       {255, 255, 0, 255}, false);
     if (buttons.empty()) make_btn_end(WIDTH / 2, HEIGHT / 2 + 120);

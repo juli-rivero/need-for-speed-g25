@@ -203,7 +203,7 @@ bool Game::start() {
         sound.update();
 
         if (quit) return true;
-        if (game.force_exit) return true;
+        if (force_exit) return true;
 
         iterator.next();
     }
