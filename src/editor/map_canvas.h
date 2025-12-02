@@ -7,7 +7,8 @@
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
 #include "editor/map_item.h"
-#include "editor/sensor_item.h"  // Necesario para SensorType
+#include "editor/overpass_item.h"
+#include "editor/sensor_item.h"
 
 class MapCanvas : public QGraphicsView {
     Q_OBJECT
@@ -34,6 +35,11 @@ class MapCanvas : public QGraphicsView {
     void finishCurrentSensor();
     void cancelCurrentSensor();
 
+    // --- Overpasses (NUEVO) ---
+    void startPlacingOverpass();
+    void finishCurrentOverpass();
+    void cancelCurrentOverpass();
+
     // --- General ---
     void addItemToScene(QGraphicsItem* item);
     void deleteSelectedItems();
@@ -42,6 +48,7 @@ class MapCanvas : public QGraphicsView {
     QList<CheckpointItem*> getCheckpoints() const;
     QList<BuildingItem*> getBuildings() const;
     QList<SensorItem*> getSensors() const;
+    QList<OverpassItem*> getOverpasses() const;
 
     QGraphicsScene* getScene() const { return scene; }
 
@@ -76,6 +83,10 @@ class MapCanvas : public QGraphicsView {
     bool placingSensor;
     SensorItem::SensorType currentSensorType;
     SensorItem* currentSensor;  // Puntero al sensor que estamos dibujando
+
+    // Estado Overpass
+    bool placingOverpass;
+    OverpassItem* currentOverpass;
 
     void updateCursor();
 };

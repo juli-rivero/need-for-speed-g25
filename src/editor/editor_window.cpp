@@ -147,6 +147,13 @@ void EditorWindow::setupToolbar() {
     QAction* lowerSensorAction = toolbar->addAction("⬇️ Lower Sensor");
     connect(lowerSensorAction, &QAction::triggered,
             [this]() { mapCanvas->startPlacingSensor(SensorItem::Lower); });
+
+    toolbar->addSeparator();
+
+    // OVERPASS
+    QAction* overpassAction = toolbar->addAction("🌉 Overpass");
+    connect(overpassAction, &QAction::triggered,
+            [this]() { mapCanvas->startPlacingOverpass(); });
 }
 
 void EditorWindow::setupMenuBar() {
@@ -261,7 +268,8 @@ void EditorWindow::onSaveMap() {
         // Guardar pasando los sensores también
         yamlHandler->saveMap(fileName, mapCanvas->getCheckpoints(),
                              mapCanvas->getBuildings(),
-                             mapCanvas->getSensors());  // <--- Agregado
+                             mapCanvas->getSensors(),
+                             mapCanvas->getOverpasses());  // <--- Agregado
         currentMapFile = fileName;
         statusBar()->showMessage(tr("Map saved: %1").arg(fileName));
     }
@@ -286,11 +294,12 @@ void EditorWindow::onLoadProject() {
     QString backgroundPath;
     QList<CheckpointItem*> checkpoints;
     QList<BuildingItem*> buildings;
-    QList<SensorItem*> sensors;  // <--- 1. Declarar lista de sensores
+    QList<SensorItem*> sensors;
+    QList<OverpassItem*> overpasses;
 
     // --- 2. Pasar sensores como 5to argumento ---
     if (!yamlHandler->loadMap(yamlFileName, backgroundPath, checkpoints,
-                              buildings, sensors)) {
+                              buildings, sensors, overpasses)) {
         QMessageBox::warning(this, "Error", "Failed to load map.");
         return;
     }
@@ -315,9 +324,8 @@ void EditorWindow::onLoadProject() {
 
     for (CheckpointItem* cp : checkpoints) mapCanvas->addItemToScene(cp);
     for (BuildingItem* b : buildings) mapCanvas->addItemToScene(b);
-
-    // --- 3. Agregar sensores al mapa ---
     for (SensorItem* s : sensors) mapCanvas->addItemToScene(s);
+    for (OverpassItem* o : overpasses) mapCanvas->addItemToScene(o);
 
     currentMapFile = yamlFileName;
     updateItemList();
@@ -343,6 +351,8 @@ void EditorWindow::updateItemList() {
         QString("Buildings: %1").arg(mapCanvas->getBuildings().size()));
     itemList->addItem(
         QString("Sensors: %1").arg(mapCanvas->getSensors().size()));
+    itemList->addItem(
+        QString("Overpasses: %1").arg(mapCanvas->getOverpasses().size()));
 }
 
 void EditorWindow::updateStatusBar(const QPointF& pos) {
@@ -361,6 +371,8 @@ void EditorWindow::updateSelectionInfo() {
             selectedItemLabel->setText("Selected: Building");
         else if (dynamic_cast<SensorItem*>(item))
             selectedItemLabel->setText("Selected: Sensor");
+        else if (dynamic_cast<OverpassItem*>(item))
+            selectedItemLabel->setText("Selected: Overpass");
     } else {
         selectedItemLabel->setText("");
     }
