@@ -3,17 +3,31 @@
 #include <SDL2/SDL.h>
 
 #include <SDL2pp/SDL2pp.hh>
+#include <format>
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <utility>
 
 #include "common/structs.h"
 
-Screen::Screen(SDL2pp::Renderer& renderer, Game& game,
-               const CityName& city_name)
+static auto create_upgrade_choices_map(
+    const std::vector<UpgradeChoice>& choices) {
+    std::unordered_map<UpgradeStat, UpgradeChoice> map;
+    for (const auto& choice : choices) {
+        map[choice.stat] = choice;
+    }
+    return map;
+}
+
+Screen::Screen(SDL2pp::Renderer& renderer, Game& game, Api& api,
+               const CityName& city_name,
+               const std::vector<UpgradeChoice>& upgrade_choices)
     : renderer(renderer),
       game(game),
       assets(renderer, city_name),
+      api(api),
+      upgrade_choices(create_upgrade_choices_map(upgrade_choices)),
       WIDTH(renderer.GetOutputWidth()),
       HEIGHT(renderer.GetOutputHeight()) {
     renderer.Clear();
@@ -42,8 +56,10 @@ void Screen::render_slice(SDL2pp::Texture& texture, SDL2pp::Rect section,
 }
 
 void Screen::render_text(const std::string& texto, SDL2pp::Point pos,
-                         const SDL2pp::Color color, bool in_world) {
+                         const SDL2pp::Color color, bool in_world,
+                         bool centered) {
     SDL2pp::Surface s = assets.font.RenderText_Solid(texto, color);
+    if (centered) pos.x -= s.GetWidth() / 2;
     SDL2pp::Texture t(renderer, s);
 
     render(t, pos, 0, in_world);
@@ -231,43 +247,60 @@ void Screen::draw_minimap() {
     renderer.SetViewport(SDL2pp::NullOpt);
 }
 
+void Screen::make_btn_upgrade(UpgradeStat stat, int x, int y,
+                              std::string stat_name) {
+    const auto& acc_stat = upgrade_choices.at(stat);
+    const auto& [_, delta, penalty] = acc_stat;
+    SdlButton btn(renderer, assets.font,
+                  SDL2pp::Rect(x, y, upgrade_btn_width, upgrade_btn_height),
+                  "+" + std::format("{:.2f}", delta) + stat_name + " -" +
+                      std::format("{:.2f}", penalty) + "s",
+                  [this, &stat]() { api.upgrade(stat); });
+    buttons.push_back(std::move(btn));
+}
+
+void Screen::handle_event(SDL_Event& e) {
+    for (auto& button : buttons) {
+        button.handle_event(e);
+    }
+}
+
 void Screen::draw_end_overlay(bool finished) {
     render_solid({0, 0, WIDTH, HEIGHT}, {0, 0, 0, 200}, false);
 
     if (finished) {
-        render_text("Carrera terminada!", {30, 30}, {255, 255, 255, 255},
-                    false);
-        render_text("Tu tiempo: " + format_time(game.my_car->time), {30, 70},
-                    {255, 255, 255, 255}, false);
+        render_text("Carrera terminada!", {WIDTH / 2, 10}, {255, 255, 255, 255},
+                    false, true);
+        render_text("Tu tiempo: " + format_time(game.my_car->time),
+                    {WIDTH / 2, HEIGHT - 30}, {255, 255, 255, 255}, false,
+                    true);
     } else {
-        render_text("Coche destruido...", {30, 30}, {255, 255, 255, 255},
-                    false);
+        render_text("Coche destruido...", {WIDTH / 2, 10}, {255, 255, 255, 255},
+                    false, true);
     }
 
     if (game.match_state == MatchState::Racing) {
+        buttons.clear();
         render_text("Esperando a que la carrera termine...", {30, 130},
                     {255, 255, 255, 255}, false);
     } else if (game.match_state == MatchState::Intermission) {
-        render_text("Elegi una mejora!", {30, 130}, {255, 255, 255, 255},
-                    false);
+        render_text("Elegi una mejora!", {WIDTH / 2, 50}, {255, 255, 255, 255},
+                    false, true);
+        if (buttons.empty()) {
+            make_btn_upgrade(UpgradeStat::Acceleration,
+                             WIDTH * 2 / 5 - upgrade_btn_width, 100, " Acel.");
+            make_btn_upgrade(UpgradeStat::MaxSpeed, WIDTH * 3 / 5, 100,
+                             " Vel.");
+            make_btn_upgrade(UpgradeStat::Nitro,
+                             WIDTH * 2 / 5 - upgrade_btn_width, 250, " Nitro");
+            make_btn_upgrade(UpgradeStat::Health, WIDTH * 3 / 5, 250, " Vida");
+        }
+        for (auto& btn : buttons) {
+            btn.render();
+        }
 
-        SDL2pp::Color upgrade_yes(255, 255, 0, 255);
-        SDL2pp::Color upgrade_no(255, 255, 255, 255);
-
-        auto _color = [upgrade_no, upgrade_yes](int num) {
-            return num == 0 ? upgrade_no : upgrade_yes;
-        };
-        const auto& [max_speed, acc, health, nitro] = game.my_upgrades;
-
-        render_text("1 - Mejor Aceleracion", {30, 170}, _color(acc), false);
-        render_text("2 - Mejor Velocidad Maxima", {30, 190}, _color(max_speed),
-                    false);
-        render_text("3 - Mejor Nitro", {30, 210}, _color(nitro), false);
-        render_text("4 - Mejor Vida Maxima", {30, 230}, _color(health), false);
-
-        render_text("Siguiente carrera en breve...", {30, 300},
-                    {255, 255, 255, 255}, false);
     } else if (game.match_state == MatchState::Finished) {
+        buttons.clear();
         render_text("Partida terminada!", {30, 130}, {255, 255, 255, 255},
                     false);
     }
@@ -275,6 +308,7 @@ void Screen::draw_end_overlay(bool finished) {
 
 void Screen::update() {
     renderer.Clear();
+
     update_camera();
 
     // Capa 1: mapa y sus detalles

@@ -64,6 +64,7 @@ class Game final : Connexion::Responder {
     std::list<NpcCar> npcs;
     PlayerCar* my_car = nullptr;
     UpgradeStats my_upgrades;
+    float penalty = 0;
 
     float time_elapsed = 0;
     float time_countdown = 0;
