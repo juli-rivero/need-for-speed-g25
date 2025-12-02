@@ -6,6 +6,7 @@
 
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -30,6 +31,9 @@ class Screen final {
     const int WIDTH;
     const int HEIGHT;
 
+    // Auxiliares de renderizado
+    std::unique_ptr<SDL2pp::Texture> minimap_texture;
+
     // Pasos de renderizado
     void draw_ciudad();
     void draw_next_checkpoint();
@@ -37,15 +41,19 @@ class Screen final {
     void draw_bridges();
     void draw_overpasses();
     void draw_hud();
+    void draw_minimap();
     void draw_end_overlay(bool finished);
 
     // Metodos de renderizado
     //
     // Con in_world == true se dibuja relativo al mundo, no la pantalla.
     // Modificar cam_x e cam_y para impactar donde dibujar.
+    // Sin argumentos update_camera() toma el ancho y alto de la ventana
+    // completa si no se puede especificar un ancho y alto particular.
     int cam_offset_x = 0;
     int cam_offset_y = 0;
     void update_camera();
+    void update_camera(int width, int height);
 
     void render(SDL2pp::Texture& surface, SDL2pp::Point pos, double angle = 0,
                 bool in_world = true);
@@ -148,6 +156,7 @@ class Game final : Connexion::Responder {
     // Componentes de snapshot estatico
     const PlayerId my_id;
 
+    std::list<BoundingBox> walls;
     std::list<BoundingBox> bridges;
     std::list<BoundingBox> overpasses;
     std::vector<BoundingBox> checkpoints;

@@ -18,6 +18,9 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
       sound(mixer, *this, setup.city_info.name),
       my_id(connexion.unique_id) {
     // Configurar componentes de snapshot estatico
+    for (const Bound& b : city_info.walls) {
+        walls.emplace_back(b);
+    }
     for (const Bound& b : city_info.bridges) {
         bridges.emplace_back(b);
     }

@@ -21,7 +21,8 @@ SdlApp::SdlApp(Connexion& connexion, bool& quit, GameSetUp& setup) {
     SDL2pp::SDL sdl(SDL_INIT_VIDEO);
     SDL2pp::Window window("Need for Speed TPG", SDL_WINDOWPOS_UNDEFINED,
                           SDL_WINDOWPOS_UNDEFINED, 640, 480, 0);
-    SDL2pp::Renderer renderer(window, -1, SDL_RENDERER_ACCELERATED);
+    SDL2pp::Renderer renderer(
+        window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_TARGETTEXTURE);
 
     SDL2pp::SDLTTF sdl_ttf;
 
