@@ -58,7 +58,6 @@ void Session::add_client(const PlayerId client_id) {
 
 void Session::remove_client(const PlayerId client_id) {
     std::lock_guard lock(mtx);
-    if (not in_game()) users_setup.erase(client_id);
     log->debug("client {} left", client_id);
     notify_change();
 }
