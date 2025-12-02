@@ -68,8 +68,11 @@ bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 bool Session::empty() const { return users_setup.empty(); }
 bool Session::finished() {
     std::lock_guard lock(mtx);
-    emitter.dispatch(&Listener::on_end_game);
     return game != nullptr && game->finished();
+}
+void Session::stop() {
+    std::lock_guard lock(mtx);
+    emitter.dispatch(&Listener::on_end_game);
 }
 
 void Session::set_car(const PlayerId client_id, const CarType& car_name) {
