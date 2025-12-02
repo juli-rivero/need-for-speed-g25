@@ -39,4 +39,5 @@ class SessionController final : Session::Listener, Receiver::Listener {
                        const std::vector<UpgradeChoice>&) override;
     void on_session_updated(const SessionConfig&,
                             const std::vector<PlayerInfo>& players) override;
+    void on_end_game() override;
 };
