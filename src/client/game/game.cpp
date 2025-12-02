@@ -14,7 +14,7 @@ Game::Game(SDL2pp::Renderer& renderer, SDL2pp::Mixer& mixer,
            Connexion& connexion, const GameSetUp& setup)
     : api(connexion.get_api()),
       race_info(setup.race_info),
-      screen(renderer, *this, setup.city_info.name),
+      screen(renderer, *this, api, setup.city_info.name, setup.upgrade_choices),
       sound(mixer, *this, setup.city_info.name),
       my_id(connexion.unique_id) {
     // Configurar componentes de snapshot estatico
@@ -122,6 +122,7 @@ bool Game::send_events() {
 
             if (tecla == SDLK_RALT) cheat_mode = false;
         }
+        screen.handle_event(event);
     }
 
     return false;
@@ -145,6 +146,7 @@ void Game::update_cars() {
         if (player.id == my_id) {
             my_car = &cars.at(player.id);
             my_upgrades = player.upgrades;
+            penalty = player.penalty;
         }
     }
 }
@@ -164,6 +166,8 @@ void Game::update_snapshot() {
     time_countdown = current_snapshot.race.raceCountdown;
     time_left = current_snapshot.race.raceTimeLeft;
     race_state = current_snapshot.race.raceState;
+
+    old_match_state = match_state;
     match_state = current_snapshot.match.matchState;
 }
 void Game::update_race() {
@@ -199,6 +203,7 @@ bool Game::start() {
         sound.update();
 
         if (quit) return true;
+        if (game.force_exit) return true;
 
         iterator.next();
     }
