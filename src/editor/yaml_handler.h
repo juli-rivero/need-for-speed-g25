@@ -2,6 +2,7 @@
 
 #include <QList>
 #include <QObject>
+
 #include "editor/building_item.h"
 #include "editor/checkpoint_item.h"
 #include "editor/overpass_item.h"

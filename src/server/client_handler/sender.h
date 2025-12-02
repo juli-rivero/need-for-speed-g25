@@ -30,6 +30,8 @@ struct Api {
 
     virtual void send_game_snapshot(const GameSnapshot&) = 0;
 
+    virtual void send_new_race_info(const RaceInfo&) = 0;
+
     virtual void send_collision_event(const CollisionEvent&) = 0;
 
     virtual ~Api() = default;
@@ -66,4 +68,6 @@ class Sender final : public Thread, public Api {
     void send_game_snapshot(const GameSnapshot&) override;
 
     void send_collision_event(const CollisionEvent&) override;
+
+    void send_new_race_info(const RaceInfo&) override;
 };

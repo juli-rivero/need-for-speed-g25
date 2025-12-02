@@ -84,6 +84,13 @@ void GameSessionFacade::run() {
             emitter.dispatch(&Listener::on_collision_event, collision);
         }
 
+        if (last_state != MatchState::Racing &&
+            match.state() == MatchState::Racing) {
+            log->debug("New race started");
+            emitter.dispatch(&Listener::on_new_race, match.getRaceInfo());
+        }
+        last_state = match.state();
+
         passed_iterations = iterator.next();
     }
 }

@@ -1,10 +1,5 @@
 #pragma once
 
-#ifndef GAME_FORWARD_DECL
-#define GAME_FORWARD_DECL
-class Game;
-#endif
-
 #include <SDL2pp/SDL2pp.hh>
 #include <list>
 
@@ -12,6 +7,8 @@ class Game;
 #include "client/game/car.h"
 #include "common/macros.h"
 #include "common/structs.h"
+
+class Game;
 
 class Sound final {
    private:

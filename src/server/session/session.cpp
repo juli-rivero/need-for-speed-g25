@@ -112,14 +112,12 @@ void Session::start_game() {
             0, all_races.size() - 1)(rand_generator);
 
         spdlog::info("race {}", all_races[index]);
-        races.push_back(all_races[0]);  // TODO(juli): hacer carreras dinamicas
+        races.push_back(all_races[index]);
     }
 
     game =
         std::make_unique<GameSessionFacade>(yaml_config, races, players, log);
     CityInfo city_info = game->getCityInfo();
-    city_info.name =
-        config.city;  // TODO(juli): esto no se deberia hacer, cambiar
 
     std::vector<UpgradeChoice> upgrade_choices;
     const auto& choices_map = yaml_config.getUpgradesMap();

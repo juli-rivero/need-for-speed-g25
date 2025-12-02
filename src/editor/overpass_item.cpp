@@ -1,10 +1,9 @@
 #include "editor/overpass_item.h"
 
-OverpassItem::OverpassItem(QGraphicsItem* parent)
-    : MapItem(), finished(false) {
+OverpassItem::OverpassItem(QGraphicsItem* parent) : MapItem(), finished(false) {
     Q_UNUSED(parent);
-    setZValue(5); 
-    setFlag(QGraphicsItem::ItemIsSelectable); 
+    setZValue(5);
+    setFlag(QGraphicsItem::ItemIsSelectable);
 }
 
 void OverpassItem::addVertex(const QPointF& point) {
@@ -20,7 +19,7 @@ void OverpassItem::finish() {
 
 QRectF OverpassItem::boundingRect() const {
     if (vertices.isEmpty()) return QRectF();
-    
+
     qreal minX = vertices.first().x();
     qreal minY = vertices.first().y();
     qreal maxX = minX;
@@ -44,7 +43,8 @@ QPainterPath OverpassItem::shape() const {
     return path;
 }
 
-void OverpassItem::paint(QPainter* painter, const QStyleOptionGraphicsItem* option,
+void OverpassItem::paint(QPainter* painter,
+                         const QStyleOptionGraphicsItem* option,
                          QWidget* widget) {
     Q_UNUSED(option);
     Q_UNUSED(widget);

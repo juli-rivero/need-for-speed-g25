@@ -59,6 +59,19 @@ void GameController::on_snapshot(const GameSnapshot& snapshot) {
 void GameController::on_collision_event(const CollisionEvent& event) {
     api.send_collision_event(event);
 }
+void GameController::on_new_race(const RaceInfo& race) {
+    Convertor conv(cfg.getPixelsPerMeter());
+    RaceInfo transformed_race_info = race;
+    for (auto& checkpoint : transformed_race_info.checkpoints) {
+        checkpoint.bound = conv.toPixels(checkpoint.bound);
+        checkpoint.angle = conv.toDegrees(checkpoint.angle);
+    }
+    for (auto& spawn_point : transformed_race_info.spawnPoints) {
+        spawn_point.pos = conv.toPixels(spawn_point.pos);
+        spawn_point.angle = conv.toDegrees(spawn_point.angle);
+    }
+    api.send_new_race_info(transformed_race_info);
+}
 void GameController::on_cheat(Cheat cheat) { game.cheat(client_id, cheat); }
 void GameController::on_upgrade_request(UpgradeStat upgrade_stat) {
     game.upgrade(client_id, upgrade_stat);

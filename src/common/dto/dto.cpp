@@ -89,7 +89,7 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
                  dto_session::LeaveResponse, dto_session::StartResponse,
                  ErrorResponse, dto_session::SessionSnapshot,
                  dto_game::GameStaticSnapshot, dto_game::GameSnapshotPacket,
-                 dto_game::EventPacket>;
+                 dto_game::EventPacket, dto_game::NewRaceInfo>;
      */
     switch (p.get<size_t>()) {
         case 0:
@@ -121,6 +121,9 @@ ProtocolReceiver& operator>>(ProtocolReceiver& p, Response& e) {
             break;
         case 9:
             e = p.get<dto_game::EventPacket>();
+            break;
+        case 10:
+            e = p.get<dto_game::NewRaceInfo>();
             break;
         default:
             throw std::runtime_error("Unknown request type");

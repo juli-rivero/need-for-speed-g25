@@ -304,7 +304,7 @@ bool YamlHandler::loadMap(const QString& filename, QString& backgroundImagePath,
                 currentSensor->addVertex(parseVertex(line));
             }
         } else if (currentSection == "overpass") {
-             if (line.startsWith("- type: overpass")) {
+            if (line.startsWith("- type: overpass")) {
                 flushCurrentOverpass();
                 currentOverpass = new OverpassItem();
             } else if (line.startsWith("- {") && currentOverpass) {
