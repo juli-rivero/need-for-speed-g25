@@ -47,6 +47,8 @@ class Session final {
         virtual void on_session_updated(
             const SessionConfig&, const std::vector<PlayerInfo>& players) = 0;
 
+        virtual void on_end_game() = 0;
+
        protected:
         void subscribe(Session&);
     };
@@ -63,6 +65,8 @@ class Session final {
     bool in_game() const;
     bool full() const;
     bool empty() const;
+    bool finished();
+    void stop();
 
     void set_car(PlayerId client_id, const CarType&);
 

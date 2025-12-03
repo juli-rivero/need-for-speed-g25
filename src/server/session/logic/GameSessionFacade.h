@@ -62,6 +62,8 @@ class GameSessionFacade : public Thread {
     CityInfo getCityInfo() const { return cityInfo; }
     RaceInfo getRaceInfo() const { return match.getRaceInfo(); }
 
+    bool finished() const { return match.state() == MatchState::Finished; }
+
    private:
     common::Emitter<GameSessionFacade::Listener> emitter;
 };

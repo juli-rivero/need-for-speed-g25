@@ -42,7 +42,10 @@ void Controller::on_start_game(GameSessionFacade& game) {
     });
 }
 void Controller::on_leave_session() {
-    events.try_push([this] { session_controller = nullptr; });
+    events.try_push([this] {
+        session_controller = nullptr;
+        game_controller = nullptr;
+    });
 }
 
 void Controller::on_game_end() {

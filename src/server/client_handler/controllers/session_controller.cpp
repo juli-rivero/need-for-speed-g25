@@ -83,6 +83,14 @@ void SessionController::on_session_updated(
         api.reply_error(e.what());
     }
 }
+void SessionController::on_end_game() {
+    try {
+        dispatcher.on_leave_session();
+    } catch (std::exception& e) {
+        log->warn("could not send session snapshot: {}", e.what());
+        api.reply_error(e.what());
+    }
+}
 
 void SessionController::on_start_game(
     GameSessionFacade& game, const CityInfo& city_info,
