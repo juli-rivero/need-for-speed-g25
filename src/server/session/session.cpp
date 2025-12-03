@@ -59,12 +59,21 @@ void Session::add_client(const PlayerId client_id) {
 void Session::remove_client(const PlayerId client_id) {
     std::lock_guard lock(mtx);
     log->debug("client {} left", client_id);
+    if (not in_game()) users_setup.erase(client_id);
     notify_change();
 }
 
 bool Session::in_game() const { return game != nullptr; }
 bool Session::full() const { return users_setup.size() >= config.maxPlayers; }
 bool Session::empty() const { return users_setup.empty(); }
+bool Session::finished() {
+    std::lock_guard lock(mtx);
+    return game != nullptr && game->finished();
+}
+void Session::stop() {
+    std::lock_guard lock(mtx);
+    emitter.dispatch(&Listener::on_end_game);
+}
 
 void Session::set_car(const PlayerId client_id, const CarType& car_name) {
     std::lock_guard lock(mtx);
