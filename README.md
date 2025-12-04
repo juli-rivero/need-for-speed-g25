@@ -10,6 +10,13 @@
 **Need for Speed G25** es una implementación multijugador del clásico juego de carreras. Desarrollado desde cero utilizando **C++**, implementando un modelo **Cliente-Servidor**, y **Qt** para la renderización gráfica y el editor.
 
 ---
+## 🌐 Sitio Web Oficial
+
+¡Visita nuestra Landing Page para ver el trailer y descargar el juego con estilo retro!
+
+**[juli-rivero.github.io/need-for-speed-g25](https://juli-rivero.github.io/need-for-speed-g25/)**
+
+---
 
 ## 🚀 Sobre el Proyecto
 
