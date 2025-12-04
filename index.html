@@ -51,10 +51,16 @@
                                     Multiplayer 2D Racing | C++ &amp; Qt
                                 </h2>
 </div>
-<div class="w-[70%] border-4 border-gray-600 bg-gray-800 p-2">
-<div class="w-full bg-black aspect-video">
-<img alt="Pixel art of a red car driving down a city street at night" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw5Uo7qWHQ4uPZNiDyRfo1Yk5MWc4N0DtycVtvHgkJyNvENXVRwydjyInaSeUQ6WY3lAg2KfY0bDZI2rMAWhPl64SNh9RvmjgIUpNnR4gfdg-To8jrk9QPXDjH-FRkn8lNhFhw018KxYIn1NOeejnoP-ZLwUevl52HYT2DYdlpaMweS3Ucy3KZOn7jqSkvgRApqfeAyHgwDMT-rPaHhN1IQM_vpHTPFTljZzuNqIhn-nQM3_ZiblsV0hN16SucbIFdIQgp6JLj-x0"/>
-</div>
+<div class="w-[95%] border-4 border-gray-600 bg-black relative shadow-[0_0_20px_rgba(0,0,0,0.5)]">
+    <div class="w-full relative">
+        
+        <video class="w-full h-auto block object-cover" autoplay loop muted playsinline>
+            <source src="gameplay.mp4" type="video/mp4">
+            Your browser does not support the video tag.
+        </video>
+
+        <div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent pointer-events-none"></div>
+    </div>
 </div>
 <a href="https://github.com/juli-rivero/need-for-speed-g25/archive/refs/heads/main.zip" download 
    class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden h-14 px-8 bg-primary text-background-dark text-lg font-bold leading-normal tracking-widest border-4 border-primary hover:bg-background-dark hover:text-primary transition-colors text-decoration-none">
@@ -99,9 +105,9 @@
 <p class="font-body text-primary">bash</p>
 </div>
 <pre class="p-6 text-base font-body whitespace-pre-wrap"><code class="text-primary">&gt; <span class="text-white">git clone https://github.com/user/need-for-speed-g25.git</span>
-<span class="text-primary">&gt; </span><span class="text-white">cd need-for-speed-g25</span>
-<span class="text-primary">&gt; </span><span class="text-white">./installer.sh</span></code></pre>
-<span class="text-primary">&gt; </span><span class="text-white">make exec</span></code></pre>
+<span class="text-primary">> </span><span class="text-white">cd need-for-speed-g25</span>
+<span class="text-primary">> </span><span class="text-white">./installer.sh</span>
+<span class="text-primary">> </span><span class="text-white">make exec-client</span></code></pre>
 </div>
 </div>
 <footer class="mt-12 mb-6 px-4">
