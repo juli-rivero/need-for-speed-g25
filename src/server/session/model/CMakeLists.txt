@@ -1,9 +1,0 @@
-target_sources(taller_server
-        PUBLIC
-        BridgeSensor.h
-        Car.h
-        Checkpoint.h
-        Player.h
-        Wall.h
-        Entity.h
-)
