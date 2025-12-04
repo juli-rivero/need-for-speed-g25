@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Need for Speed G25 Landing Page - Retro Arcade</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&amp;family=VT323&amp;family=Fira+Code:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#41cd52",
+              "background-dark": "#1a1a1a",
+            },
+            fontFamily: {
+              "display": ["'Press Start 2P'", "sans-serif"],
+              "body": ["'Fira Code'", "monospace"]
+            },
+            borderRadius: {
+              "DEFAULT": "0px"
+            },
+          },
+        },
+      }
+    </script>
+<style>
+      .text-shadow-neon {
+        text-shadow: 0 0 5px #41cd52, 0 0 10px #41cd52, 0 0 15px #41cd52;
+      }
+    </style>
+</head>
+<body class="bg-background-dark font-body text-white">
+<div class="relative flex min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<div class="absolute inset-0 z-0">
+<img alt="Pixel art of a red car driving down a city street at night" class="w-full h-full object-cover opacity-30" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw5Uo7qWHQ4uPZNiDyRfo1Yk5MWc4N0DtycVtvHgkJyNvENXVRwydjyInaSeUQ6WY3lAg2KfY0bDZI2rMAWhPl64SNh9RvmjgIUpNnR4gfdg-To8jrk9QPXDjH-FRkn8lNhFhw018KxYIn1NOeejnoP-ZLwUevl52HYT2DYdlpaMweS3Ucy3KZOn7jqSkvgRApqfeAyHgwDMT-rPaHhN1IQM_vpHTPFTljZzuNqIhn-nQM3_ZiblsV0hN16SucbIFdIQgp6JLj-x0"/>
+<div class="absolute inset-0 bg-black/50"></div>
+</div>
+<div class="relative layout-container flex h-full grow flex-col z-10">
+<div class="px-4 md:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-5">
+<div class="layout-content-container flex flex-col max-w-[960px] flex-1 gap-24">
+<div class="flex flex-col gap-8 items-center justify-center text-center py-16">
+<div class="flex flex-col gap-4">
+<h1 class="text-white text-5xl md:text-7xl font-display uppercase text-shadow-neon">
+                                    NEED FOR SPEED G25
+                                </h1>
+<h2 class="text-white text-lg md:text-xl font-body uppercase">
+                                    Multiplayer 2D Racing | C++ &amp; Qt
+                                </h2>
+</div>
+<div class="w-[70%] border-4 border-gray-600 bg-gray-800 p-2">
+<div class="w-full bg-black aspect-video">
+<img alt="Pixel art of a red car driving down a city street at night" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCw5Uo7qWHQ4uPZNiDyRfo1Yk5MWc4N0DtycVtvHgkJyNvENXVRwydjyInaSeUQ6WY3lAg2KfY0bDZI2rMAWhPl64SNh9RvmjgIUpNnR4gfdg-To8jrk9QPXDjH-FRkn8lNhFhw018KxYIn1NOeejnoP-ZLwUevl52HYT2DYdlpaMweS3Ucy3KZOn7jqSkvgRApqfeAyHgwDMT-rPaHhN1IQM_vpHTPFTljZzuNqIhn-nQM3_ZiblsV0hN16SucbIFdIQgp6JLj-x0"/>
+</div>
+</div>
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden h-14 px-8 bg-primary text-background-dark text-lg font-bold leading-normal tracking-widest border-4 border-primary hover:bg-background-dark hover:text-primary transition-colors">
+<span class="truncate">DOWNLOAD ZIP</span>
+</button>
+</div>
+<div class="flex flex-col gap-10 px-4 py-10 @container">
+<div class="flex flex-col gap-4 text-center items-center">
+<h2 class="text-white tracking-widest text-4xl font-display uppercase">
+                            GAME SPECS
+                        </h2>
+</div>
+<div class="grid grid-cols-[repeat(auto-fit,minmax(250px,1fr))] gap-6 p-0 mt-8">
+<div class="flex flex-1 gap-4 border-2 border-primary bg-black/50 backdrop-blur-sm p-6 flex-col items-center text-center">
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-lg font-bold leading-tight uppercase font-display text-sm">Multiplayer</h3>
+<p class="text-white text-base font-normal leading-normal font-body">Client-Server Architecture</p>
+</div>
+</div>
+<div class="flex flex-1 gap-4 border-2 border-primary bg-black/50 backdrop-blur-sm p-6 flex-col items-center text-center">
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-lg font-bold leading-tight uppercase font-display text-sm">Physics</h3>
+<p class="text-white text-base font-normal leading-normal font-body">Box2D Simulation</p>
+</div>
+</div>
+<div class="flex flex-1 gap-4 border-2 border-primary bg-black/50 backdrop-blur-sm p-6 flex-col items-center text-center">
+<div class="flex flex-col gap-2">
+<h3 class="text-primary text-lg font-bold leading-tight uppercase font-display text-sm">Editor</h3>
+<p class="text-white text-base font-normal leading-normal font-body">Custom Map Builder</p>
+</div>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-8 px-4">
+<h2 class="text-white text-4xl font-display tracking-widest text-center uppercase">INSTALLATION</h2>
+<div class="border-2 border-primary bg-black/70 backdrop-blur-sm overflow-hidden">
+<div class="flex items-center gap-2 px-4 py-3 bg-[#111]/80">
+<p class="font-body text-primary">bash</p>
+</div>
+<pre class="p-6 text-base font-body whitespace-pre-wrap"><code class="text-primary">&gt; <span class="text-white">git clone https://github.com/user/need-for-speed-g25.git</span>
+<span class="text-primary">&gt; </span><span class="text-white">cd need-for-speed-g25</span>
+<span class="text-primary">&gt; </span><span class="text-white">./build.sh</span></code></pre>
+</div>
+</div>
+<footer class="mt-12 mb-6 px-4">
+<div class="flex flex-col sm:flex-row justify-between items-center gap-4 py-4 border-t-2 border-gray-700">
+<p class="text-sm text-gray-400 font-body">The Team: Group 25</p>
+<div class="flex gap-4">
+<a class="text-sm text-gray-400 hover:text-primary transition-colors font-body" href="#">Creator 1</a>
+<a class="text-sm text-gray-400 hover:text-primary transition-colors font-body" href="#">Creator 2</a>
+<a class="text-sm text-gray-400 hover:text-primary transition-colors font-body" href="#">Creator 3</a>
+</div>
+</div>
+</footer>
+</div>
+</div>
+</div>
+</div>
+</body></html>
