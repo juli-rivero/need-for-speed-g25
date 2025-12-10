@@ -100,3 +100,5 @@ Para detalles profundos sobre la arquitectura, el protocolo de comunicación y l
 | **Franco Lucchesi** | [@Franco-Lucchesi](https://github.com/lucchesifd) |
 | **Nicolas Francisco Mazzeo** | [@Nicolas-Mazzeo](https://github.com/Nicolas-Mazzeo) |
 | **Julián Rivero** | [@juli-rivero](https://github.com/juli-rivero) |
+
+Agradecemos por la ayuda de nuestro corrector, quién siempre estuvo a disposición en todo momento, Iván Erlich.
